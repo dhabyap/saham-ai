@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Stock Analyzer Indonesia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link href="/static/style.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@1.2.1/dist/chartjs-chart-financial.min.js"></script>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span class="sidebar-title">Stock Analyzer</span>
+            </div>
+            <div class="sidebar-stocks" id="stockList">
+                <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <small class="d-block text-muted mt-1">Loading stocks...</small>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <small class="text-muted">IDX Stocks</small>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Navbar -->
+            <nav class="navbar navbar-dark border-bottom px-3 py-2">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-sm btn-outline-secondary" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <span id="currentStock" class="fw-bold">Select a stock</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <div class="input-group input-group-sm" style="max-width:250px">
+                        <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Cari saham..." onkeyup="filterStocks(this.value)">
+                        <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Content -->
+            <div class="p-3">
+                <!-- Summary Cards -->
+                <div class="row g-2 mb-3" id="summaryCards">
+                    <div class="col-md-3 col-6">
+                        <div class="card summary-card">
+                            <div class="card-body p-2">
+                                <small class="text-muted">Price</small>
+                                <h5 class="mb-0" id="cardPrice">-</h5>
+                                <small id="cardChange" class="text-muted">-</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="card summary-card">
+                            <div class="card-body p-2">
+                                <small class="text-muted">RSI</small>
+                                <h5 class="mb-0" id="cardRsi">-</h5>
+                                <small id="cardRsiStatus" class="text-muted">-</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="card summary-card">
+                            <div class="card-body p-2">
+                                <small class="text-muted">MACD</small>
+                                <h5 class="mb-0" id="cardMacd">-</h5>
+                                <small id="cardMacdStatus" class="text-muted">-</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="card summary-card">
+                            <div class="card-body p-2">
+                                <small class="text-muted">Recommendation</small>
+                                <h5 class="mb-0" id="cardRec">-</h5>
+                                <small id="cardConf" class="text-muted">-</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart + Info -->
+                <div class="row g-2 mb-3">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-graph-up"></i> Chart</span>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-secondary period-btn active" data-period="1mo">1M</button>
+                                    <button class="btn btn-outline-secondary period-btn" data-period="3mo">3M</button>
+                                    <button class="btn btn-outline-secondary period-btn" data-period="6mo">6M</button>
+                                    <button class="btn btn-outline-secondary period-btn" data-period="1y">1Y</button>
+                                </div>
+                            </div>
+                            <div class="card-body p-2">
+                                <canvas id="mainChart" height="350"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-info-circle"></i> Analysis</div>
+                            <div class="card-body" id="analysisPanel">
+                                <div class="text-center py-5 text-muted">
+                                    <i class="bi bi-arrow-left-circle fs-1"></i>
+                                    <p class="mt-2">Pilih saham dari sidebar untuk analisa</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: RSI + MACD + Volume -->
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-activity"></i> RSI</div>
+                            <div class="card-body p-2">
+                                <canvas id="rsiChart" height="120"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-bar-chart"></i> MACD</div>
+                            <div class="card-body p-2">
+                                <canvas id="macdChart" height="120"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-bar-chart-fill"></i> Volume</div>
+                            <div class="card-body p-2">
+                                <canvas id="volumeChart" height="120"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>

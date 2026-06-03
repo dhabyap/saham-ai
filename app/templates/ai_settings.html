@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Settings - Stock Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link href="/static/style.css" rel="stylesheet">
+    <style>
+        .settings-section { margin-bottom: 2rem; }
+        .settings-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; }
+        .weight-slider { width: 100%; }
+        .weight-value { min-width: 40px; text-align: right; font-weight: 600; }
+        .nav-tabs .nav-link { color: #888; }
+        .nav-tabs .nav-link.active { color: #0d6efd; background: transparent; border-bottom-color: #0d6efd; }
+        .status-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+        .status-active { background: #22c55e33; color: #22c55e; }
+        .status-inactive { background: #ef444433; color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span class="sidebar-title">Stock Analyzer</span>
+            </div>
+            <div class="sidebar-stocks">
+                <a href="/" class="stock-item"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+                <a href="/ai-settings" class="stock-item active"><i class="bi bi-gear me-2"></i>AI Settings</a>
+                <a href="/ai-performance" class="stock-item"><i class="bi bi-graph-up me-2"></i>AI Performance</a>
+            </div>
+            <div class="sidebar-footer">
+                <small class="text-muted">AI Learning System</small>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <nav class="navbar navbar-dark border-bottom px-3 py-2">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-sm btn-outline-secondary" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <span class="fw-bold">AI Settings</span>
+                </div>
+            </nav>
+
+            <div class="p-3">
+                <div class="row g-3">
+                    <!-- Left Column -->
+                    <div class="col-lg-6">
+                        <!-- Risk Level -->
+                        <div class="settings-section">
+                            <div class="settings-card">
+                                <h6 class="mb-3"><i class="bi bi-shield me-2"></i>Risk Level</h6>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-success risk-btn flex-fill" data-risk="conservative"
+                                            onclick="setRiskLevel('conservative')">
+                                        <i class="bi bi-shield-check"></i> Conservative
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning risk-btn flex-fill active" data-risk="moderate"
+                                            onclick="setRiskLevel('moderate')">
+                                        <i class="bi bi-shield"></i> Moderate
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger risk-btn flex-fill" data-risk="aggressive"
+                                            onclick="setRiskLevel('aggressive')">
+                                        <i class="bi bi-lightning"></i> Aggressive
+                                    </button>
+                                </div>
+                                <small class="text-muted mt-2 d-block" id="riskDesc">Keseimbangan antara risiko dan profit</small>
+                            </div>
+                        </div>
+
+                        <!-- Strategy Mode -->
+                        <div class="settings-section">
+                            <div class="settings-card">
+                                <h6 class="mb-3"><i class="bi bi-bullseye me-2"></i>Strategy Mode</h6>
+                                <div class="d-flex gap-2 flex-wrap" id="strategyList"></div>
+                            </div>
+                        </div>
+
+                        <!-- AI Provider -->
+                        <div class="settings-section">
+                            <div class="settings-card">
+                                <h6 class="mb-3"><i class="bi bi-cpu me-2"></i>AI Provider</h6>
+                                <div id="providerList" class="d-flex gap-2 flex-wrap"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-lg-6">
+                        <!-- Indicator Weights -->
+                        <div class="settings-section">
+                            <div class="settings-card">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>Indicator Weights</h6>
+                                    <button class="btn btn-sm btn-outline-info" onclick="autoAdjustWeights()">
+                                        <i class="bi bi-magic"></i> Auto Adjust
+                                    </button>
+                                </div>
+                                <div id="weightsPanel"></div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced -->
+                        <div class="settings-section">
+                            <div class="settings-card">
+                                <h6 class="mb-3"><i class="bi bi-gear-wide me-2"></i>Advanced</h6>
+                                <div class="mb-3">
+                                    <label class="form-label small">Confidence Threshold (%)</label>
+                                    <input type="range" class="form-range" id="confidenceThreshold" min="30" max="90"
+                                           onchange="updateConfThreshold(this.value)">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">30%</small>
+                                        <small class="fw-bold" id="confThresholdVal">60%</small>
+                                        <small class="text-muted">90%</small>
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="autoLearning" checked
+                                           onchange="updateAutoLearning(this.checked)">
+                                    <label class="form-check-label small">Auto Learning</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prompts -->
+                <div class="settings-section">
+                    <div class="settings-card">
+                        <h6 class="mb-3"><i class="bi bi-pencil me-2"></i>Custom Prompts</h6>
+                        <div id="promptsPanel"></div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" onclick="saveAllSettings()"><i class="bi bi-check-lg"></i> Save All</button>
+                    <button class="btn btn-outline-secondary" onclick="location.href='/'"><i class="bi bi-arrow-left"></i> Back to Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentConfig = {};
+        let currentWeights = {};
+        const userId = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            loadWeights();
+            loadStrategies();
+            loadPrompts();
+            loadProviders();
+            document.getElementById('sidebarToggle').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('collapsed');
+            });
+        });
+
+        async function loadConfig() {
+            try {
+                const res = await fetch(`/api/learning/config/${userId}`);
+                currentConfig = await res.json();
+                applyConfig();
+            } catch (e) { console.error('Config load error:', e); }
+        }
+
+        function applyConfig() {
+            const riskLevel = currentConfig.risk_level || 'moderate';
+            document.querySelectorAll('.risk-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.risk === riskLevel);
+            });
+            const descs = {
+                conservative: 'Prioritas keamanan, minim risiko, cocok untuk pemula',
+                moderate: 'Keseimbangan antara risiko dan profit',
+                aggressive: 'Target profit tinggi, siap dengan volatilitas tinggi'
+            };
+            document.getElementById('riskDesc').textContent = descs[riskLevel] || '';
+            document.getElementById('confidenceThreshold').value = currentConfig.confidence_threshold || 60;
+            document.getElementById('confThresholdVal').textContent = (currentConfig.confidence_threshold || 60) + '%';
+            document.getElementById('autoLearning').checked = currentConfig.auto_learning !== 0;
+        }
+
+        async function setRiskLevel(level) {
+            try {
+                await fetch('/api/learning/config', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userId, risk_level: level })
+                });
+                loadConfig();
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadWeights() {
+            try {
+                const res = await fetch(`/api/learning/weights/${userId}`);
+                currentWeights = await res.json();
+                renderWeights();
+            } catch (e) { console.error('Weights load error:', e); }
+        }
+
+        function renderWeights() {
+            const weights = [
+                {key: 'rsi_weight', label: 'RSI'},
+                {key: 'macd_weight', label: 'MACD'},
+                {key: 'volume_weight', label: 'Volume'},
+                {key: 'trend_weight', label: 'Trend'},
+                {key: 'sentiment_weight', label: 'Sentiment'},
+                {key: 'support_resistance_weight', label: 'S/R'},
+            ];
+            const panel = document.getElementById('weightsPanel');
+            panel.innerHTML = weights.map(w => `
+                <div class="d-flex align-items-center mb-2">
+                    <small class="me-2" style="width:80px">${w.label}</small>
+                    <input type="range" class="form-range weight-slider me-2" min="0" max="3" step="0.1"
+                           value="${currentWeights[w.key] || 1}"
+                           onchange="updateWeight('${w.key}', this.value)">
+                    <span class="weight-value small" id="val-${w.key}">${(currentWeights[w.key] || 1).toFixed(1)}</span>
+                </div>
+            `).join('');
+        }
+
+        async function updateWeight(key, value) {
+            document.getElementById(`val-${key}`).textContent = parseFloat(value).toFixed(1);
+            const body = { user_id: userId };
+            body[key.replace('_weight', '') + '_weight'] = parseFloat(value);
+            try {
+                await fetch('/api/learning/weights', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function autoAdjustWeights() {
+            try {
+                const res = await fetch('/api/learning/weights/adjust', { method: 'POST' });
+                const data = await res.json();
+                loadWeights();
+                alert(data.message || 'Weights adjusted!');
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadStrategies() {
+            try {
+                const res = await fetch('/api/learning/strategies?active_only=true');
+                const data = await res.json();
+                const list = document.getElementById('strategyList');
+                list.innerHTML = (data.strategies || []).map(s => `
+                    <button class="btn btn-sm btn-outline-primary strategy-btn ${s.strategy_name === currentConfig.strategy ? 'active' : ''}"
+                            data-strategy="${s.strategy_name}"
+                            onclick="setStrategy('${s.strategy_name}')">
+                        ${s.display_name || s.strategy_name}
+                    </button>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        async function setStrategy(name) {
+            try {
+                await fetch('/api/learning/config', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userId, strategy: name })
+                });
+                loadConfig();
+                loadStrategies();
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadPrompts() {
+            try {
+                const res = await fetch('/api/learning/prompts');
+                const data = await res.json();
+                const panel = document.getElementById('promptsPanel');
+                panel.innerHTML = (data.prompts || []).map(p => `
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">${p.prompt_name}</label>
+                        <textarea class="form-control form-control-sm" rows="3" id="prompt-${p.prompt_name}"
+                                  style="background:#13151a;font-size:12px;">${p.prompt_text || ''}</textarea>
+                        <button class="btn btn-sm btn-outline-primary mt-1" onclick="savePrompt('${p.prompt_name}')">
+                            <i class="bi bi-check"></i> Update
+                        </button>
+                    </div>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        async function savePrompt(name) {
+            const text = document.getElementById(`prompt-${name}`).value;
+            try {
+                await fetch(`/api/learning/prompts/${name}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ prompt_text: text })
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadProviders() {
+            try {
+                const res = await fetch('/api/learning/providers');
+                const data = await res.json();
+                const list = document.getElementById('providerList');
+                list.innerHTML = (data.providers || []).map(p => `
+                    <span class="badge bg-success">${p.name}: ${p.model}</span>
+                `).join('');
+                if (!data.providers || data.providers.length === 0) {
+                    list.innerHTML = '<span class="text-muted small">Tidak ada provider AI yang tersedia. Konfigurasi API key di .env</span>';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function updateConfThreshold(val) {
+            document.getElementById('confThresholdVal').textContent = val + '%';
+            try {
+                await fetch('/api/learning/config', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userId, confidence_threshold: parseFloat(val) })
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function updateAutoLearning(enabled) {
+            try {
+                await fetch('/api/learning/config', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userId, auto_learning: enabled ? 1 : 0 })
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function saveAllSettings() {
+            alert('All settings saved!');
+            location.reload();
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

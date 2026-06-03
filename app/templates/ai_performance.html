@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Performance - Stock Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link href="/static/style.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        .metric-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; text-align: center; }
+        .metric-value { font-size: 28px; font-weight: 700; }
+        .metric-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .metric-good { color: #22c55e; }
+        .metric-bad { color: #ef4444; }
+        .metric-neutral { color: #eab308; }
+    </style>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span class="sidebar-title">Stock Analyzer</span>
+            </div>
+            <div class="sidebar-stocks">
+                <a href="/" class="stock-item"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+                <a href="/ai-settings" class="stock-item"><i class="bi bi-gear me-2"></i>AI Settings</a>
+                <a href="/ai-performance" class="stock-item active"><i class="bi bi-graph-up me-2"></i>AI Performance</a>
+            </div>
+            <div class="sidebar-footer">
+                <small class="text-muted">AI Learning System</small>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <nav class="navbar navbar-dark border-bottom px-3 py-2">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-sm btn-outline-secondary" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <span class="fw-bold">AI Performance</span>
+                </div>
+            </nav>
+
+            <div class="p-3">
+                <!-- Metric Cards -->
+                <div class="row g-2 mb-3" id="metricCards"></div>
+
+                <!-- Accuracy Chart -->
+                <div class="row g-2 mb-3">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-graph-up"></i> Accuracy History</div>
+                            <div class="card-body p-2">
+                                <canvas id="accuracyChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-pie-chart"></i> Feedback</div>
+                            <div class="card-body" id="feedbackPanel"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Predictions + Training -->
+                <div class="row g-2">
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-clock-history"></i> Recent Predictions</div>
+                            <div class="card-body p-0" id="predictionsPanel"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-cpu"></i> Training Logs</div>
+                            <div class="card-body p-0" id="trainingPanel"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Comparison -->
+                <div class="row g-2 mt-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-bar-chart"></i> Strategy Comparison</div>
+                            <div class="card-body p-0" id="strategyPanel"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backtest -->
+                <div class="row g-2 mt-2">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header"><i class="bi bi-graph-up-arrow"></i> Backtest</div>
+                            <div class="card-body">
+                                <div class="d-flex gap-2 mb-2">
+                                    <input type="text" class="form-control form-control-sm" id="backtestCode" placeholder="BBCA" style="max-width:100px">
+                                    <select class="form-select form-select-sm" id="backtestStrategy" style="max-width:140px">
+                                        <option value="scalping">Scalping</option>
+                                        <option value="swing" selected>Swing Trade</option>
+                                        <option value="long_term">Long Term</option>
+                                    </select>
+                                    <select class="form-select form-select-sm" id="backtestPeriod" style="max-width:100px">
+                                        <option value="3mo">3 Mo</option>
+                                        <option value="6mo" selected>6 Mo</option>
+                                        <option value="1y">1 Yr</option>
+                                    </select>
+                                    <button class="btn btn-sm btn-primary" onclick="runBacktest()">Run</button>
+                                </div>
+                                <div id="backtestResult"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let accuracyChart = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPerformance();
+            loadAccuracyChart();
+            loadPredictions();
+            loadFeedback();
+            loadTrainingLogs();
+            loadStrategies();
+            document.getElementById('sidebarToggle').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('collapsed');
+            });
+        });
+
+        async function loadPerformance() {
+            try {
+                const res = await fetch('/api/learning/performance');
+                const data = await res.json();
+                renderMetrics(data.scores || {});
+            } catch (e) { console.error(e); }
+        }
+
+        function renderMetrics(scores) {
+            const metrics = [
+                {key: 'accuracy_7d', label: '7d Accuracy', good: 60},
+                {key: 'accuracy_30d', label: '30d Accuracy', good: 55},
+                {key: 'accuracy_overall', label: 'Overall Accuracy', good: 50},
+                {key: 'winrate', label: 'Winrate', good: 50},
+                {key: 'avg_profit', label: 'Avg Profit %', good: 0},
+            ];
+            const cards = document.getElementById('metricCards');
+            cards.innerHTML = metrics.map(m => {
+                const score = scores[m.key];
+                const val = score ? score.score_value || score.winrate || score.avg_profit_pct || 0 : 0;
+                const isGood = val >= m.good;
+                const cls = val >= m.good ? 'metric-good' : (val <= 0 ? 'metric-bad' : 'metric-neutral');
+                return `
+                    <div class="col-md-2 col-4">
+                        <div class="metric-card">
+                            <div class="metric-value ${cls}">${parseFloat(val).toFixed(1)}${m.key === 'avg_profit' ? '%' : '%'}</div>
+                            <div class="metric-label">${m.label}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadAccuracyChart() {
+            try {
+                const res = await fetch('/api/learning/accuracy-chart');
+                const data = await res.json();
+                renderAccuracyChart(data);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderAccuracyChart(data) {
+            const ctx = document.getElementById('accuracyChart').getContext('2d');
+            if (accuracyChart) accuracyChart.destroy();
+
+            const labels = data.dates || ['1', '2', '3', '4', '5'];
+            accuracyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: '7d Accuracy',
+                            data: data.accuracy_7d || [],
+                            borderColor: '#0d6efd',
+                            tension: 0.3,
+                            pointRadius: 2,
+                        },
+                        {
+                            label: '30d Accuracy',
+                            data: data.accuracy_30d || [],
+                            borderColor: '#22c55e',
+                            tension: 0.3,
+                            pointRadius: 2,
+                        },
+                        {
+                            label: 'Overall',
+                            data: data.accuracy_overall || [],
+                            borderColor: '#eab308',
+                            tension: 0.3,
+                            pointRadius: 2,
+                            borderDash: [5, 5],
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { boxWidth: 12, font: { size: 10 }, color: '#888' } } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { font: { size: 9 }, color: '#888' }, grid: { color: '#222' } },
+                        x: { display: false }
+                    }
+                }
+            });
+        }
+
+        async function loadPredictions() {
+            try {
+                const res = await fetch('/api/learning/predictions?limit=10');
+                const data = await res.json();
+                const panel = document.getElementById('predictionsPanel');
+                const preds = data.predictions || [];
+                if (preds.length === 0) {
+                    panel.innerHTML = '<div class="p-3 text-muted text-center">Belum ada prediksi</div>';
+                    return;
+                }
+                panel.innerHTML = `<table class="table table-dark table-sm mb-0" style="font-size:12px">
+                    <thead><tr><th>Stock</th><th>Pred</th><th>Actual</th><th>Profit</th><th>Conf</th><th>Date</th></tr></thead>
+                    <tbody>${preds.map(p => {
+                        const cls = p.actual_result === 'SUCCESS' ? 'text-success' : (p.actual_result === 'FAIL' ? 'text-danger' : 'text-muted');
+                        return `<tr>
+                            <td>${p.stock_code}</td>
+                            <td class="${p.prediction === 'BUY' ? 'text-success' : p.prediction === 'SELL' ? 'text-danger' : 'text-warning'}">${p.prediction}</td>
+                            <td class="${cls}">${p.actual_result || 'Pending'}</td>
+                            <td class="${p.profit_pct > 0 ? 'text-success' : 'text-danger'}">${p.profit_pct ? p.profit_pct.toFixed(2) + '%' : '-'}</td>
+                            <td>${p.confidence || '-'}%</td>
+                            <td>${(p.created_at || '').substring(0, 10)}</td>
+                        </tr>`;
+                    }).join('')}</tbody>
+                </table>`;
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadFeedback() {
+            try {
+                const res = await fetch('/api/learning/feedback/stats');
+                const data = await res.json();
+                const total = (data.helpful || 0) + (data.wrong || 0) + (data.bullish || 0) + (data.bearish || 0);
+                const panel = document.getElementById('feedbackPanel');
+                if (total === 0) {
+                    panel.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-chat fs-1"></i><p class="mt-2 small">Belum ada feedback</p></div>';
+                    return;
+                }
+                panel.innerHTML = `
+                    <div class="mb-2"><span class="text-success">●</span> Helpful: ${data.helpful || 0} (${((data.helpful || 0)/total*100).toFixed(0)}%)</div>
+                    <div class="mb-2"><span class="text-danger">●</span> Wrong: ${data.wrong || 0} (${((data.wrong || 0)/total*100).toFixed(0)}%)</div>
+                    <div class="mb-2"><span class="text-success">●</span> Bullish: ${data.bullish || 0}</div>
+                    <div class="mb-2"><span class="text-danger">●</span> Bearish: ${data.bearish || 0}</div>
+                    <small class="text-muted">Total feedback: ${total}</small>
+                `;
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadTrainingLogs() {
+            try {
+                const res = await fetch('/api/learning/training/logs?limit=10');
+                const data = await res.json();
+                const panel = document.getElementById('trainingPanel');
+                const logs = data.logs || [];
+                if (logs.length === 0) {
+                    panel.innerHTML = '<div class="p-3 text-muted text-center">Belum ada training. Jalankan training dari halaman AI Settings.</div>';
+                    return;
+                }
+                panel.innerHTML = `<table class="table table-dark table-sm mb-0" style="font-size:12px">
+                    <thead><tr><th>Model</th><th>Acc</th><th>Prec</th><th>F1</th><th>Duration</th><th>Date</th></tr></thead>
+                    <tbody>${logs.map(l => `<tr>
+                        <td>${l.model_name || l.training_type}</td>
+                        <td>${l.accuracy ? (l.accuracy * 100).toFixed(1) + '%' : '-'}</td>
+                        <td>${l.precision ? (l.precision * 100).toFixed(1) + '%' : '-'}</td>
+                        <td>${l.f1_score ? (l.f1_score * 100).toFixed(1) + '%' : '-'}</td>
+                        <td>${l.duration_seconds ? l.duration_seconds.toFixed(1) + 's' : '-'}</td>
+                        <td>${(l.created_at || '').substring(0, 10)}</td>
+                    </tr>`).join('')}</tbody>
+                </table>`;
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadStrategies() {
+            try {
+                const res = await fetch('/api/learning/strategies');
+                const data = await res.json();
+                const panel = document.getElementById('strategyPanel');
+                const strategies = data.strategies || [];
+                if (strategies.length === 0) {
+                    panel.innerHTML = '<div class="p-3 text-muted">No strategies configured</div>';
+                    return;
+                }
+                panel.innerHTML = `<table class="table table-dark table-sm mb-0" style="font-size:12px">
+                    <thead><tr><th>Strategy</th><th>Period</th><th>Risk</th><th>Min Conf</th><th>Status</th></tr></thead>
+                    <tbody>${strategies.map(s => `<tr>
+                        <td class="fw-bold">${s.display_name || s.strategy_name}</td>
+                        <td>${s.holding_period || '-'}</td>
+                        <td>${s.risk_profile || '-'}</td>
+                        <td>${s.min_confidence || 60}%</td>
+                        <td><span class="status-badge ${s.is_active ? 'status-active' : 'status-inactive'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
+                    </tr>`).join('')}</tbody>
+                </table>`;
+            } catch (e) { console.error(e); }
+        }
+
+        async function runBacktest() {
+            const code = document.getElementById('backtestCode').value.trim() || 'BBCA';
+            const strategy = document.getElementById('backtestStrategy').value;
+            const period = document.getElementById('backtestPeriod').value;
+            const panel = document.getElementById('backtestResult');
+            panel.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm"></div> Running backtest...</div>';
+
+            try {
+                const res = await fetch(`/api/learning/backtest/${code}?strategy=${strategy}&period=${period}`);
+                const data = await res.json();
+                if (data.error) {
+                    panel.innerHTML = `<div class="text-danger">${data.error}</div>`;
+                    return;
+                }
+                panel.innerHTML = `
+                    <div class="row g-2 mb-2">
+                        <div class="col-auto"><small class="text-muted">Trades:</small> <strong>${data.total_trades}</strong></div>
+                        <div class="col-auto"><small class="text-muted">Winrate:</small> <strong class="text-success">${data.winrate}%</strong></div>
+                        <div class="col-auto"><small class="text-muted">Total Return:</small> <strong class="${data.total_return_pct >= 0 ? 'text-success' : 'text-danger'}">${data.total_return_pct}%</strong></div>
+                        <div class="col-auto"><small class="text-muted">Avg Return:</small> <strong class="${data.avg_return_pct >= 0 ? 'text-success' : 'text-danger'}">${data.avg_return_pct}%</strong></div>
+                        <div class="col-auto"><small class="text-muted">W/L:</small> <strong>${data.wins}/${data.losses}</strong></div>
+                    </div>
+                    ${data.trades && data.trades.length > 0 ? `
+                        <table class="table table-dark table-sm mb-0" style="font-size:11px">
+                            <thead><tr><th>Entry</th><th>Exit</th><th>Entry Price</th><th>Exit Price</th><th>Profit</th></tr></thead>
+                            <tbody>${data.trades.map(t => `
+                                <tr><td>${t.entry_date || '-'}</td><td>${t.exit_date || '-'}</td>
+                                <td>${t.entry_price || '-'}</td><td>${t.exit_price || '-'}</td>
+                                <td class="${t.profit_pct >= 0 ? 'text-success' : 'text-danger'}">${t.profit_pct ? t.profit_pct.toFixed(2) + '%' : '-'}</td></tr>
+                            `).join('')}</tbody>
+                        </table>
+                    ` : '<div class="text-muted">No trades generated</div>'}
+                `;
+            } catch (e) {
+                panel.innerHTML = `<div class="text-danger">Error: ${e.message}</div>`;
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

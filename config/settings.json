@@ -1,0 +1,16 @@
+{
+  "app_name": "AI Stock Analyzer",
+  "app_version": "1.0.0",
+  "auto_learning": true,
+  "risk_mode": "moderate",
+  "monitor_interval": 15,
+  "ollama_enabled": false,
+  "min_confidence_threshold": 50,
+  "default_strategy": "swing",
+  "max_portfolio_stocks": 10,
+  "log_level": "INFO",
+  "language": "id",
+  "theme": "dark",
+  "created_at": "2024-01-01",
+  "last_updated": "2024-01-01"
+}

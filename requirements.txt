@@ -40,3 +40,8 @@ scikit-learn>=1.5.0
 # Optional ML (install if using training features)
 # xgboost>=2.1.0
 # lightgbm>=4.5.0
+
+# CLI & Interactive UI
+rich==13.7.0
+questionary==2.2.1
+colorama==0.4.6

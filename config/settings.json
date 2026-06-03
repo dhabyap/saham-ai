@@ -2,7 +2,7 @@
   "app_name": "AI Stock Analyzer",
   "app_version": "1.0.0",
   "auto_learning": true,
-  "risk_mode": "moderate",
+  "risk_mode": "aggressive",
   "monitor_interval": 15,
   "ollama_enabled": false,
   "min_confidence_threshold": 50,
@@ -11,6 +11,5 @@
   "log_level": "INFO",
   "language": "id",
   "theme": "dark",
-  "created_at": "2024-01-01",
-  "last_updated": "2024-01-01"
+  "ai_provider": "openrouter"
 }

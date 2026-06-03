@@ -182,7 +182,19 @@ def test_connection(provider: str, api_key: str, test_func=None) -> bool:
             import requests
             response = requests.get(f"{api_key}/api/tags", timeout=5)
             return response.status_code == 200
-        
+
+        elif provider.lower() == "openrouter":
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
+            client.models.list()
+            return True
+
+        elif provider.lower() == "groq":
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
+            client.models.list()
+            return True
+
         return True
     except Exception as e:
         console.print(f"[red]Connection test failed: {e}[/red]")

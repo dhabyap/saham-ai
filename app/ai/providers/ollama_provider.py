@@ -12,6 +12,9 @@ class OllamaProvider(BaseProvider):
         self.base_url = Config.OLLAMA_BASE_URL
         self.model = Config.OLLAMA_MODEL
 
+    def has_config(self):
+        return bool(self.base_url)
+
     def is_available(self):
         try:
             r = requests.get(f"{self.base_url}/api/tags", timeout=3)

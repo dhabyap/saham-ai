@@ -1,6 +1,7 @@
-import yfinance as yf
 import pandas as pd
 import numpy as np
+import requests
+import time
 from datetime import datetime, timedelta
 
 
@@ -40,17 +41,58 @@ def get_stock_code(code):
     return code
 
 
-def fetch_stock_data(code, period="3mo", interval="1d"):
-    try:
-        ticker = yf.Ticker(get_stock_code(code))
-        df = ticker.history(period=period, interval=interval)
-        if df.empty:
+_session = requests.Session()
+_session.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+})
+
+PERIOD_MAP = {
+    "1d": "1d", "5d": "5d", "1mo": "1mo", "3mo": "3mo",
+    "6mo": "6mo", "1y": "1y", "2y": "2y", "5y": "5y", "max": "max",
+}
+
+def fetch_stock_data(code, period="3mo", interval="1d", max_retries=3):
+    period = PERIOD_MAP.get(period, "3mo")
+    code = get_stock_code(code).upper()
+
+    for attempt in range(max_retries):
+        try:
+            if attempt > 0:
+                time.sleep(2 ** attempt)
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{code}?range={period}&interval={interval}"
+            r = _session.get(url, timeout=15)
+            if r.status_code == 429:
+                if attempt < max_retries - 1:
+                    print(f"  ⏳ Rate limited for {code}, retrying in {2 ** attempt}s...")
+                    continue
+                print(f"Error fetching {code}: rate limited (429)")
+                return None
+            r.raise_for_status()
+            data = r.json()
+            result = data["chart"]["result"]
+            if not result:
+                return None
+            result = result[0]
+            timestamps = result["timestamp"]
+            quotes = result["indicators"]["quote"][0]
+            df = pd.DataFrame({
+                "Open": quotes["open"],
+                "High": quotes["high"],
+                "Low": quotes["low"],
+                "Close": quotes["close"],
+                "Volume": quotes["volume"],
+            }, index=pd.to_datetime(timestamps, unit="s"))
+            df.index.name = "Date"
+            df = df.dropna()
+            if df.empty:
+                return None
+            return {"history": df, "info": {}}
+        except Exception as e:
+            if attempt < max_retries - 1:
+                continue
+            print(f"Error fetching {code}: {e}")
             return None
-        info = ticker.info if ticker.info else {}
-        return {"history": df, "info": info}
-    except Exception as e:
-        print(f"Error fetching {code}: {e}")
-        return None
+    return None
 
 
 def calculate_indicators(df):

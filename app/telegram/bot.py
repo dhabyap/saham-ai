@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -7,6 +7,7 @@ from telegram.ext import (
 )
 import os
 import asyncio
+from datetime import datetime
 
 from app.config import Config
 from app.services.stock_service import (
@@ -360,12 +361,52 @@ class TelegramBot:
                 "❌ Terjadi kesalahan. Silakan coba lagi."
             )
 
+    async def set_commands(self, app: Application) -> None:
+        commands = [
+            BotCommand("start", "Mulai bot"),
+            BotCommand("help", "Bantuan & daftar perintah"),
+            BotCommand("analyze", "Analisa saham (contoh: /analyze BBCA)"),
+            BotCommand("add", "Tambah saham ke watchlist"),
+            BotCommand("remove", "Hapus saham dari watchlist"),
+            BotCommand("watchlist", "Lihat watchlist Anda"),
+            BotCommand("topgainer", "Top gainer hari ini"),
+            BotCommand("toploser", "Top loser hari ini"),
+            BotCommand("topvolume", "Top volume perdagangan"),
+            BotCommand("market", "Ringkasan market IDX"),
+            BotCommand("sentiment", "Sentimen market"),
+            BotCommand("feedback", "Kirim feedback"),
+            BotCommand("accuracy", "Akurasi prediksi"),
+            BotCommand("performance", "Performa portofolio"),
+            BotCommand("strategy", "Strategi rekomendasi"),
+        ]
+        await app.bot.set_my_commands(commands)
+
+        await self._send_startup_notification(app)
+
+    async def _send_startup_notification(self, app: Application) -> None:
+        telegram_ids = crud.get_telegram_ids()
+        if not telegram_ids:
+            return
+        now = datetime.now().strftime("%d-%b-%Y %H:%M")
+        msg = (
+            f"✅ *AI Stock Analyzer Aktif*\n\n"
+            f"Bot telah berhasil diaktifkan.\n"
+            f"📅 {now}\n\n"
+            f"Gunakan /help untuk melihat daftar perintah."
+        )
+        for tid in telegram_ids:
+            try:
+                await app.bot.send_message(chat_id=tid, text=msg, parse_mode="Markdown")
+            except Exception:
+                pass
+
     def run(self):
         if not self.token:
             print("⚠️ TELEGRAM_BOT_TOKEN tidak dikonfigurasi. Bot Telegram tidak akan aktif.")
             return
 
-        self.app = Application.builder().token(self.token).build()
+        asyncio.set_event_loop(asyncio.new_event_loop())
+        self.app = Application.builder().token(self.token).post_init(self.set_commands).build()
 
         self.app.add_handler(CommandHandler("start", self.start))
         self.app.add_handler(CommandHandler("help", self.help_command))
@@ -386,3 +427,4 @@ class TelegramBot:
 
         print("🤖 Telegram Bot started...")
         self.app.run_polling(allowed_updates=Update.ALL_TYPES)
+ 

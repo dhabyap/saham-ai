@@ -12,6 +12,9 @@ class OpenAIProvider(BaseProvider):
         self.model = Config.OPENAI_MODEL
         self._client = None
 
+    def has_config(self):
+        return bool(self.api_key)
+
     def is_available(self):
         return bool(self.api_key)
 

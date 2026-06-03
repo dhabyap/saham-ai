@@ -1,4 +1,5 @@
 import asyncio
+import time
 from datetime import datetime
 
 from telegram.ext import Application
@@ -30,6 +31,7 @@ def check_watchlist_alerts():
     alerts = []
 
     for code in codes:
+        time.sleep(1.5)
         try:
             data = get_latest_data(code)
             if not data:

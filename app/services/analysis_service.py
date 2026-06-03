@@ -26,6 +26,7 @@ class AnalysisService:
             strategy = strategy or Config.DEFAULT_STRATEGY
             risk_level = risk_level or Config.DEFAULT_RISK_LEVEL
 
+        ai_provider_name = ""
         if use_ai and self.ai.is_available():
             ai_result = self.ai.analyze(data, strategy=strategy, risk_level=risk_level)
             if ai_result:
@@ -34,6 +35,7 @@ class AnalysisService:
                 reason = ai_result.get("reasoning", "")
                 full_analysis = ai_result.get("full_analysis", "")
                 trend = ai_result.get("trend", data["trend"])
+                ai_provider_name = ai_result.get("ai_provider", "")
             else:
                 recommendation, confidence, reason, details = self.learning.get_scored_recommendation(
                     data, strategy, risk_level,
@@ -65,7 +67,7 @@ class AnalysisService:
             confidence=confidence,
             price_at_prediction=data["price"],
             strategy=strategy,
-            ai_provider=self.ai.provider.name if self.ai.provider else "rule-based",
+            ai_provider=ai_provider_name or "rule-based",
         )
 
         if df is not None:

@@ -4,8 +4,12 @@ from app.config import Config
 class BaseProvider:
     name = "base"
 
-    def is_available(self):
+    def has_config(self):
+        """Check if this provider has configuration (API key etc.)"""
         return False
+
+    def is_available(self):
+        return self.has_config()
 
     def analyze(self, prompt, system_prompt=None):
         raise NotImplementedError
@@ -14,25 +18,51 @@ class BaseProvider:
         raise NotImplementedError
 
 
+_PROVIDER_NAMES = ("openai", "openrouter", "gemini", "groq", "ollama")
+
+_PROVIDER_MAP = {
+    "openai": ("app.ai.providers.openai_provider", "OpenAIProvider"),
+    "openrouter": ("app.ai.providers.openrouter_provider", "OpenRouterProvider"),
+    "gemini": ("app.ai.providers.gemini_provider", "GeminiProvider"),
+    "groq": ("app.ai.providers.groq_provider", "GroqProvider"),
+    "ollama": ("app.ai.providers.ollama_provider", "OllamaProvider"),
+}
+
+
+def _import_provider(name):
+    """Lazy-import and instantiate a provider by name."""
+    module_path, cls_name = _PROVIDER_MAP[name]
+    import importlib
+    mod = importlib.import_module(module_path)
+    cls = getattr(mod, cls_name)
+    return cls()
+
+
 def get_provider(provider_name=None):
     if provider_name is None:
         provider_name = Config.AI_PROVIDER
+    if provider_name not in _PROVIDER_MAP:
+        return None
+    return _import_provider(provider_name)
 
-    if provider_name == "openai":
-        from app.ai.providers.openai_provider import OpenAIProvider
-        return OpenAIProvider()
-    elif provider_name == "gemini":
-        from app.ai.providers.gemini_provider import GeminiProvider
-        return GeminiProvider()
-    elif provider_name == "ollama":
-        from app.ai.providers.ollama_provider import OllamaProvider
-        return OllamaProvider()
-    return None
+
+def get_all_providers():
+    """Return list of ALL provider instances that have config (no cooldown check)."""
+    result = []
+    for name in _PROVIDER_NAMES:
+        try:
+            provider = _import_provider(name)
+            if provider.has_config():
+                provider.name = name
+                result.append(provider)
+        except Exception:
+            continue
+    return result
 
 
 def get_available_providers():
     providers = []
-    for name in ("openai", "gemini", "ollama"):
+    for name in _PROVIDER_NAMES:
         provider = get_provider(name)
         if provider and provider.is_available():
             providers.append({"name": name, "model": provider.model})
@@ -40,7 +70,7 @@ def get_available_providers():
 
 
 def get_best_provider():
-    for name in ("openai", "gemini", "ollama"):
+    for name in _PROVIDER_NAMES:
         provider = get_provider(name)
         if provider and provider.is_available():
             return provider

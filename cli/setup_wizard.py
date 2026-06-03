@@ -20,6 +20,15 @@ from .helpers import (
     print_info, create_directories, test_connection
 )
 
+# Monkey-patch questionary to raise KeyboardInterrupt on Ctrl+C/Escape
+_original_ask = questionary.Question.ask
+def _safe_ask(self):
+    result = _original_ask(self)
+    if result is None:
+        raise KeyboardInterrupt()
+    return result
+questionary.Question.ask = _safe_ask
+
 console = Console()
 validator = Validator()
 
@@ -163,6 +172,8 @@ Atau gunakan CLI Manager:
             "OpenAI",
             "Gemini (Google)",
             "Ollama (Local)",
+            "OpenRouter",
+            "Groq",
         ]
 
         print_step(step, total, "Pilih AI Provider:")
@@ -172,7 +183,7 @@ Atau gunakan CLI Manager:
 
         while True:
             choice = questionary.text(
-                "\nInput (1-3):",
+                "\nInput (1-5):",
                 validate=lambda x: self.validator.validate_choice(x, providers)[0]
             ).ask()
 
@@ -246,6 +257,50 @@ Atau gunakan CLI Manager:
                         default="llama3"
                     ).ask()
                     self.config['OLLAMA_MODEL'] = model or "llama3"
+                    return True
+
+        elif provider.lower() == 'openrouter':
+            while True:
+                api_key = questionary.password(
+                    "Masukkan OpenRouter API Key:",
+                    validate=lambda x: self.validator.validate_api_key(x)[0]
+                ).ask()
+
+                if api_key:
+                    self.config['OPENROUTER_API_KEY'] = api_key
+                    print_success("OpenRouter API Key disimpan")
+
+                    model = questionary.text(
+                        "OpenRouter Model (default: openai/gpt-4o-mini):",
+                        default="openai/gpt-4o-mini"
+                    ).ask()
+                    self.config['OPENROUTER_MODEL'] = model or "openai/gpt-4o-mini"
+
+                    site_url = questionary.text(
+                        "Site URL (optional, untuk OpenRouter rankings):",
+                        default=""
+                    ).ask()
+                    if site_url:
+                        self.config['OPENROUTER_SITE_URL'] = site_url
+
+                    return True
+
+        elif provider.lower() == 'groq':
+            while True:
+                api_key = questionary.password(
+                    "Masukkan Groq API Key:",
+                    validate=lambda x: self.validator.validate_api_key(x)[0]
+                ).ask()
+
+                if api_key:
+                    self.config['GROQ_API_KEY'] = api_key
+                    print_success("Groq API Key disimpan")
+
+                    model = questionary.text(
+                        "Groq Model (default: llama3-70b-8192):",
+                        default="llama3-70b-8192"
+                    ).ask()
+                    self.config['GROQ_MODEL'] = model or "llama3-70b-8192"
                     return True
 
     def _step_telegram(self) -> bool:
@@ -533,6 +588,10 @@ Atau gunakan CLI Manager:
             api_key = self.config.get('GEMINI_API_KEY')
         elif provider == 'ollama':
             api_key = self.config.get('OLLAMA_BASE_URL')
+        elif provider == 'openrouter':
+            api_key = self.config.get('OPENROUTER_API_KEY')
+        elif provider == 'groq':
+            api_key = self.config.get('GROQ_API_KEY')
 
         if api_key:
             if test_connection(provider, api_key):

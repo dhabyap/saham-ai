@@ -26,18 +26,20 @@ class GeminiProvider(BaseProvider):
 
     def _get_model(self):
         if self._model is None:
-            import google.generativeai as genai
-            genai.configure(api_key=self.api_key)
-            self._model = genai.GenerativeModel(self.model)
+            from google import genai
+            self._model = genai.Client(api_key=self.api_key)
         return self._model
 
     def analyze(self, prompt, system_prompt=None):
         if time.time() < self._cooldown_until:
             return None
         try:
-            model = self._get_model()
+            client = self._get_model()
             full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
-            response = model.generate_content(full_prompt)
+            response = client.models.generate_content(
+                model=self.model,
+                contents=full_prompt,
+            )
             return self._parse_json(response.text)
         except Exception as e:
             err_str = str(e)
@@ -53,11 +55,14 @@ class GeminiProvider(BaseProvider):
         if time.time() < self._cooldown_until:
             return None
         try:
-            model = self._get_model()
+            client = self._get_model()
             prompt = "\n".join(
                 f"{m['role']}: {m['content']}" for m in messages
             )
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+            )
             return response.text
         except Exception as e:
             err_str = str(e)

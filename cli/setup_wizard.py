@@ -297,10 +297,10 @@ Atau gunakan CLI Manager:
                     print_success("Groq API Key disimpan")
 
                     model = questionary.text(
-                        "Groq Model (default: llama3-70b-8192):",
-                        default="llama3-70b-8192"
+                        "Groq Model (default: llama-3.3-70b-versatile):",
+                        default="llama-3.3-70b-versatile"
                     ).ask()
-                    self.config['GROQ_MODEL'] = model or "llama3-70b-8192"
+                    self.config['GROQ_MODEL'] = model or "llama-3.3-70b-versatile"
                     return True
 
     def _step_telegram(self) -> bool:

@@ -173,9 +173,9 @@ def test_connection(provider: str, api_key: str, test_func=None) -> bool:
             return True
         
         elif provider.lower() == "gemini":
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            genai.list_models()
+            from google import genai
+            client = genai.Client(api_key=api_key)
+            client.models.list()
             return True
         
         elif provider.lower() == "ollama":

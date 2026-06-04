@@ -3,6 +3,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+GROQ_MODEL_ALIASES = {
+    "llama3-70b-8192": "llama-3.3-70b-versatile",
+    "llama3-8b-8192": "llama-3.1-8b-instant",
+}
+
+
+def _normalize_model_name(model_name, aliases):
+    clean_model = (model_name or "").strip().strip("'\"")
+    return aliases.get(clean_model, clean_model)
+
 class Config:
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -17,7 +27,10 @@ class Config:
     OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL", "")
     OPENROUTER_SITE_NAME = os.getenv("OPENROUTER_SITE_NAME", "AI Stock Analyzer")
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-    GROQ_MODEL = os.getenv("GROQ_MODEL", "llama3-70b-8192")
+    GROQ_MODEL = _normalize_model_name(
+        os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        GROQ_MODEL_ALIASES,
+    )
     AI_PROVIDER = os.getenv("AI_PROVIDER", "openai")
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///app/database/stock.db")
     DATABASE_PATH = os.getenv("DATABASE_PATH", "app/database/stock.db")

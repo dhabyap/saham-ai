@@ -11,5 +11,5 @@
   "log_level": "INFO",
   "language": "id",
   "theme": "dark",
-  "ai_provider": "openrouter"
+  "ai_provider": "groq"
 }

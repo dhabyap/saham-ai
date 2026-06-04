@@ -6,13 +6,20 @@ from app.config import Config
 from app.ai.providers import BaseProvider
 
 
+DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL_ALIASES = {
+    "llama3-70b-8192": DEFAULT_GROQ_MODEL,
+    "llama3-8b-8192": "llama-3.1-8b-instant",
+}
+
+
 class GroqProvider(BaseProvider):
     name = "groq"
     _cooldown_until = 0
 
     def __init__(self):
         self.api_key = Config.GROQ_API_KEY
-        self.model = Config.GROQ_MODEL
+        self.model = self._normalize_model(Config.GROQ_MODEL)
         self.base_url = "https://api.groq.com/openai/v1"
         self._client = None
 
@@ -44,12 +51,9 @@ class GroqProvider(BaseProvider):
                 messages.append({"role": "system", "content": system_prompt})
             messages.append({"role": "user", "content": prompt})
 
-            response = client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=0.3,
-                max_tokens=100,
-            )
+            response = self._create_completion(client, messages)
+            if response is None:
+                return None
             content = response.choices[0].message.content
             parsed = self._parse_json(content)
             return parsed
@@ -62,16 +66,51 @@ class GroqProvider(BaseProvider):
             return None
         try:
             client = self._get_client()
-            response = client.chat.completions.create(
+            response = self._create_completion(client, messages)
+            if response is None:
+                return None
+            return response.choices[0].message.content
+        except Exception as e:
+            self._handle_error(e)
+            return None
+
+    def _create_completion(self, client, messages):
+        try:
+            return client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 temperature=0.3,
                 max_tokens=100,
             )
-            return response.choices[0].message.content
         except Exception as e:
-            self._handle_error(e)
-            return None
+            if not self._is_decommissioned_model_error(e):
+                self._handle_error(e)
+                return None
+
+            old_model = self.model
+            self.model = DEFAULT_GROQ_MODEL
+            print(f"  Groq: model {old_model} is unavailable, switched to {self.model}")
+            try:
+                return client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=0.3,
+                    max_tokens=100,
+                )
+            except Exception as retry_error:
+                self._handle_error(retry_error)
+                return None
+
+    def _normalize_model(self, model):
+        clean_model = (model or "").strip().strip("'\"")
+        return GROQ_MODEL_ALIASES.get(clean_model, clean_model or DEFAULT_GROQ_MODEL)
+
+    def _is_decommissioned_model_error(self, e):
+        err_str = str(e).lower()
+        return "model" in err_str and (
+            "decommissioned" in err_str
+            or "no longer supported" in err_str
+        )
 
     def _handle_error(self, e):
         err_str = str(e)

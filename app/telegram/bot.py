@@ -89,8 +89,11 @@ class TelegramBot:
         code = context.args[0].upper()
         await update.message.reply_text(f"🔍 Menganalisa {code}...")
 
-        # Analyze
-        result = self.analysis_service.analyze_stock(code, use_ai=True)
+        # Run analysis in thread pool
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None, lambda: self.analysis_service.analyze_stock(code, use_ai=True)
+        )
 
         if "error" in result:
             await update.message.reply_text(f"❌ {result['error']}")
@@ -367,35 +370,9 @@ class TelegramBot:
     async def rekomendasi_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🔍 Mencari rekomendasi saham untuk besok...")
 
-        # Ambil semua saham dari STOCK_LIST
-        all_codes = list(STOCK_LIST.keys())[:30]  # limit 30 biar ga lama
-        buy_list = []
-        source_map = {}
-
-        for code in all_codes:
-            try:
-                result = self.analysis_service.analyze_stock(code, use_ai=True)
-                if "error" in result:
-                    continue
-                rec = result.get("recommendation", "HOLD")
-                conf = result.get("confidence", 0)
-                src = result.get("source", "unknown")
-                if rec == "BUY" and conf >= 50:
-                    buy_list.append({
-                        "code": code,
-                        "name": result.get("stock_name", code),
-                        "price": result.get("price", 0),
-                        "change_pct": result.get("change_pct", 0),
-                        "confidence": conf,
-                        "rsi": result.get("rsi", 0),
-                        "rsi_status": result.get("rsi_status", ""),
-                        "trend": result.get("trend", ""),
-                        "reason": result.get("reason", ""),
-                        "source": src,
-                    })
-                    source_map[code] = src
-            except Exception:
-                continue
+        # Run heavy analysis in thread pool to avoid blocking event loop
+        loop = asyncio.get_event_loop()
+        buy_list = await loop.run_in_executor(None, self._scan_buy_list)
 
         if not buy_list:
             await update.message.reply_text(
@@ -426,11 +403,39 @@ class TelegramBot:
             )
 
         msg += (
-            f"\n⚠️ _Data dari {len(all_codes)} saham. "
-            f"AI provider: 9Router. Selalu DYOR!_"
+            f"\n⚠️ _Data dari {len(buy_list)} saham BUY. "
+            f"AI: 9Router. Selalu DYOR!_"
         )
 
         await update.message.reply_text(msg, parse_mode="Markdown")
+
+    def _scan_buy_list(self):
+        """Scan all stocks and return BUY candidates. Runs in thread."""
+        all_codes = list(STOCK_LIST.keys())[:20]
+        buy_list = []
+        for code in all_codes:
+            try:
+                result = self.analysis_service.analyze_stock(code, use_ai=True)
+                if "error" in result:
+                    continue
+                rec = result.get("recommendation", "HOLD")
+                conf = result.get("confidence", 0)
+                if rec == "BUY" and conf >= 50:
+                    buy_list.append({
+                        "code": code,
+                        "name": result.get("stock_name", code),
+                        "price": result.get("price", 0),
+                        "change_pct": result.get("change_pct", 0),
+                        "confidence": conf,
+                        "rsi": result.get("rsi", 0),
+                        "rsi_status": result.get("rsi_status", ""),
+                        "trend": result.get("trend", ""),
+                        "reason": result.get("reason", ""),
+                        "source": result.get("source", ""),
+                    })
+            except Exception:
+                continue
+        return buy_list
 
     async def error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         print(f"Telegram error: {context.error}")

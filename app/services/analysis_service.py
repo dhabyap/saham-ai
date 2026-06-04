@@ -77,7 +77,7 @@ class AnalysisService:
         )
 
         if df is not None:
-            data["dataframe"] = df
+            result["dataframe"] = df
 
         return result
 

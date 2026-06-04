@@ -49,6 +49,7 @@ class TelegramBot:
              f"/topvolume - Top volume\n"
              f"/market - Ringkasan market\n"
              f"/sentiment - Sentimen market\n"
+             f"/rekomendasi - Rekomendasi beli besok\n"
              f"/feedback benar BBCA - Beri feedback\n"
              f"/accuracy - Skor AI\n"
              f"/performance - Performa AI\n"
@@ -72,7 +73,8 @@ class TelegramBot:
             "/toploser - Top loser\n"
             "/topvolume - Top volume\n"
             "/market - Overview market\n"
-            "/sentiment - Sentimen market\n\n"
+            "/sentiment - Sentimen market\n"
+            "/rekomendasi - Rekomendasi beli besok\n\n"
             "*Saham tersedia:*\n"
             f"{', '.join(sorted(STOCK_LIST.keys())[:10])}\n"
             "dan lainnya...",
@@ -354,13 +356,81 @@ class TelegramBot:
         message = "🎯 *Strategy Modes:*\n\n"
         for s in strategies:
             message += (
-                f"• {s.get('display_name', s['strategy_name'])}\n"
+                f"• {s.get('display_name', s.get('strategy_name', s['name']))}\n"
                 f"  {s.get('description', '')}\n"
                 f"  Risk: {s.get('risk_profile', '-')} | "
                 f"Period: {s.get('holding_period', '-')}\n\n"
             )
 
         await update.message.reply_text(message, parse_mode="Markdown")
+
+    async def rekomendasi_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text("🔍 Mencari rekomendasi saham untuk besok...")
+
+        # Ambil semua saham dari STOCK_LIST
+        all_codes = list(STOCK_LIST.keys())[:30]  # limit 30 biar ga lama
+        buy_list = []
+        source_map = {}
+
+        for code in all_codes:
+            try:
+                result = self.analysis_service.analyze_stock(code, use_ai=True)
+                if "error" in result:
+                    continue
+                rec = result.get("recommendation", "HOLD")
+                conf = result.get("confidence", 0)
+                src = result.get("source", "unknown")
+                if rec == "BUY" and conf >= 50:
+                    buy_list.append({
+                        "code": code,
+                        "name": result.get("stock_name", code),
+                        "price": result.get("price", 0),
+                        "change_pct": result.get("change_pct", 0),
+                        "confidence": conf,
+                        "rsi": result.get("rsi", 0),
+                        "rsi_status": result.get("rsi_status", ""),
+                        "trend": result.get("trend", ""),
+                        "reason": result.get("reason", ""),
+                        "source": src,
+                    })
+                    source_map[code] = src
+            except Exception:
+                continue
+
+        if not buy_list:
+            await update.message.reply_text(
+                "📭 *Tidak ada rekomendasi BUY untuk besok.*\n\n"
+                "Semua saham dalam HOLD/SELL.",
+                parse_mode="Markdown"
+            )
+            return
+
+        # Sort by confidence
+        buy_list.sort(key=lambda x: x["confidence"], reverse=True)
+        top = buy_list[:10]
+
+        msg = (
+            "🟢 *REKOMENDASI SAHAM BESOK* 🟢\n"
+            f"📅 {datetime.now().strftime('%d %B %Y')}\n"
+            f"🎯 Strategi: Day Trading (Pagi Beli, Sore Jual)\n\n"
+        )
+
+        for i, s in enumerate(top, 1):
+            src_icon = {"ai_api": "🤖", "cache": "💾", "database": "💾"}.get(s["source"], "⚙️")
+            msg += (
+                f"{'🟢' if i <= 3 else '🟡'} *{i}. {s['code']}* - {s['name']}\n"
+                f"   💰 Rp{s['price']:,.0f} ({s['change_pct']:+.2f}%)\n"
+                f"   📊 RSI: {s['rsi']} ({s['rsi_status']}) | Trend: {s['trend']}\n"
+                f"   🎯 Confidence: {s['confidence']}% {src_icon}\n"
+                f"   💡 {s['reason'][:100]}\n\n"
+            )
+
+        msg += (
+            f"\n⚠️ _Data dari {len(all_codes)} saham. "
+            f"AI provider: 9Router. Selalu DYOR!_"
+        )
+
+        await update.message.reply_text(msg, parse_mode="Markdown")
 
     async def error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         print(f"Telegram error: {context.error}")
@@ -386,6 +456,7 @@ class TelegramBot:
             BotCommand("accuracy", "Akurasi prediksi"),
             BotCommand("performance", "Performa portofolio"),
             BotCommand("strategy", "Strategi rekomendasi"),
+            BotCommand("rekomendasi", "Rekomendasi saham beli besok"),
         ]
         await app.bot.set_my_commands(commands)
 
@@ -431,6 +502,7 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("accuracy", self.accuracy_cmd))
         self.app.add_handler(CommandHandler("performance", self.performance_cmd))
         self.app.add_handler(CommandHandler("strategy", self.strategy_cmd))
+        self.app.add_handler(CommandHandler("rekomendasi", self.rekomendasi_cmd))
         self.app.add_error_handler(self.error_handler)
 
         print("🤖 Telegram Bot started...")

@@ -299,11 +299,18 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS ai_model_scores (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     strategy VARCHAR(50),
+                    score_type VARCHAR(50),
+                    score_value DOUBLE DEFAULT 0,
                     total_predictions INT DEFAULT 0,
                     correct_predictions INT DEFAULT 0,
                     accuracy DOUBLE DEFAULT 0.0,
+                    winrate DOUBLE DEFAULT 0,
+                    avg_profit_pct DOUBLE DEFAULT 0,
+                    total_profit_pct DOUBLE DEFAULT 0,
                     avg_confidence DOUBLE DEFAULT 0.0,
-                    evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    period_days INT,
+                    evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 CREATE TABLE IF NOT EXISTS ai_knowledge_base (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -329,7 +336,13 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS ai_strategies (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     name VARCHAR(100) UNIQUE,
+                    strategy_name VARCHAR(100),
+                    display_name VARCHAR(255),
                     description TEXT,
+                    holding_period VARCHAR(50),
+                    risk_profile VARCHAR(50),
+                    indicators_priority TEXT,
+                    min_confidence DOUBLE DEFAULT 60.0,
                     config_json TEXT,
                     is_active TINYINT(1) DEFAULT 1,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -456,11 +469,18 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS ai_model_scores (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     strategy TEXT,
+                    score_type TEXT,
+                    score_value REAL DEFAULT 0,
                     total_predictions INTEGER DEFAULT 0,
                     correct_predictions INTEGER DEFAULT 0,
                     accuracy REAL DEFAULT 0.0,
+                    winrate REAL DEFAULT 0,
+                    avg_profit_pct REAL DEFAULT 0,
+                    total_profit_pct REAL DEFAULT 0,
                     avg_confidence REAL DEFAULT 0.0,
-                    evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    period_days INTEGER,
+                    evaluated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 CREATE TABLE IF NOT EXISTS ai_knowledge_base (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -486,7 +506,13 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS ai_strategies (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT UNIQUE,
+                    strategy_name TEXT,
+                    display_name TEXT,
                     description TEXT,
+                    holding_period TEXT,
+                    risk_profile TEXT,
+                    indicators_priority TEXT,
+                    min_confidence REAL DEFAULT 60.0,
                     config_json TEXT,
                     is_active INTEGER DEFAULT 1,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

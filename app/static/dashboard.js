@@ -178,7 +178,9 @@ function updateAnalysisPanel(data) {
         </div>
         <div class="mt-3 p-2 rounded" style="background:#1a1d23">
             <div class="fw-bold ${recClass}">${data.recommendation} (${data.confidence || 0}%)</div>
-            <small class="text-muted mt-1 d-block">${data.reason || ''}</small>
+            <small class="text-muted mt-1 d-block">
+                ${data.source === 'ai_api' ? '🤖 AI API (live)' : data.source === 'database' ? '💾 Database' : data.source === 'cache' ? '💾 Cache' : '⚙️ Rule-based'} | ${data.reason || ''}
+            </small>
         </div>
     `;
 }

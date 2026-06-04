@@ -12,6 +12,7 @@ from app.config import Config
 from app.database.database import init_db
 from app.api.routes import router
 from app.api.learning_routes import router as learning_router
+from app.api.upload_routes import router as upload_router
 from app.scheduler.scheduler import start_scheduler
 
 app = FastAPI(
@@ -28,6 +29,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # Include API routes
 app.include_router(router)
 app.include_router(learning_router)
+app.include_router(upload_router)
 
 
 @app.on_event("startup")
@@ -90,6 +92,12 @@ async def ai_settings():
 @app.get("/ai-performance")
 async def ai_performance():
     return FileResponse("app/templates/ai_performance.html")
+
+
+@app.get("/upload-analyzer")
+async def upload_analyzer():
+    """Daily Excel upload and analysis page"""
+    return FileResponse("app/templates/upload_analyzer.html")
 
 
 @app.get("/api-docs")

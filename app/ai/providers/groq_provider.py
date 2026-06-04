@@ -29,7 +29,7 @@ class GroqProvider(BaseProvider):
     def is_available(self):
         if not self.api_key:
             return False
-        if time.time() < self._cooldown_until:
+        if time.time() < type(self)._cooldown_until:
             return False
         return True
 
@@ -42,7 +42,7 @@ class GroqProvider(BaseProvider):
         return self._client
 
     def analyze(self, prompt, system_prompt=None):
-        if time.time() < self._cooldown_until:
+        if time.time() < type(self)._cooldown_until:
             return None
         try:
             client = self._get_client()
@@ -62,7 +62,7 @@ class GroqProvider(BaseProvider):
             return None
 
     def chat(self, messages):
-        if time.time() < self._cooldown_until:
+        if time.time() < type(self)._cooldown_until:
             return None
         try:
             client = self._get_client()
@@ -118,10 +118,10 @@ class GroqProvider(BaseProvider):
         if hasattr(e, "status_code"):
             status = str(e.status_code)
         if "429" in err_str or status == "429":
-            self._cooldown_until = time.time() + 300
+            type(self)._cooldown_until = time.time() + 300
             print("  Groq: rate limited, paused 5 min")
         elif "402" in err_str or status == "402":
-            self._cooldown_until = time.time() + 300
+            type(self)._cooldown_until = time.time() + 300
             print("  Groq: insufficient credits, paused 5 min")
         else:
             safe = err_str.split("\n")[0].encode("ascii", "ignore").decode("ascii")

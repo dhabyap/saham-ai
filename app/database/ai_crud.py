@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timedelta
-from app.database.database import get_db
+from app.database.database import get_db, DB_TYPE
 
 
 # ─── PREDICTIONS ────────────────────────────────────────────────
@@ -317,6 +317,45 @@ def get_strategy(name):
         row = cur.fetchone()
         return dict(row) if row else None
 
+
+# ─── ANALYSIS CACHE ─────────────────────────────────────────────
+
+def get_analysis_cache(cache_key, today):
+    """Return cached result dict if exists and created today, else None."""
+    with get_db() as conn:
+        cur = conn.execute(
+            "SELECT result_json, created_at FROM ai_analysis_cache WHERE cache_key = ?",
+            (cache_key,),
+        )
+        row = cur.fetchone()
+        if row:
+            created = row["created_at"]
+            if created:
+                created_date = str(created)[:10]
+                if created_date == today:
+                    try:
+                        return json.loads(row["result_json"])
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+        return None
+
+def save_analysis_cache(cache_key, strategy, risk_level, result_dict):
+    """Save/update analysis result in cache table."""
+    with get_db() as conn:
+        result_json = json.dumps(result_dict, default=str)
+        if DB_TYPE == "mysql":
+            conn.execute(
+                """INSERT INTO ai_analysis_cache (cache_key, strategy, risk_level, result_json)
+                   VALUES (?, ?, ?, ?)
+                   ON DUPLICATE KEY UPDATE result_json = VALUES(result_json), created_at = CURRENT_TIMESTAMP""",
+                (cache_key, strategy, risk_level, result_json),
+            )
+        else:
+            conn.execute(
+                """INSERT OR REPLACE INTO ai_analysis_cache (cache_key, strategy, risk_level, result_json)
+                   VALUES (?, ?, ?, ?)""",
+                (cache_key, strategy, risk_level, result_json),
+            )
 
 # ─── PROMPTS ────────────────────────────────────────────────────
 

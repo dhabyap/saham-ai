@@ -183,12 +183,12 @@ def get_latest_data(code, period="3mo"):
         macd_status = "N/A"
 
     # Volume spike
-    volume_spike = volume_ratio > 1.5
+    volume_spike = bool(volume_ratio > 1.5)
 
     # Support/Resistance break
     price = latest["Close"]
-    near_resistance = abs(price - resistance) / price < 0.02 if resistance > 0 else False
-    near_support = abs(price - support) / price < 0.02 if support > 0 else False
+    near_resistance = bool(abs(price - resistance) / price < 0.02) if resistance > 0 else False
+    near_support = bool(abs(price - support) / price < 0.02) if support > 0 else False
 
     # Overbought/Oversold
     rsi_val = latest["RSI"]
@@ -230,6 +230,17 @@ def get_latest_data(code, period="3mo"):
         "volume_avg": round(latest["Volume_MA"], 0) if pd.notna(latest["Volume_MA"]) else None,
         "dataframe": df,
     }
+
+    # Convert numpy types to native Python for JSON serialization
+    for k, v in result.items():
+        if k == "dataframe":
+            continue
+        if isinstance(v, (np.integer,)):
+            result[k] = int(v)
+        elif isinstance(v, (np.floating,)):
+            result[k] = float(v)
+        elif isinstance(v, (np.bool_,)):
+            result[k] = bool(v)
 
     return result
 

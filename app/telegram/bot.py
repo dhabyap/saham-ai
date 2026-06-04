@@ -108,6 +108,13 @@ class TelegramBot:
         # Format response
         emoji = {"BUY": "🟢", "HOLD": "🟡", "SELL": "🔴"}
         rec_emoji = emoji.get(result["recommendation"], "⚪")
+        
+        # Source indicator
+        source = result.get("source", "unknown")
+        source_emoji = {"ai_api": "🤖", "cache": "💾", "database": "💾", "rule_based": "⚙️"}
+        source_label = {"ai_api": "AI API (live)", "cache": "Cache", "database": "Database", "rule_based": "Rule-based"}
+        src_icon = source_emoji.get(source, "❓")
+        src_text = source_label.get(source, source)
 
         message = (
             f"{rec_emoji} *{result['stock_code']}* - {result.get('stock_name', '')}\n"
@@ -122,7 +129,8 @@ class TelegramBot:
             f"• Support: Rp{result['support']:,.0f}\n"
             f"• Resistance: Rp{result['resistance']:,.0f}\n\n"
             f"🎯 *Rekomendasi: {result['recommendation']}*\n"
-            f"📈 Confidence: {result['confidence']}%\n\n"
+            f"📈 Confidence: {result['confidence']}%\n"
+            f"{src_icon} _Sumber: {src_text}_\n\n"
             f"💡 *Reason:*\n{result['reason']}\n\n"
             f"#IDX #{result['stock_code'].replace('.JK', '')}"
         )

@@ -18,14 +18,10 @@ class BaseProvider:
         raise NotImplementedError
 
 
-_PROVIDER_NAMES = ("openai", "openrouter", "gemini", "groq", "ollama")
+_PROVIDER_NAMES = ("9router",)
 
 _PROVIDER_MAP = {
-    "openai": ("app.ai.providers.openai_provider", "OpenAIProvider"),
-    "openrouter": ("app.ai.providers.openrouter_provider", "OpenRouterProvider"),
-    "gemini": ("app.ai.providers.gemini_provider", "GeminiProvider"),
-    "groq": ("app.ai.providers.groq_provider", "GroqProvider"),
-    "ollama": ("app.ai.providers.ollama_provider", "OllamaProvider"),
+    "9router": ("app.ai.providers.nine_router_provider", "NineRouterProvider"),
 }
 
 

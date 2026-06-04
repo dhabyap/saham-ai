@@ -166,32 +166,10 @@ def create_directories(dirs: list):
 def test_connection(provider: str, api_key: str, test_func=None) -> bool:
     """Test API connection"""
     try:
-        if provider.lower() == "openai":
+        if provider.lower() == "9router":
             from openai import OpenAI
-            client = OpenAI(api_key=api_key)
-            client.models.list()
-            return True
-        
-        elif provider.lower() == "gemini":
-            from google import genai
-            client = genai.Client(api_key=api_key)
-            client.models.list()
-            return True
-        
-        elif provider.lower() == "ollama":
-            import requests
-            response = requests.get(f"{api_key}/api/tags", timeout=5)
-            return response.status_code == 200
-
-        elif provider.lower() == "openrouter":
-            from openai import OpenAI
-            client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
-            client.models.list()
-            return True
-
-        elif provider.lower() == "groq":
-            from openai import OpenAI
-            client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
+            from app.config import Config
+            client = OpenAI(api_key=api_key, base_url=Config.NINE_ROUTER_BASE_URL)
             client.models.list()
             return True
 

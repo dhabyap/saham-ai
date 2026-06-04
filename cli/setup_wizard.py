@@ -40,6 +40,7 @@ class SetupWizard:
         self.env_manager = EnvManager()
         self.settings_manager = SettingsManager()
         self.validator = Validator()
+        self.existing_env = self.env_manager.load()
         self.config: Dict[str, Any] = {}
         self.settings: Dict[str, Any] = {}
 
@@ -88,9 +89,6 @@ Anda bisa menjalankan ulang wizard ini kapan saja dengan perintah:
                 return False
             
             if not self._step_monitoring():
-                return False
-            
-            if not self._step_ollama_fallback():
                 return False
             
             if not self._step_additional_settings():
@@ -164,179 +162,118 @@ Atau gunakan CLI Manager:
         return True
 
     def _step_ai_provider(self) -> bool:
-        """Step 1: Choose AI Provider"""
+        """Step 1: 9Router Provider (fixed)"""
         step = 1
         total = 10
         
-        providers = [
-            "OpenAI",
-            "Gemini (Google)",
-            "Ollama (Local)",
-            "OpenRouter",
-            "Groq",
-        ]
-
-        print_step(step, total, "Pilih AI Provider:")
-        console.print("\nOpsi:")
-        for i, provider in enumerate(providers, 1):
-            console.print(f"  {i}. {provider}")
-
-        while True:
-            choice = questionary.text(
-                "\nInput (1-5):",
-                validate=lambda x: self.validator.validate_choice(x, providers)[0]
-            ).ask()
-
-            if choice:
-                idx = int(choice) - 1
-                self.config['AI_PROVIDER'] = providers[idx].lower().split()[0]
-                self.settings['ai_provider'] = self.config['AI_PROVIDER']
-                print_success(f"Dipilih: {providers[idx]}")
-                return True
+        print_step(step, total, "AI Provider")
+        
+        # 9Router is the only provider
+        self.config['AI_PROVIDER'] = "9router"
+        self.settings['ai_provider'] = "9router"
+        
+        console.print("\n[cyan]Provider yang digunakan:[/cyan]")
+        console.print("  1. 9Router (Fixed)")
+        console.print("\n[cyan]Provider dipilih: 9Router[/cyan]")
+        return True
 
     def _step_ai_credentials(self) -> bool:
-        """Step 2: Get AI Provider credentials"""
+        """Step 2: Setup 9Router credentials"""
         step = 2
         total = 10
-        provider = self.config.get('AI_PROVIDER', 'openai')
 
-        print_step(step, total, f"Setup {provider.upper()} Credentials")
+        print_step(step, total, "Setup 9Router Credentials")
 
-        if provider.lower() == 'openai':
-            while True:
-                api_key = questionary.password(
-                    "Masukkan OpenAI API Key:",
-                    validate=lambda x: self.validator.validate_api_key(x)[0]
-                ).ask()
+        existing_url = self.existing_env.get('NINE_ROUTER_BASE_URL', '')
+        default_url = existing_url or 'http://localhost:20128/v1'
+        url = questionary.text(
+            "9Router Base URL:",
+            default=default_url,
+            validate=lambda x: self.validator.validate_url(x)[0]
+        ).ask()
+        self.config['NINE_ROUTER_BASE_URL'] = url or default_url
 
-                if api_key:
-                    self.config['OPENAI_API_KEY'] = api_key
-                    print_success("OpenAI API Key disimpan")
+        model = questionary.text(
+            "9Router Model:",
+            default=self.existing_env.get('NINE_ROUTER_MODEL', 'test')
+        ).ask()
+        self.config['NINE_ROUTER_MODEL'] = model or self.existing_env.get('NINE_ROUTER_MODEL', 'test')
 
-                    # Ask for model
-                    model = questionary.text(
-                        "OpenAI Model (default: gpt-4-turbo):",
-                        default="gpt-4-turbo"
-                    ).ask()
-                    self.config['OPENAI_MODEL'] = model or "gpt-4-turbo"
-                    return True
+        existing_key = self.existing_env.get('NINE_ROUTER_API_KEY', '')
+        default_key = existing_key or 'sk-9router-free'
+        api_key = questionary.text(
+            "9Router API Key:",
+            default=default_key,
+        ).ask()
+        self.config['NINE_ROUTER_API_KEY'] = api_key or default_key
 
-        elif provider.lower() == 'gemini':
-            while True:
-                api_key = questionary.password(
-                    "Masukkan Gemini API Key:",
-                    validate=lambda x: self.validator.validate_api_key(x)[0]
-                ).ask()
-
-                if api_key:
-                    self.config['GEMINI_API_KEY'] = api_key
-                    print_success("Gemini API Key disimpan")
-
-                    # Ask for model
-                    model = questionary.text(
-                        "Gemini Model (default: gemini-2.0-flash):",
-                        default="gemini-2.0-flash"
-                    ).ask()
-                    self.config['GEMINI_MODEL'] = model or "gemini-2.0-flash"
-                    return True
-
-        elif provider.lower() == 'ollama':
-            while True:
-                url = questionary.text(
-                    "Ollama Base URL (default: http://localhost:11434):",
-                    default="http://localhost:11434",
-                    validate=lambda x: self.validator.validate_url(x)[0]
-                ).ask()
-
-                if url:
-                    self.config['OLLAMA_BASE_URL'] = url
-                    print_success("Ollama URL disimpan")
-
-                    model = questionary.text(
-                        "Ollama Model (default: llama3):",
-                        default="llama3"
-                    ).ask()
-                    self.config['OLLAMA_MODEL'] = model or "llama3"
-                    return True
-
-        elif provider.lower() == 'openrouter':
-            while True:
-                api_key = questionary.password(
-                    "Masukkan OpenRouter API Key:",
-                    validate=lambda x: self.validator.validate_api_key(x)[0]
-                ).ask()
-
-                if api_key:
-                    self.config['OPENROUTER_API_KEY'] = api_key
-                    print_success("OpenRouter API Key disimpan")
-
-                    model = questionary.text(
-                        "OpenRouter Model (default: openai/gpt-4o-mini):",
-                        default="openai/gpt-4o-mini"
-                    ).ask()
-                    self.config['OPENROUTER_MODEL'] = model or "openai/gpt-4o-mini"
-
-                    site_url = questionary.text(
-                        "Site URL (optional, untuk OpenRouter rankings):",
-                        default=""
-                    ).ask()
-                    if site_url:
-                        self.config['OPENROUTER_SITE_URL'] = site_url
-
-                    return True
-
-        elif provider.lower() == 'groq':
-            while True:
-                api_key = questionary.password(
-                    "Masukkan Groq API Key:",
-                    validate=lambda x: self.validator.validate_api_key(x)[0]
-                ).ask()
-
-                if api_key:
-                    self.config['GROQ_API_KEY'] = api_key
-                    print_success("Groq API Key disimpan")
-
-                    model = questionary.text(
-                        "Groq Model (default: llama-3.3-70b-versatile):",
-                        default="llama-3.3-70b-versatile"
-                    ).ask()
-                    self.config['GROQ_MODEL'] = model or "llama-3.3-70b-versatile"
-                    return True
+        print_success("9Router credentials disimpan")
+        return True
 
     def _step_telegram(self) -> bool:
         """Step 3: Configure Telegram Bot"""
         step = 3
         total = 10
         
+        has_existing = bool(self.existing_env.get('TELEGRAM_BOT_TOKEN'))
         print_step(step, total, "Gunakan Telegram Bot?")
+
+        if has_existing:
+            print_info(f"Telegram Bot sudah terisi ({self.existing_env.get('TELEGRAM_BOT_TOKEN', '')[:8]}...)")
+            use_telegram = questionary.confirm(
+                "Update Telegram settings?",
+                default=False
+            ).ask()
+            if not use_telegram:
+                self.config['TELEGRAM_BOT_TOKEN'] = self.existing_env['TELEGRAM_BOT_TOKEN']
+                self.config['TELEGRAM_CHAT_ID'] = self.existing_env.get('TELEGRAM_CHAT_ID', '')
+                print_info("Telegram settings tidak diubah")
+                return True
 
         use_telegram = questionary.confirm(
             "Setup Telegram Bot?",
-            default=True
+            default=has_existing
         ).ask()
 
         if use_telegram:
+            existing_token = self.existing_env.get('TELEGRAM_BOT_TOKEN', '')
+            if existing_token:
+                print_info("Kosongkan untuk menggunakan token yang sudah ada")
+            
             while True:
                 bot_token = questionary.password(
                     "Masukkan TELEGRAM BOT TOKEN:",
-                    validate=lambda x: self.validator.validate_token(x)[0]
+                    validate=(lambda x: self.validator.validate_token(x)[0]) if not existing_token else None
                 ).ask()
 
                 if bot_token:
                     self.config['TELEGRAM_BOT_TOKEN'] = bot_token
                     print_success("Telegram Bot Token disimpan")
                     break
+                elif existing_token:
+                    self.config['TELEGRAM_BOT_TOKEN'] = existing_token
+                    print_info("Menggunakan token yang sudah ada")
+                    break
+
+            existing_chat_id = self.existing_env.get('TELEGRAM_CHAT_ID', '')
+            default_chat_id = existing_chat_id if existing_chat_id else ''
 
             while True:
                 chat_id = questionary.text(
                     "Masukkan TELEGRAM CHAT ID:",
-                    validate=lambda x: self.validator.validate_chat_id(x)[0]
+                    default=default_chat_id,
+                    validate=(lambda x: self.validator.validate_chat_id(x)[0]) if not existing_chat_id else None
                 ).ask()
 
                 if chat_id:
                     self.config['TELEGRAM_CHAT_ID'] = chat_id
                     print_success("Telegram Chat ID disimpan")
                     return True
+                elif existing_chat_id:
+                    self.config['TELEGRAM_CHAT_ID'] = existing_chat_id
+                    print_info("Menggunakan Chat ID yang sudah ada")
+                    return True
+                break
         else:
             self.config['TELEGRAM_BOT_TOKEN'] = ""
             self.config['TELEGRAM_CHAT_ID'] = ""
@@ -348,16 +285,35 @@ Atau gunakan CLI Manager:
         step = 4
         total = 10
         
-        databases = ["SQLite", "PostgreSQL"]
+        existing_db_url = self.existing_env.get('DATABASE_URL', '')
+        existing_db_type = self.existing_env.get('DATABASE_TYPE', 'sqlite')
+        
+        if existing_db_url:
+            print_info(f"Database sudah terisi ({existing_db_url[:40]}...)")
+            keep = questionary.confirm("Ubah database?", default=False).ask()
+            if not keep:
+                self.config['DATABASE_URL'] = existing_db_url
+                self.config['DATABASE_TYPE'] = existing_db_type
+                print_info("Database tidak diubah")
+                return True
+        
+        databases = ["SQLite", "MySQL"]
+        default_idx = 1
+        for i, db in enumerate(databases):
+            if existing_db_type and existing_db_type.startswith(db.lower()):
+                default_idx = i + 1
+                break
 
         print_step(step, total, "Pilih Database:")
         console.print("\nOpsi:")
         for i, db in enumerate(databases, 1):
-            console.print(f"  {i}. {db}")
+            marker = " [cyan](current)[/cyan]" if i == default_idx else ""
+            console.print(f"  {i}. {db}{marker}")
 
         while True:
             choice = questionary.text(
-                "\nInput (1-2):",
+                f"\nInput (1-{len(databases)}):",
+                default=str(default_idx),
                 validate=lambda x: self.validator.validate_choice(x, databases)[0]
             ).ask()
 
@@ -368,25 +324,31 @@ Atau gunakan CLI Manager:
                 
                 if db_type.lower() == 'sqlite':
                     db_path = questionary.text(
-                        "Database path (default: app/database/stock.db):",
-                        default="app/database/stock.db"
+                        "Database path:",
+                        default=self.existing_env.get('DATABASE_PATH', 'app/database/stock.db')
                     ).ask()
                     db_url = f"sqlite:///{db_path}"
                 else:
-                    # PostgreSQL
+                    # MySQL configuration
                     host = questionary.text(
-                        "PostgreSQL Host (default: localhost):",
+                        "MySQL Host:",
                         default="localhost"
                     ).ask()
                     port = questionary.text(
-                        "PostgreSQL Port (default: 5432):",
-                        default="5432"
+                        "MySQL Port:",
+                        default="3306"
                     ).ask()
-                    user = questionary.text("PostgreSQL User:").ask()
-                    password = questionary.password("PostgreSQL Password:").ask()
-                    db_name = questionary.text("Database Name:").ask()
+                    user = questionary.text(
+                        "MySQL User:",
+                        default="root"
+                    ).ask()
+                    password = questionary.password("MySQL Password:").ask()
+                    db_name = questionary.text(
+                        "Database Name:",
+                        default="analisa_saham"
+                    ).ask()
                     
-                    db_url = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
+                    db_url = f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{db_name}"
 
                 self.config['DATABASE_URL'] = db_url
                 print_success(f"Database: {db_type}")
@@ -397,11 +359,12 @@ Atau gunakan CLI Manager:
         step = 5
         total = 10
         
+        current = self.existing_env.get('AUTO_LEARNING', 'true') == 'true'
         print_step(step, total, "Enable Auto Learning?")
 
         auto_learning = questionary.confirm(
             "Enable Auto Learning?",
-            default=True
+            default=current
         ).ask()
 
         self.config['AUTO_LEARNING'] = "true" if auto_learning else "false"
@@ -415,15 +378,23 @@ Atau gunakan CLI Manager:
         total = 10
         
         risk_modes = ["Conservative", "Moderate", "Aggressive"]
+        current_risk = self.existing_env.get('DEFAULT_RISK_LEVEL', 'moderate').lower()
+        default_idx = 1
+        for i, m in enumerate(risk_modes):
+            if m.lower() == current_risk:
+                default_idx = i + 1
+                break
 
         print_step(step, total, "Pilih Risk Mode:")
         console.print("\nOpsi:")
         for i, mode in enumerate(risk_modes, 1):
-            console.print(f"  {i}. {mode}")
+            marker = " [cyan](current)[/cyan]" if i == default_idx else ""
+            console.print(f"  {i}. {mode}{marker}")
 
         while True:
             choice = questionary.text(
                 "\nInput (1-3):",
+                default=str(default_idx),
                 validate=lambda x: self.validator.validate_choice(x, risk_modes)[0]
             ).ask()
 
@@ -441,12 +412,13 @@ Atau gunakan CLI Manager:
         step = 7
         total = 10
         
+        current_interval = str(self.existing_env.get('MONITOR_INTERVAL', '15'))
         print_step(step, total, "Interval Monitoring (minutes)")
 
         while True:
             interval = questionary.text(
-                "Interval (default: 15, min: 1, max: 1440):",
-                default="15",
+                f"Interval (min: 1, max: 1440):",
+                default=current_interval,
                 validate=lambda x: self.validator.validate_integer(x, 1, 1440)[0]
             ).ask()
 
@@ -462,24 +434,28 @@ Atau gunakan CLI Manager:
         step = 8
         total = 10
         
+        existing_enabled = self.existing_env.get('OLLAMA_ENABLED', 'false') == 'true'
         print_step(step, total, "Enable Local AI Fallback (Ollama)?")
+
+        if existing_enabled:
+            print_info(f"Ollama Fallback sudah aktif ({self.existing_env.get('OLLAMA_BASE_URL', '')})")
 
         enable_ollama = questionary.confirm(
             "Enable Ollama Local Fallback?",
-            default=False
+            default=existing_enabled
         ).ask()
 
         if enable_ollama:
             ollama_url = questionary.text(
-                "Ollama URL (default: http://localhost:11434):",
-                default="http://localhost:11434",
+                "Ollama URL:",
+                default=self.existing_env.get('OLLAMA_BASE_URL', 'http://localhost:11434'),
                 validate=lambda x: self.validator.validate_url(x)[0]
             ).ask()
 
             if ollama_url:
                 self.config['OLLAMA_ENABLED'] = "true"
                 self.config['OLLAMA_BASE_URL'] = ollama_url
-                self.config['OLLAMA_MODEL'] = "llama3"
+                self.config['OLLAMA_MODEL'] = self.existing_env.get('OLLAMA_MODEL', 'llama3')
                 self.settings['ollama_enabled'] = True
                 print_success("Ollama Fallback Enabled")
                 return True
@@ -498,8 +474,8 @@ Atau gunakan CLI Manager:
 
         # Min confidence threshold
         threshold = questionary.text(
-            "Min Confidence Threshold (default: 50, range: 0-100):",
-            default="50",
+            "Min Confidence Threshold (range: 0-100):",
+            default=str(self.existing_env.get('MIN_CONFIDENCE_THRESHOLD', '50')),
             validate=lambda x: self.validator.validate_integer(x, 0, 100)[0]
         ).ask()
 
@@ -509,8 +485,8 @@ Atau gunakan CLI Manager:
 
         # App port
         port = questionary.text(
-            "App Port (default: 8000):",
-            default="8000",
+            "App Port:",
+            default=str(self.existing_env.get('APP_PORT', '8000')),
             validate=lambda x: self.validator.validate_integer(x, 1024, 65535)[0]
         ).ask()
 
@@ -518,9 +494,10 @@ Atau gunakan CLI Manager:
             self.config['APP_PORT'] = int(port)
 
         # Debug mode
+        current_debug = self.existing_env.get('DEBUG', 'true') == 'true'
         debug = questionary.confirm(
             "Enable Debug Mode?",
-            default=True
+            default=current_debug
         ).ask()
 
         self.config['DEBUG'] = "true" if debug else "false"
@@ -578,26 +555,13 @@ Atau gunakan CLI Manager:
         print_step(1, 3, "Testing Connections")
         console.print()
 
-        # Test AI Provider
-        provider = self.config.get('AI_PROVIDER', 'openai')
-        api_key = None
-
-        if provider == 'openai':
-            api_key = self.config.get('OPENAI_API_KEY')
-        elif provider == 'gemini':
-            api_key = self.config.get('GEMINI_API_KEY')
-        elif provider == 'ollama':
-            api_key = self.config.get('OLLAMA_BASE_URL')
-        elif provider == 'openrouter':
-            api_key = self.config.get('OPENROUTER_API_KEY')
-        elif provider == 'groq':
-            api_key = self.config.get('GROQ_API_KEY')
-
+        # Test 9Router
+        api_key = self.config.get('NINE_ROUTER_API_KEY')
         if api_key:
-            if test_connection(provider, api_key):
-                print_success(f"{provider.upper()} API connection OK")
+            if test_connection('9router', api_key):
+                print_success("9Router API connection OK")
             else:
-                print_error(f"{provider.upper()} API connection failed")
+                print_error("9Router API connection failed")
 
         # Test Telegram Bot
         if self.config.get('TELEGRAM_BOT_TOKEN'):

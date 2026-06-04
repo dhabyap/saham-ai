@@ -8,8 +8,22 @@ from app.database import ai_crud
 from app.config import Config
 
 router = APIRouter(prefix="/api/learning", tags=["ai-learning"])
-learning_engine = LearningEngine()
-training_engine = TrainingEngine()
+_learning_engine = None
+_training_engine = None
+
+
+def get_learning_engine():
+    global _learning_engine
+    if _learning_engine is None:
+        _learning_engine = LearningEngine()
+    return _learning_engine
+
+
+def get_training_engine():
+    global _training_engine
+    if _training_engine is None:
+        _training_engine = TrainingEngine()
+    return _training_engine
 
 
 # ─── Prediction History ─────────────────────────────────────────
@@ -32,14 +46,14 @@ def get_prediction(pred_id: int):
 
 @router.post("/evaluate")
 def evaluate_predictions(days: int = Query(7, ge=1, le=90)):
-    return learning_engine.evaluate_predictions(eval_days=days)
+    return get_learning_engine().evaluate_predictions(eval_days=days)
 
 
 # ─── Performance & Scores ───────────────────────────────────────
 
 @router.get("/performance")
 def get_performance():
-    return learning_engine.get_performance_summary()
+    return get_learning_engine().get_performance_summary()
 
 
 @router.get("/scores")
@@ -49,7 +63,7 @@ def get_scores():
 
 @router.get("/accuracy-chart")
 def get_accuracy_chart():
-    return learning_engine.get_accuracy_chart_data()
+    return get_learning_engine().get_accuracy_chart_data()
 
 
 # ─── User Config ────────────────────────────────────────────────
@@ -114,7 +128,7 @@ def update_weights(req: WeightsUpdate):
 
 @router.post("/weights/adjust")
 def auto_adjust_weights():
-    return learning_engine.adjust_weights_auto()
+    return get_learning_engine().adjust_weights_auto()
 
 
 # ─── Feedback ───────────────────────────────────────────────────
@@ -209,6 +223,7 @@ class TrainingRequest(BaseModel):
 
 @router.post("/train")
 def train_model(req: TrainingRequest):
+    training_engine = get_training_engine()
     X, y, labels = training_engine.prepare_training_data(
         period=req.period, stocks=req.stocks
     )
@@ -236,14 +251,14 @@ def training_logs(limit: int = 20):
 
 @router.get("/training/status")
 def training_status():
-    return training_engine.get_training_status()
+    return get_training_engine().get_training_status()
 
 
 # ─── Backtesting ────────────────────────────────────────────────
 
 @router.get("/backtest/{code}")
 def backtest(code: str, strategy: str = "swing", period: str = "6mo"):
-    return training_engine.backtest_strategy(code, strategy, period)
+    return get_training_engine().backtest_strategy(code, strategy, period)
 
 
 # ─── Knowledge Seed ─────────────────────────────────────────────

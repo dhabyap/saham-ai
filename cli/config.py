@@ -104,7 +104,7 @@ class ConfigManager:
         env_data = self.env_manager.load()
         current = env_data.get('AI_PROVIDER', 'openai')
 
-        providers = ["openai", "gemini", "ollama"]
+        providers = ["openai", "gemini", "ollama", "openrouter", "groq", "9router"]
 
         new_provider = questionary.select(
             f"Current: {current}",
@@ -161,6 +161,23 @@ class ConfigManager:
                 if model:
                     env_data['OLLAMA_MODEL'] = model
                 print_success("Ollama settings updated")
+
+        elif provider.lower() == '9router':
+            url = questionary.text(
+                "9Router Base URL:",
+                default=env_data.get('NINE_ROUTER_BASE_URL', 'http://localhost:20128/v1')
+            ).ask()
+            if url:
+                env_data['NINE_ROUTER_BASE_URL'] = url
+                model = questionary.text(
+                    "9Router Model (default: openai/gpt-4o-mini):",
+                    default=env_data.get('NINE_ROUTER_MODEL', 'openai/gpt-4o-mini')
+                ).ask()
+                if model:
+                    env_data['NINE_ROUTER_MODEL'] = model
+                if not env_data.get('NINE_ROUTER_API_KEY'):
+                    env_data['NINE_ROUTER_API_KEY'] = 'sk-9router'
+                print_success("9Router settings updated")
 
         if env_data:
             self.env_manager.save(env_data)
@@ -305,6 +322,12 @@ class ConfigManager:
             api_key = env_data.get('GEMINI_API_KEY')
         elif provider == 'ollama':
             api_key = env_data.get('OLLAMA_BASE_URL')
+        elif provider == 'openrouter':
+            api_key = env_data.get('OPENROUTER_API_KEY')
+        elif provider == 'groq':
+            api_key = env_data.get('GROQ_API_KEY')
+        elif provider == '9router':
+            api_key = env_data.get('NINE_ROUTER_API_KEY', 'sk-9router')
 
         if api_key:
             if test_connection(provider, api_key):

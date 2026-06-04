@@ -22,7 +22,14 @@ from app.database import crud
 import pandas as pd
 
 router = APIRouter(prefix="/api", tags=["api"])
-analysis_service = AnalysisService()
+_analysis_service = None
+
+
+def get_analysis_service():
+    global _analysis_service
+    if _analysis_service is None:
+        _analysis_service = AnalysisService()
+    return _analysis_service
 
 
 class WatchlistRequest(BaseModel):
@@ -69,6 +76,7 @@ def get_stock(code: str, period: str = Query("3mo", description="Period: 1mo, 3m
 
 @router.get("/analyze/{code}")
 def analyze_stock(code: str):
+    analysis_service = get_analysis_service()
     result = analysis_service.analyze_stock(code, use_ai=True)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])

@@ -3,35 +3,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GROQ_MODEL_ALIASES = {
-    "llama3-70b-8192": "llama-3.3-70b-versatile",
-    "llama3-8b-8192": "llama-3.1-8b-instant",
-}
-
-
-def _normalize_model_name(model_name, aliases):
-    clean_model = (model_name or "").strip().strip("'\"")
-    return aliases.get(clean_model, clean_model)
-
 class Config:
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
-    OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
-    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-    OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
-    OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-    OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL", "")
-    OPENROUTER_SITE_NAME = os.getenv("OPENROUTER_SITE_NAME", "AI Stock Analyzer")
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-    GROQ_MODEL = _normalize_model_name(
-        os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
-        GROQ_MODEL_ALIASES,
-    )
-    AI_PROVIDER = os.getenv("AI_PROVIDER", "openai")
+    NINE_ROUTER_BASE_URL = os.getenv("NINE_ROUTER_BASE_URL", "http://localhost:20128/v1")
+    NINE_ROUTER_MODEL = os.getenv("NINE_ROUTER_MODEL", "test")
+    NINE_ROUTER_API_KEY = os.getenv("NINE_ROUTER_API_KEY", "sk-9router-free")
+    AI_PROVIDER = os.getenv("AI_PROVIDER", "9router")
+    DATABASE_TYPE = os.getenv("DATABASE_TYPE", "sqlite")
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///app/database/stock.db")
     DATABASE_PATH = os.getenv("DATABASE_PATH", "app/database/stock.db")
     CHART_DIR = os.getenv("CHART_DIR", "app/static/charts")

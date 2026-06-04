@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Analisa Saham Harian</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .upload-area:hover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e9ecef;
+            border-color: #764ba2;
+        }
+
+        .upload-area svg {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .upload-area p {
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .upload-area .highlight {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .signal {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin: 5px 5px 5px 0;
+        }
+
+        .signal.buy {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .signal.sell {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .signal.hold {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-top: 3px solid #667eea;
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .recommendations {
+            margin-top: 20px;
+        }
+
+        .recommendation-group {
+            margin-bottom: 15px;
+        }
+
+        .recommendation-group h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .recommendation-item {
+            background: white;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #e9ecef;
+        }
+
+        .recommendation-item.buy {
+            border-left-color: #28a745;
+        }
+
+        .recommendation-item.sell {
+            border-left-color: #dc3545;
+        }
+
+        .stock-code {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .confidence-bar {
+            width: 100px;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .training-info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .training-info h4 {
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+
+        .training-info p {
+            color: #555;
+            font-size: 0.95em;
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Upload & Analisa Saham Harian</h1>
+            <p>Beli pagi, jual sore - Temukan peluang day trading terbaik</p>
+        </div>
+
+        <div class="content">
+            <!-- Upload Section -->
+            <div>
+                <div class="section">
+                    <h2>📤 Upload Excel</h2>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                        </svg>
+                        <p>Drag & drop Excel file di sini</p>
+                        <p>atau <span class="highlight">klik untuk pilih file</span></p>
+                        <p style="font-size: 0.9em; color: #999; margin-top: 15px;">File harus berformat .xlsx dengan kolom: Kode, Tanggal, Open, High, Low, Close, Volume</p>
+                    </div>
+
+                    <input type="file" id="fileInput" accept=".xlsx" />
+
+                    <button class="btn btn-primary" id="uploadBtn" disabled>Upload & Analisa</button>
+
+                    <div id="loadingMessage" class="loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 10px; color: #666;">Menganalisa data...</p>
+                    </div>
+
+                    <div id="statusMessage" class="message"></div>
+
+                    <div id="trainingInfo" class="training-info" style="display: none;">
+                        <h4>🤖 Pelatihan AI</h4>
+                        <p id="trainingText"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div>
+                <div class="section">
+                    <h2>📈 Hasil Analisa Terbaru</h2>
+                    
+                    <div id="latestResults">
+                        <p style="color: #999; text-align: center; padding: 40px 20px;">Belum ada hasil. Upload Excel terlebih dahulu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Recommendations -->
+        <div class="section" style="margin: 30px;">
+            <h2>💡 Rekomendasi Detail</h2>
+            <div id="detailedResults">
+                <p style="color: #999; text-align: center;">Belum ada rekomendasi. Hasil akan ditampilkan setelah upload.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const statusMessage = document.getElementById('statusMessage');
+        const latestResults = document.getElementById('latestResults');
+        const detailedResults = document.getElementById('detailedResults');
+        const trainingInfo = document.getElementById('trainingInfo');
+
+        // File selection
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                updateUploadButton();
+            }
+        });
+
+        fileInput.addEventListener('change', updateUploadButton);
+
+        function updateUploadButton() {
+            uploadBtn.disabled = !fileInput.files.length;
+            if (fileInput.files.length > 0) {
+                uploadBtn.textContent = `Upload: ${fileInput.files[0].name}`;
+            }
+        }
+
+        // Upload and analyze
+        uploadBtn.addEventListener('click', async () => {
+            if (!fileInput.files.length) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            showMessage('', 'success', false);
+            loadingMessage.style.display = 'block';
+            uploadBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/uploads/excel', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                loadingMessage.style.display = 'none';
+
+                if (response.ok) {
+                    showMessage('✅ Upload dan analisa berhasil!', 'success');
+                    displayResults(result);
+                    loadLatestResults();
+                    fetchTrainingSummary();
+                } else {
+                    showMessage(`❌ Error: ${result.detail || result.error}`, 'error');
+                }
+            } catch (error) {
+                loadingMessage.style.display = 'none';
+                showMessage(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                fileInput.value = '';
+                updateUploadButton();
+            }
+        });
+
+        function showMessage(text, type, show = true) {
+            statusMessage.className = `message ${type}`;
+            statusMessage.textContent = text;
+            if (!show) statusMessage.style.display = 'none';
+        }
+
+        function displayResults(data) {
+            const stats = `
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="number">${data.buy_signals}</div>
+                        <div class="label">Sinyal BUY</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">${data.sell_signals}</div>
+                        <div class="label">Sinyal SELL</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">${data.hold_signals}</div>
+                        <div class="label">Sinyal HOLD</div>
+                    </div>
+                </div>
+            `;
+
+            const predictions = data.predictions.map(p => `
+                <div class="result-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span class="stock-code">${p.stock_code}</span>
+                        <span class="signal ${p.signal.toLowerCase()}">${p.signal}</span>
+                    </div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        <div>Confidence: ${(p.confidence * 100).toFixed(1)}%</div>
+                        <div>Expected Profit: ${p.expected_profit}%</div>
+                        <div>Risk: ${p.risk_level}</div>
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e9ecef; color: #555;">
+                            ${p.reasoning}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            detailedResults.innerHTML = `
+                <div class="recommendations">
+                    ${data.predictions.map(p => `
+                        <div class="recommendation-group">
+                            <div class="recommendation-item ${p.signal.toLowerCase()}">
+                                <div>
+                                    <span class="stock-code">${p.stock_code}</span>
+                                    <div style="font-size: 0.9em; color: #666; margin-top: 3px;">${p.reasoning}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: bold; color: #667eea;">+${p.expected_profit}%</div>
+                                    <div style="font-size: 0.85em; color: #999;">Confidence: ${(p.confidence * 100).toFixed(0)}%</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            latestResults.innerHTML = stats + predictions;
+        }
+
+        function loadLatestResults() {
+            fetch('/api/uploads/latest')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.message) return;
+                    
+                    const resultsHtml = `
+                        <div style="background: white; padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 0.9em; color: #999; margin-bottom: 15px;">
+                                📅 ${new Date(data.upload_date).toLocaleDateString('id-ID')}
+                            </div>
+                            <div class="stats">
+                                <div class="stat-card">
+                                    <div class="number">${data.buy_signals}</div>
+                                    <div class="label">Beli</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="number">${data.sell_signals}</div>
+                                    <div class="label">Jual</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="number">${data.hold_signals}</div>
+                                    <div class="label">Tahan</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                                <div style="font-size: 0.9em; color: #666;">
+                                    Confidence Rata-rata: <strong>${(data.confidence_score * 100).toFixed(1)}%</strong>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    latestResults.innerHTML = resultsHtml;
+                });
+        }
+
+        function fetchTrainingSummary() {
+            fetch('/api/uploads/training/summary')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.total_records > 0) {
+                        trainingInfo.style.display = 'block';
+                        const text = `Sudah melatih AI dengan ${data.total_records} data. Akurasi: ${data.success_rate.toFixed(1)}%`;
+                        document.getElementById('trainingText').textContent = text;
+                    }
+                });
+        }
+
+        // Load initial results
+        loadLatestResults();
+        fetchTrainingSummary();
+    </script>
+</body>
+</html>

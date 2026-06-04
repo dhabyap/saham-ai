@@ -5,11 +5,11 @@
   "risk_mode": "aggressive",
   "monitor_interval": 15,
   "ollama_enabled": false,
-  "min_confidence_threshold": 50,
+  "min_confidence_threshold": 60,
   "default_strategy": "swing",
   "max_portfolio_stocks": 10,
   "log_level": "INFO",
   "language": "id",
   "theme": "dark",
-  "ai_provider": "groq"
+  "ai_provider": "9router"
 }

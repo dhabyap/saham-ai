@@ -24,7 +24,7 @@ class OpenRouterProvider(BaseProvider):
     def is_available(self):
         if not self.api_key:
             return False
-        if time.time() < self._cooldown_until:
+        if time.time() < type(self)._cooldown_until:
             return False
         return True
 
@@ -41,7 +41,7 @@ class OpenRouterProvider(BaseProvider):
         return self._client
 
     def analyze(self, prompt, system_prompt=None):
-        if time.time() < self._cooldown_until:
+        if time.time() < type(self)._cooldown_until:
             return None
         try:
             client = self._get_client()
@@ -64,7 +64,7 @@ class OpenRouterProvider(BaseProvider):
             return None
 
     def chat(self, messages):
-        if time.time() < self._cooldown_until:
+        if time.time() < type(self)._cooldown_until:
             return None
         try:
             client = self._get_client()
@@ -85,10 +85,10 @@ class OpenRouterProvider(BaseProvider):
         if hasattr(e, "status_code"):
             code = str(e.status_code)
         if "402" in err_str or code == "402":
-            self._cooldown_until = time.time() + 300
+            type(self)._cooldown_until = time.time() + 300
             print("  OpenRouter: insufficient credits, paused 5 min")
         elif "429" in err_str or code == "429":
-            self._cooldown_until = time.time() + 300
+            type(self)._cooldown_until = time.time() + 300
             print("  OpenRouter: rate limited, paused 5 min")
         else:
             safe = err_str.split("\n")[0].encode("ascii", "ignore").decode("ascii")

@@ -20,7 +20,7 @@ class GeminiProvider(BaseProvider):
     def is_available(self):
         if not self.api_key:
             return False
-        if time.time() < self._cooldown_until:
+        if time.time() < type(self)._cooldown_until:
             return False
         return True
 
@@ -31,7 +31,7 @@ class GeminiProvider(BaseProvider):
         return self._model
 
     def analyze(self, prompt, system_prompt=None):
-        if time.time() < self._cooldown_until:
+        if time.time() < type(self)._cooldown_until:
             return None
         try:
             client = self._get_model()
@@ -44,7 +44,7 @@ class GeminiProvider(BaseProvider):
         except Exception as e:
             err_str = str(e)
             if "429" in err_str or "quota" in err_str.lower() or "Quota" in err_str:
-                self._cooldown_until = time.time() + 300
+                type(self)._cooldown_until = time.time() + 300
                 print("  Gemini: quota exceeded, paused 5 min")
             else:
                 safe = err_str.split(chr(10))[0].encode("ascii", "ignore").decode("ascii")
@@ -52,7 +52,7 @@ class GeminiProvider(BaseProvider):
             return None
 
     def chat(self, messages):
-        if time.time() < self._cooldown_until:
+        if time.time() < type(self)._cooldown_until:
             return None
         try:
             client = self._get_model()
@@ -67,7 +67,7 @@ class GeminiProvider(BaseProvider):
         except Exception as e:
             err_str = str(e)
             if "429" in err_str or "quota" in err_str.lower():
-                self._cooldown_until = time.time() + 300
+                type(self)._cooldown_until = time.time() + 300
                 print("  Gemini: quota exceeded, paused 5 min")
             else:
                 safe = err_str.split(chr(10))[0].encode("ascii", "ignore").decode("ascii")

@@ -46,6 +46,43 @@ class AnalyzeRequest(BaseModel):
 def health_check():
     return {"status": "ok", "message": "AI Stock Analyzer is running"}
 
+@router.get("/ai/status")
+def ai_status():
+    from app.config import Config
+    from openai import OpenAI
+    result = {
+        "provider": Config.AI_PROVIDER,
+        "base_url": Config.NINE_ROUTER_BASE_URL,
+        "model": Config.NINE_ROUTER_MODEL,
+        "reachable": False,
+        "responding": False,
+        "error": None,
+        "models_available": [],
+    }
+    try:
+        client = OpenAI(api_key=Config.NINE_ROUTER_API_KEY, base_url=Config.NINE_ROUTER_BASE_URL)
+        # Test reachability
+        models = client.models.list()
+        result["reachable"] = True
+        result["models_available"] = [m.id for m in models.data[:10]]
+        # Test chat completion
+        resp = client.chat.completions.create(
+            model=Config.NINE_ROUTER_MODEL,
+            messages=[{"role": "user", "content": "Reply with just: OK"}],
+            max_tokens=50,
+            temperature=0.3,
+        )
+        choice = resp.choices[0]
+        content = (choice.message.content or "").strip()
+        reasoning = getattr(choice.message, "reasoning_content", None) or ""
+        if not content and reasoning.strip():
+            content = reasoning.strip()
+        result["responding"] = bool(content)
+        result["response_sample"] = content[:100] if content else "(empty)"
+    except Exception as e:
+        result["error"] = str(e)[:200]
+    return result
+
 
 @router.get("/stock/{code}")
 def get_stock(code: str, period: str = Query("3mo", description="Period: 1mo, 3mo, 6mo, 1y")):

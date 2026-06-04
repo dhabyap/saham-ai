@@ -37,7 +37,7 @@ class NineRouterProvider(BaseProvider):
     def analyze(self, prompt, system_prompt=None):
         if time.time() < type(self)._cooldown_until:
             return None
-        # Retry up to 2 times if empty or unparseable
+        # Retry up to 3 times if empty or unparseable
         for attempt in range(3):
             try:
                 client = self._get_client()
@@ -52,7 +52,12 @@ class NineRouterProvider(BaseProvider):
                     temperature=0.3,
                     max_tokens=1000,
                 )
-                content = response.choices[0].message.content or ""
+                choice = response.choices[0]
+                # DeepSeek-style: content may be empty, actual answer in reasoning_content
+                content = choice.message.content or ""
+                reasoning = getattr(choice.message, "reasoning_content", None) or ""
+                if not content.strip() and reasoning.strip():
+                    content = reasoning
                 if not content.strip():
                     continue
                 parsed = self._parse_json(content)
@@ -77,7 +82,11 @@ class NineRouterProvider(BaseProvider):
                     temperature=0.3,
                     max_tokens=1000,
                 )
-                content = response.choices[0].message.content or ""
+                choice = response.choices[0]
+                content = choice.message.content or ""
+                reasoning = getattr(choice.message, "reasoning_content", None) or ""
+                if not content.strip() and reasoning.strip():
+                    content = reasoning
                 if content.strip():
                     return content
             except Exception as e:

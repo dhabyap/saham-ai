@@ -623,8 +623,7 @@ class TelegramBot:
             print("⚠️ TELEGRAM_BOT_TOKEN tidak dikonfigurasi. Bot Telegram tidak akan aktif.")
             return
 
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        asyncio.set_event_loop(asyncio.new_event_loop())
         self.app = Application.builder().token(self.token).post_init(self.set_commands).build()
 
         self.app.add_handler(CommandHandler("start", self.start))
@@ -650,26 +649,6 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("longtermcandidates", self.longtermcandidates_cmd))
         self.app.add_error_handler(self.error_handler)
 
-        # Non-blocking polling so we can stop gracefully
-        loop.run_until_complete(self.app.initialize())
-        loop.run_until_complete(self.app.start())
-        loop.run_until_complete(self.app.updater.start_polling(allowed_updates=Update.ALL_TYPES))
-
         print("🤖 Telegram Bot started...")
-
-        # Expose for graceful shutdown from main thread
-        import app.main as main_module
-        main_module._telegram_bot_loop = loop
-        main_module._telegram_bot_app = self.app
-
-        try:
-            loop.run_forever()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            # Graceful cleanup
-            loop.run_until_complete(self.app.updater.stop_polling())
-            loop.run_until_complete(self.app.stop())
-            loop.run_until_complete(self.app.shutdown())
-            loop.close()
+        self.app.run_polling(allowed_updates=Update.ALL_TYPES)
  

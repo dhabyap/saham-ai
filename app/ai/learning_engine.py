@@ -260,7 +260,7 @@ class LearningEngine:
              "actual": p.get("actual_result", "Pending"),
              "confidence": p.get("confidence"),
              "profit": p.get("profit_pct"),
-             "date": p.get("created_at", "")[:10]}
+             "date": str(p.get("created_at", ""))[:10]}
             for p in predictions
         ]
 

@@ -441,6 +441,19 @@ def init_db():
                     accuracy DOUBLE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS ai_training_logs (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    training_type VARCHAR(50) NOT NULL,
+                    model_name VARCHAR(100),
+                    accuracy DOUBLE,
+                    `precision` DOUBLE,
+                    `recall` DOUBLE,
+                    f1_score DOUBLE,
+                    parameters TEXT,
+                    duration_seconds DOUBLE,
+                    status VARCHAR(20) DEFAULT 'completed',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
             """)
         else:
             conn.executescript("""
@@ -680,6 +693,19 @@ def init_db():
                     ai_prediction TEXT,
                     ai_confidence REAL,
                     accuracy REAL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS ai_training_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    training_type TEXT NOT NULL,
+                    model_name TEXT,
+                    accuracy REAL,
+                    precision REAL,
+                    recall REAL,
+                    f1_score REAL,
+                    parameters TEXT,
+                    duration_seconds REAL,
+                    status TEXT DEFAULT 'completed',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)

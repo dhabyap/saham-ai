@@ -130,7 +130,7 @@ def get_or_create_user_config(user_id):
         db_user = cur.fetchone()
         uid = db_user["id"] if db_user else user_id
         conn.execute(
-            "INSERT INTO ai_user_configs (user_id) VALUES (?)", (uid,)
+            "INSERT OR IGNORE INTO ai_user_configs (user_id) VALUES (?)", (uid,)
         )
         cur = conn.execute(
             "SELECT * FROM ai_user_configs WHERE user_id = ?", (uid,)

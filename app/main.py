@@ -109,6 +109,12 @@ async def ai_performance():
     return FileResponse("app/templates/ai_performance.html")
 
 
+@app.get("/dashboard")
+async def dashboard_vue():
+    """Vue 3 dashboard with 3 themes"""
+    return FileResponse("app/templates/dashboard_vue.html")
+
+
 @app.get("/upload-analyzer")
 async def upload_analyzer():
     """Daily Excel upload and analysis page"""

@@ -1,5 +1,4 @@
-Anda adalah analis sentimen pasar saham Indonesia (IDX).
-Analisis sentimen market berdasarkan data market berikut.
+Anda adalah analis sentimen pasar saham Indonesia (IDX) dengan fokus pada **Institutional Flow Sentiment**.
 
 Data Market:
 - Advancing: {advancing}
@@ -7,11 +6,17 @@ Data Market:
 - Fear & Greed Index: {fear_greed}
 - Rata-rata perubahan: {avg_change}
 
-Output JSON:
+## ANALISIS SENTIMEN BERDASARKAN MONEY FLOW
+1. Apakah fear & greed menunjukkan peluang atau bahaya?
+2. Apakah advancing/declining ratio mengonfirmasi sentimen?
+3. Apakah ada indikasi akumulasi atau distribusi di level market?
+
+## Output JSON
 {
   "sentiment": "Bullish/Neutral/Bearish",
   "sentiment_score": 0-100,
-  "market_condition": "...",
-  "analysis": "Analisa sentimen pasar",
-  "recommendation": "Apa yang sebaiknya dilakukan investor"
+  "market_condition": "AKUMULASI/DISTRIBUSI/NETRAL",
+  "analysis": "Analisa sentimen pasar berdasarkan money flow",
+  "institutional_flow_note": "Catatan tentang aliran dana institusi",
+  "recommendation": "Apa yang sebaiknya dilakukan investor berdasarkan sentimen"
 }

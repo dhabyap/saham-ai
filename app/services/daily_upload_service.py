@@ -80,22 +80,26 @@ class DailyUploadService:
             return {"error": str(e)}
     
     def _save_stock_data(self, upload_id: int, row) -> dict:
-        """Save individual stock data"""
+        """Save individual stock data — includes Money Flow columns"""
         
         stock_date = self._parse_date(row['Tanggal'])
         stock_code = self._normalize_stock_code(row['Kode'])
         
-        # Prepare additional data
+        # Prepare additional data (columns not in standard or money flow sets)
         standard_columns = {'Kode', 'Tanggal', 'Open', 'High', 'Low', 'Close', 'Volume', 
-                           'SMA_20', 'SMA_50', 'RSI', 'MACD', 'MACD_Signal'}
+                           'SMA_20', 'SMA_50', 'RSI', 'MACD', 'MACD_Signal',
+                           'Foreign_Net_Buy', 'Foreign_Accumulation_Days',
+                           'Broker_Buy', 'Broker_Sell', 'IHSG_Change', 'Sector'}
         additional = {col: str(row[col]) for col in row.index if col not in standard_columns and pd.notna(row[col])}
         
         cursor = self.db.cursor()
         cursor.execute("""
             INSERT INTO daily_stock_data 
             (upload_id, stock_code, date, open_price, high_price, low_price, close_price, 
-             volume, sma_20, sma_50, rsi, macd, macd_signal, additional_data)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             volume, sma_20, sma_50, rsi, macd, macd_signal,
+             foreign_net_buy, foreign_accumulation_days, broker_buy, broker_sell,
+             ihsg_change, sector, additional_data)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             upload_id,
             stock_code,
@@ -110,6 +114,13 @@ class DailyUploadService:
             self._optional_float(row, 'RSI'),
             self._optional_float(row, 'MACD'),
             self._optional_float(row, 'MACD_Signal'),
+            # Money Flow columns
+            self._optional_float(row, 'Foreign_Net_Buy', 0),
+            self._optional_int(row, 'Foreign_Accumulation_Days', 0),
+            self._optional_float(row, 'Broker_Buy', 0),
+            self._optional_float(row, 'Broker_Sell', 0),
+            self._optional_float(row, 'IHSG_Change', 0),
+            str(row.get('Sector', '')),
             json.dumps(additional) if additional else None
         ))
         
@@ -127,7 +138,7 @@ class DailyUploadService:
         Generate AI prediction for day trading (buy morning, sell evening)
         """
         try:
-            # Prepare features
+            # Prepare features — Money Flow methodology
             features = {
                 'open': self._required_float(row, 'Open'),
                 'high': self._required_float(row, 'High'),
@@ -137,6 +148,14 @@ class DailyUploadService:
                 'sma_20': self._optional_float(row, 'SMA_20', 0),
                 'rsi': self._optional_float(row, 'RSI', 50),
                 'macd': self._optional_float(row, 'MACD', 0),
+                # Money Flow columns (optional — from enriched Excel)
+                'foreign_net_buy': self._optional_float(row, 'Foreign_Net_Buy', 0),
+                'foreign_accumulation_days': self._optional_int(row, 'Foreign_Accumulation_Days', 0),
+                'broker_buy': self._optional_float(row, 'Broker_Buy', 0),
+                'broker_sell': self._optional_float(row, 'Broker_Sell', 0),
+                'ihsg_change': self._optional_float(row, 'IHSG_Change', 0),
+                'sector': str(row.get('Sector', '')),
+                'range_pct': ((self._required_float(row, 'High') - self._required_float(row, 'Low')) / self._required_float(row, 'Open')) * 100 if self._required_float(row, 'Open') > 0 else 0,
             }
             stock_code = self._normalize_stock_code(row['Kode'])
             
@@ -179,7 +198,17 @@ class DailyUploadService:
                 'risk_level': analysis.get('risk_level', 'MEDIUM'),
                 'reasoning': analysis.get('reasoning', ''),
                 'price': features['close'],
-                'volume': features['volume']
+                'volume': features['volume'],
+                'money_flow': {
+                    'foreign_net_buy': features.get('foreign_net_buy', 0),
+                    'accumulation_days': features.get('foreign_accumulation_days', 0),
+                    'sector': features.get('sector', ''),
+                    'ihsg_change': features.get('ihsg_change', 0),
+                },
+                'opening_drive': analysis.get('opening_drive', ''),
+                'volume_confirmation': analysis.get('volume_confirmation', ''),
+                'foreign_flow_note': analysis.get('foreign_flow_note', ''),
+                'tick_index_note': analysis.get('tick_index_note', ''),
             }
         
         except Exception as e:
@@ -256,18 +285,18 @@ class DailyUploadService:
         cursor.execute("""
             SELECT * FROM upload_analysis_results 
             WHERE upload_id = ? LIMIT 1
-        """, (upload[0],))
+        """, (upload['id'],))
         analysis = cursor.fetchone()
         
         return {
-            'id': upload[0],
-            'upload_date': upload[1],
-            'filename': upload[2],
-            'total_stocks': upload[3],
-            'buy_signals': analysis[3] if analysis else 0,
-            'sell_signals': analysis[4] if analysis else 0,
-            'hold_signals': analysis[5] if analysis else 0,
-            'confidence_score': analysis[7] if analysis else 0
+            'id': upload['id'],
+            'upload_date': upload['upload_date'],
+            'filename': upload['filename'],
+            'total_stocks': upload['total_stocks'],
+            'buy_signals': analysis['total_buy_signals'] if analysis else 0,
+            'sell_signals': analysis['total_sell_signals'] if analysis else 0,
+            'hold_signals': analysis['total_hold_signals'] if analysis else 0,
+            'confidence_score': analysis['confidence_score'] if analysis else 0
         }
     
     def get_upload_details(self, upload_id: int) -> dict:
@@ -287,18 +316,18 @@ class DailyUploadService:
         predictions = cursor.fetchall()
         
         return {
-            'id': upload[0],
-            'upload_date': upload[1],
-            'filename': upload[2],
-            'total_stocks': upload[3],
+            'id': upload['id'],
+            'upload_date': upload['upload_date'],
+            'filename': upload['filename'],
+            'total_stocks': upload['total_stocks'],
             'predictions': [
                 {
-                    'stock_code': p[2],
-                    'signal': p[4],
-                    'confidence': p[5],
-                    'expected_profit': p[6],
-                    'risk_level': p[7],
-                    'reasoning': p[8]
+                    'stock_code': p['stock_code'],
+                    'signal': p['trade_signal'],
+                    'confidence': p['confidence'],
+                    'expected_profit': p['expected_profit_percentage'],
+                    'risk_level': p['risk_level'],
+                    'reasoning': p['reasoning']
                 }
                 for p in predictions
             ]
@@ -325,9 +354,9 @@ class DailyUploadService:
             """, (actual_profit, 1 if was_correct else 0, prediction_id))
             
             # Add to training data
-            label = self._determine_training_label(prediction[4], was_correct, actual_profit)
+            label = self._determine_training_label(prediction['trade_signal'], was_correct, actual_profit)
             
-            features = json.loads(prediction[9]) if prediction[9] else {}
+            features = json.loads(prediction['features_used']) if prediction['features_used'] else {}
             
             cursor.execute("""
                 INSERT INTO ai_training_data
@@ -336,8 +365,8 @@ class DailyUploadService:
                 VALUES (?, ?, ?, ?, ?, ?, ?, 0)
             """, (
                 prediction_id,
-                prediction[2],
-                prediction[3],
+                prediction['stock_code'],
+                prediction['prediction_date'],
                 json.dumps(features),
             label,
             actual_profit,

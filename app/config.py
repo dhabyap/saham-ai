@@ -20,3 +20,4 @@ class Config:
     MIN_CONFIDENCE_THRESHOLD = int(os.getenv("MIN_CONFIDENCE_THRESHOLD", "50"))
     DEFAULT_RISK_LEVEL = os.getenv("DEFAULT_RISK_LEVEL", "moderate")
     DEFAULT_STRATEGY = os.getenv("DEFAULT_STRATEGY", "swing")
+    FOREIGN_FLOW_ENABLED = os.getenv("FOREIGN_FLOW_ENABLED", "true").lower() == "true"

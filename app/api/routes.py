@@ -21,6 +21,11 @@ from app.services.ihsg_service import IHSGService
 from app.services.relative_strength import calculate_relative_strength, calculate_all_relative_strength
 from app.charts.chart_generator import generate_full_analysis_chart
 from app.database import crud
+from app.database.foreign_flow_models import (
+    get_foreign_flow,
+    get_accumulation_status,
+    get_all_accumulation_status,
+)
 import pandas as pd
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -256,3 +261,31 @@ async def get_relative_strength(code: str):
 async def get_market_breadth():
     data = calculate_all_relative_strength()
     return {"status": "ok", "data": data}
+
+
+@router.get("/foreign-flow/{code}")
+async def foreign_flow(code: str, days: int = Query(30, ge=1, le=365)):
+    history = get_foreign_flow(code, days)
+    accumulation = get_accumulation_status(code)
+    return {
+        "status": "ok",
+        "data": {
+            "history": history,
+            "accumulation_status": accumulation,
+        },
+    }
+
+
+@router.get("/foreign-flow/summary")
+async def foreign_flow_summary():
+    all_status = get_all_accumulation_status()
+    top_accumulating = [s for s in all_status if s.get("status") == "accumulating"][:10]
+    top_distributing = [s for s in all_status if s.get("status") == "distributing"][:10]
+    return {
+        "status": "ok",
+        "data": {
+            "top_accumulating": top_accumulating,
+            "top_distributing": top_distributing,
+            "total_tracked": len(all_status),
+        },
+    }

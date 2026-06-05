@@ -37,6 +37,9 @@ async def startup():
     init_db()
     print("✓ Database initialized")
 
+    from app.database import foreign_flow_models
+    print("✓ Foreign flow database initialized")
+
     # Seed knowledge base
     try:
         from app.ai.knowledge_base import seed_knowledge_base

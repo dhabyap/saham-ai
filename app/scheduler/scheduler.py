@@ -1,5 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 
 from app.config import Config
 from app.scheduler.tasks import (
@@ -7,6 +8,7 @@ from app.scheduler.tasks import (
     update_market_summary,
     run_send_telegram_alerts,
     evaluate_predictions_task,
+    bpjs_daily_scan,
 )
 
 
@@ -48,12 +50,21 @@ def start_scheduler():
         replace_existing=True,
     )
 
+    scheduler.add_job(
+        bpjs_daily_scan,
+        trigger=CronTrigger(hour=16, minute=5, timezone="Asia/Jakarta"),
+        id="bpjs_daily_scan",
+        name="BPJS daily scan after market close",
+        replace_existing=True,
+    )
+
     scheduler.start()
     print(f"⏰ Scheduler started (interval: {interval} minutes)")
     print("  - Market summary update")
     print("  - Watchlist alert check")
     print("  - Telegram alert delivery")
     print("  - AI prediction evaluation")
+    print("  - BPJS daily scan (16:05 WIB)")
 
 
 def stop_scheduler():

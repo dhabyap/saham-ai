@@ -36,3 +36,9 @@ _test_*.py
 Thumbs.db
 .vscode/
 .idea/
+*.stackdump
+nul
+
+# Upload folders
+uploads/
+!uploads/.gitkeep

@@ -98,39 +98,53 @@ class AIAnalyzer:
         return None
 
     def _build_prompt(self, data, strategy, risk_level, knowledge=""):
+        foreign_flow = data.get('foreign_net_buy', 'N/A')
+        accumulation_days = data.get('accumulation_days', 0)
+        relative_strength = data.get('relative_strength', 'N/A')
+        sector = data.get('sector', 'N/A')
+        sector_flow = data.get('sector_flow', 'N/A')
+
         return (
-            f"Analisa {data.get('stock_code')}: Harga Rp{data.get('price'):,.0f} "
-            f"({data.get('change_pct', 0):+.2f}%), RSI {data.get('rsi')} ({data.get('rsi_status')}), "
+            f"Analisa {data.get('stock_code')} menggunakan Money Flow Methodology:\n"
+            f"Harga Rp{data.get('price'):,.0f} ({data.get('change_pct', 0):+.2f}%), "
+            f"Volume {data.get('volume_ratio', 1)}x rata-rata\n"
+            f"\n=== MONEY FLOW ===\n"
+            f"Foreign Net Buy: Rp{foreign_flow:,.0f}\n"
+            f"Akumulasi/Distribusi: {accumulation_days} hari akumulasi\n"
+            f"Relative Strength vs IHSG: {relative_strength}\n"
+            f"Sektor: {sector} ({sector_flow})\n"
+            f"\n=== TEKNIKAL ===\n"
+            f"RSI {data.get('rsi')} ({data.get('rsi_status')}), "
             f"MACD {data.get('macd_status')}, Trend {data.get('trend')}, "
             f"MA20 Rp{data.get('ma20', 0):,.0f}, MA50 Rp{data.get('ma50', 0):,.0f}, "
-            f"Support Rp{data.get('support', 0):,.0f}, Resistance Rp{data.get('resistance', 0):,.0f}, "
-            f"Volume {data.get('volume_ratio', 1)}x, Strategy {strategy}, Risk {risk_level}. "
-            f"{knowledge}"
-            f"Output JSON: trend, recommendation(BUY/HOLD/SELL), confidence(0-100), reasoning."
+            f"Support Rp{data.get('support', 0):,.0f}, Resistance Rp{data.get('resistance', 0):,.0f}\n"
+            f"Strategy: {strategy}, Risk: {risk_level}\n"
+            f"{knowledge}\n"
+            f"Output JSON sesuai format analyst_prompt.txt"
         )
 
     def _build_sentiment_prompt(self, market_data):
-        return f"""Analisis sentimen market:
+        return f"""Analisis sentimen market berdasarkan institutional flow:
 
 Advancing: {market_data.get('advancing')}
 Declining: {market_data.get('declining')}
 Fear & Greed: {market_data.get('fear_greed', {}).get('index')} - {market_data.get('fear_greed', {}).get('label')}
 Avg Change: {market_data.get('avg_change')}%
 
-Output JSON:
-{{
-  "sentiment": "Bullish/Neutral/Bearish",
-  "sentiment_score": 0-100,
-  "analysis": "..."
-}}"""
+Output JSON sesuai format sentiment_prompt.txt"""
 
     def _get_default_system_prompt(self):
         return (
-            "Anda adalah analis saham profesional untuk pasar Indonesia (IDX). "
-            "Analisis data saham dan berikan rekomendasi BUY, HOLD, atau SELL. "
-            "PENTING: Output HARUS dalam format JSON saja, tanpa penjelasan tambahan atau teks lainnya. "
-            "Confidence HARUS berupa angka 0-100, bukan string. "
-            "Contoh: {\"trend\": \"Bullish\", \"recommendation\": \"BUY\", \"confidence\": 80, \"reasoning\": \"RSI oversold, volume spike, support kuat.\"}"
+            "Anda adalah analis saham profesional untuk pasar Indonesia (IDX) spesialis Money Flow Analysis. "
+            "Prioritas analisis: Foreign Flow (35%), Accumulation/Distribution (25%), "
+            "Relative Strength vs IHSG (15%), Sector Rotation (10%), Volume (10%), "
+            "Technical sebagai konfirmasi (5%). "
+            "'Harga mengikuti uang.' "
+            "Output HARUS dalam format JSON saja, tanpa teks tambahan. "
+            "Gunakan field: trend, money_flow_analysis, accumulation_status, accumulation_days, "
+            "relative_strength, sector, sector_flow, volume_analysis, rsi_analysis, macd_analysis, "
+            "momentum, risk, support_level, resistance_level, recommendation(BUY/HOLD/SELL), "
+            "confidence(0-100), reasoning, full_analysis."
         )
 
     def _normalize_result(self, result, data, provider_name=""):
@@ -165,6 +179,13 @@ Output JSON:
 
         return {
             "trend": str(result.get("trend", data.get("trend", "Sideways"))),
+            "money_flow_analysis": str(result.get("money_flow_analysis", "")),
+            "accumulation_status": str(result.get("accumulation_status", "NETRAL")),
+            "accumulation_days": int(result.get("accumulation_days", data.get("accumulation_days", 0))),
+            "relative_strength": str(result.get("relative_strength", "NEUTRAL")),
+            "sector": str(result.get("sector", data.get("sector", ""))),
+            "sector_flow": str(result.get("sector_flow", "NEUTRAL")),
+            "volume_analysis": str(result.get("volume_analysis", "")),
             "rsi_analysis": str(result.get("rsi_analysis", "")),
             "macd_analysis": str(result.get("macd_analysis", "")),
             "momentum": str(result.get("momentum", "Neutral")),
@@ -192,6 +213,13 @@ Output JSON:
 
         return {
             "trend": str(data.get("trend", "Sideways")),
+            "money_flow_analysis": f"Foreign Net Buy: Rp{data.get('foreign_net_buy', 0):,.0f}" if data.get('foreign_net_buy') else "Data foreign flow tidak tersedia",
+            "accumulation_status": "NETRAL",
+            "accumulation_days": int(data.get("accumulation_days", 0)),
+            "relative_strength": str(data.get("relative_strength", "NEUTRAL")),
+            "sector": str(data.get("sector", "")),
+            "sector_flow": str(data.get("sector_flow", "NEUTRAL")),
+            "volume_analysis": f"Volume: {data.get('volume_ratio', 1)}x rata-rata" if data.get('volume_ratio') else "N/A",
             "rsi_analysis": f"RSI: {data.get('rsi')} ({data.get('rsi_status')})" if data.get('rsi') else "N/A",
             "macd_analysis": f"MACD: {data.get('macd_status')}" if data.get('macd_status') else "N/A",
             "momentum": "Neutral",
@@ -208,11 +236,13 @@ Output JSON:
 
     def analyze_for_day_trading(self, stock_code, features, context=None):
         """
-        Analyze stock for day trading (buy morning, sell evening)
+        Analyze stock for day trading — Money Flow & Accumulation Centric Method
         
         Args:
             stock_code: Stock code (e.g., BBCA)
-            features: Dict with open, high, low, close, volume, sma_20, rsi, macd
+            features: Dict with open, high, low, close, volume, sma_20, rsi, macd,
+                      foreign_net_buy, foreign_accumulation_days, broker_buy, broker_sell,
+                      ihsg_change, sector
             context: Additional context
             
         Returns:
@@ -222,7 +252,19 @@ Output JSON:
         
         # Build day trading specific prompt
         prompt = self._build_day_trading_prompt(stock_code, features)
-        system_prompt = "Anda adalah trader profesional IDX. Analisis untuk day trading (beli pagi, jual sore). Berikan rekomendasi BUY, SELL, atau HOLD. Output dalam format JSON dengan fields: signal, confidence (0-1), expected_profit, risk_level (LOW/MEDIUM/HIGH), reasoning."
+        system_prompt = (
+            "Anda adalah trader profesional IDX spesialis Money Flow Trading. "
+            "Analisis day trading berdasarkan prioritas: "
+            "(1) Opening Drive — apakah harga buka menunjukkan minat beli, "
+            "(2) Volume Spike — volume > rata-rata + kenaikan harga = konfirmasi, "
+            "(3) Foreign Buy Morning — foreign net buy di awal sesi, "
+            "(4) Tick Index — jumlah tick naik vs turun. "
+            "Entry jika 3 dari 4 faktor konfirmasi. Target 1-2%, Stop Loss 0.5-1%. "
+            "Risk/Reward minimal 1:2. "
+            "Output JSON: signal(BUY/SELL/HOLD), confidence(0-1), expected_profit(%), "
+            "risk_level(LOW/MEDIUM/HIGH), reasoning, opening_drive, volume_confirmation, "
+            "foreign_flow_note, tick_index_note"
+        )
         
         for provider in self.providers:
             if not provider.is_available():
@@ -240,32 +282,54 @@ Output JSON:
         return self._day_trading_fallback(stock_code, features)
     
     def _build_day_trading_prompt(self, stock_code, features):
-        """Build prompt for day trading analysis"""
-        return f"""Analisis untuk day trading saham {stock_code}:
+        """Build prompt for day trading — Money Flow methodology"""
+        foreign_net = features.get('foreign_net_buy', 0)
+        accum_days = features.get('foreign_accumulation_days', 0)
+        broker_buy = features.get('broker_buy', 'N/A')
+        broker_sell = features.get('broker_sell', 'N/A')
+        ihsg = features.get('ihsg_change', 0)
+        
+        return f"""Analisis DAY TRADING saham {stock_code} — Money Flow Method:
 
-Data:
+=== DATA HARGA ===
 - Open: Rp{features.get('open', 0):,.0f}
 - High: Rp{features.get('high', 0):,.0f}
 - Low: Rp{features.get('low', 0):,.0f}
 - Close: Rp{features.get('close', 0):,.0f}
+- Range: {features.get('range_pct', 0):.2f}%
 - Volume: {features.get('volume', 0):,}
+
+=== MONEY FLOW ===
+- Foreign Net Buy: Rp{foreign_net:,.0f}
+- Foreign Accumulation Days: {accum_days}
+- Broker Buy (Rp): {broker_buy}
+- Broker Sell (Rp): {broker_sell}
+- IHSG Change: {ihsg:+.2f}%
+- Sector: {features.get('sector', 'N/A')}
+
+=== TEKNIKAL ===
 - SMA 20: Rp{features.get('sma_20', 0):,.0f}
 - RSI: {features.get('rsi', 50):.1f}
 - MACD: {features.get('macd', 0):.4f}
 
-Pertimbangan:
-1. Apakah harga berada di atas/bawah SMA 20?
-2. Apakah RSI menunjukkan oversold (<30) atau overbought (>70)?
-3. Apakah MACD positif dan trending up?
-4. Apakah volume cukup untuk day trading?
+=== ANALISIS DAY TRADING ===
+1. OPENING DRIVE: Apakah harga open di atas low yesterday? Apakah ada gap up/down?
+2. VOLUME SPIKE: Volume vs rata-rata. Volume > 1.5x = konfirmasi.
+3. FOREIGN BUY: Apakah foreign net buy positif? Accumulation berapa hari?
+4. TICK INDEX: Broker buy vs sell — siapa dominan?
+5. TEKNIKAL: Entry jika 3 dari 4 faktor di atas konfirmasi, teknikal hanya konfirmasi.
 
 Output JSON:
 {{
   "signal": "BUY/SELL/HOLD",
   "confidence": 0.0-1.0,
-  "expected_profit": 0.0-5.0,
+  "expected_profit": 0.0-2.0,
   "risk_level": "LOW/MEDIUM/HIGH",
-  "reasoning": "..."
+  "opening_drive": "gap_up/gap_down/netral + analisis",
+  "volume_confirmation": "ya/tidak + volume ratio",
+  "foreign_flow_note": "analisis foreign buy/s pagi ini",
+  "tick_index_note": "broker dominan dan arahnya",
+  "reasoning": "Kesimpulan berdasarkan money flow methodology"
 }}"""
     
     def _parse_day_trading_result(self, result, stock_code):
@@ -294,80 +358,129 @@ Output JSON:
                 "confidence": confidence,
                 "expected_profit": expected_profit,
                 "risk_level": risk_level,
-                "reasoning": reasoning
+                "reasoning": reasoning,
+                "opening_drive": result.get("opening_drive", ""),
+                "volume_confirmation": result.get("volume_confirmation", ""),
+                "foreign_flow_note": result.get("foreign_flow_note", ""),
+                "tick_index_note": result.get("tick_index_note", ""),
             }
         except Exception as e:
             print(f"Error parsing day trading result: {e}")
             return self._day_trading_fallback_result(stock_code, result)
     
     def _day_trading_fallback(self, stock_code, features):
-        """Rule-based day trading analysis"""
+        """
+        Rule-based day trading — 7-Level Money Flow methodology
+        Prioritas: Opening Drive, Volume Spike, Foreign Buy, Tick Index, Teknikal
+        """
         signal = "HOLD"
         confidence = 0.5
         expected_profit = 0
         risk_level = "MEDIUM"
         reasoning = ""
         
-        rsi = features.get('rsi', 50)
-        macd = features.get('macd', 0)
         close = features.get('close', 0)
-        sma_20 = features.get('sma_20', 0)
+        open_price = features.get('open', 0)
         high = features.get('high', 0)
         low = features.get('low', 0)
         volume = features.get('volume', 0)
+        rsi = features.get('rsi', 50)
+        macd = features.get('macd', 0)
+        sma_20 = features.get('sma_20', 0)
         
-        # Simple rule-based logic
-        buy_signals = 0
-        sell_signals = 0
+        # New money flow features
+        foreign_net = features.get('foreign_net_buy', 0)
+        accum_days = features.get('foreign_accumulation_days', 0)
+        ihsg = features.get('ihsg_change', 0)
         
-        # RSI analysis
-        if rsi < 30:
-            buy_signals += 1
-            reasoning += "RSI oversold. "
-        elif rsi > 70:
-            sell_signals += 1
-            reasoning += "RSI overbought. "
+        # === 7-LEVEL SCORING ===
+        score = 0
+        max_score = 7
+        details = []
         
-        # MACD analysis
+        # 1) OPENING DRIVE: harga open vs close sebelumnya (proksi: open vs SMA20)
+        if open_price > sma_20 and open_price > close * 0.99:
+            score += 1
+            details.append("Opening Drive: harga buka di atas SMA20, momentum positif")
+        elif open_price < sma_20:
+            details.append("Opening Drive: harga buka di bawah SMA20, hati-hati")
+        
+        # 2) VOLUME SPIKE: volume > rata-rata (proksi: ada volume masuk)
+        if volume > 0 and close > 0:
+            volume_value = volume * close  # Rupiah value proxy
+            if volume_value > 0:
+                score += 1
+                details.append("Volume Spike: volume terkonfirmasi")
+        
+        # 3) FOREIGN BUY: foreign net buy positif
+        if foreign_net > 0:
+            score += 1
+            details.append(f"Foreign Buy: net buy Rp{foreign_net:,.0f}")
+        if accum_days >= 3:
+            score += 1
+            details.append(f"Akumulasi: {accum_days} hari berturut-turut")
+        elif accum_days >= 1:
+            details.append(f"Akumulasi: {accum_days} hari")
+        
+        # 4) RELATIVE STRENGTH: saham lebih kuat dari IHSG
+        if ihsg > 0:
+            score += 1
+            details.append("Relative Strength: saham outperform IHSG")
+        
+        # 5) TEKNIKAL: RSI + MACD sebagai konfirmasi
+        if 30 <= rsi <= 70:
+            if rsi < 40:
+                score += 1
+                details.append("RSI oversold area, potensi reversal")
+            elif rsi > 60:
+                details.append("RSI overbought area, waspadai koreksi")
+        elif rsi < 30:
+            score += 1
+            details.append("RSI oversold, potensi bounce")
+        
         if macd > 0:
-            buy_signals += 1
-            reasoning += "MACD positif. "
-        elif macd < 0:
-            sell_signals += 1
-            reasoning += "MACD negatif. "
+            score += 1
+            details.append("MACD positif, momentum naik")
         
-        # Price vs SMA analysis
-        if close > sma_20:
-            buy_signals += 1
-            reasoning += "Harga di atas SMA20. "
-        else:
-            sell_signals += 1
-            reasoning += "Harga di bawah SMA20. "
+        # === DECISION BASED ON SCORE ===
+        # Entry jika 3 dari 4 faktor utama konfirmasi (Opening Drive, Volume, Foreign, Relative)
+        # Teknikal hanya konfirmasi
         
-        # Determine signal
-        if buy_signals > sell_signals:
+        if score >= 5:
             signal = "BUY"
-            confidence = min(0.95, 0.5 + (buy_signals * 0.15))
-            expected_profit = 1.5 if buy_signals >= 2 else 0.8
-            risk_level = "LOW" if buy_signals >= 3 else "MEDIUM"
-        elif sell_signals > buy_signals:
+            confidence = 0.5 + (score * 0.07)
+            expected_profit = 1.5 if accum_days >= 3 else 1.0
+            risk_level = "LOW"
+            reasoning = "BUY: " + " | ".join(details[:4])
+        elif score >= 3:
+            signal = "BUY"
+            confidence = 0.5 + (score * 0.05)
+            expected_profit = 1.0
+            risk_level = "MEDIUM"
+            reasoning = "BUY (konservatif): " + " | ".join(details[:3])
+        elif score <= 1 and foreign_net < 0:
             signal = "SELL"
-            confidence = min(0.95, 0.5 + (sell_signals * 0.15))
-            expected_profit = 1.5 if sell_signals >= 2 else 0.8
-            risk_level = "LOW" if sell_signals >= 3 else "MEDIUM"
+            confidence = 0.6
+            expected_profit = 0.5
+            risk_level = "HIGH"
+            reasoning = "SELL: Foreign net sell, skor rendah"
         else:
-            reasoning = "Sinyal tidak jelas, tunggu momentum lebih jelas."
+            reasoning = "HOLD: Sinyal tidak konklusif. Tunggu konfirmasi Opening Drive + Foreign Buy."
             risk_level = "HIGH"
         
         if not reasoning:
-            reasoning = "Analisis berdasarkan rule (AI provider tidak tersedia)"
+            reasoning = "Analisis Money Flow rule-based (AI provider tidak tersedia)"
         
         return {
             "signal": signal,
-            "confidence": round(confidence, 2),
+            "confidence": round(min(confidence, 0.95), 2),
             "expected_profit": round(expected_profit, 2),
             "risk_level": risk_level,
-            "reasoning": reasoning
+            "reasoning": reasoning,
+            "opening_drive": "positif" if open_price > sma_20 else "negatif",
+            "volume_confirmation": "ya" if volume > 0 else "tidak",
+            "foreign_flow_note": f"Net Buy: Rp{foreign_net:,.0f}, Accum: {accum_days} hari" if foreign_net != 0 else "Data foreign tidak tersedia",
+            "tick_index_note": f"Skor akhir: {score}/{max_score}",
         }
     
     def _day_trading_fallback_result(self, stock_code, raw_result):
@@ -377,5 +490,9 @@ Output JSON:
             "confidence": 0.5,
             "expected_profit": 0,
             "risk_level": "HIGH",
-            "reasoning": f"Error parsing AI response for {stock_code}"
+            "reasoning": f"Error parsing AI response for {stock_code}",
+            "opening_drive": "",
+            "volume_confirmation": "",
+            "foreign_flow_note": "",
+            "tick_index_note": "",
         }

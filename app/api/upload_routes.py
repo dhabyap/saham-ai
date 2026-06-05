@@ -72,19 +72,19 @@ async def get_latest_upload():
             cursor.execute("""
                 SELECT * FROM upload_analysis_results 
                 WHERE upload_id = ? LIMIT 1
-            """, (upload[0],))
+            """, (upload['id'],))
             analysis = cursor.fetchone()
             
             return {
-                "id": upload[0],
-                "upload_date": upload[1],
-                "filename": upload[2],
-                "total_stocks": upload[3],
-                "uploaded_at": upload[4],
-                "buy_signals": analysis[3] if analysis else 0,
-                "sell_signals": analysis[4] if analysis else 0,
-                "hold_signals": analysis[5] if analysis else 0,
-                "confidence_score": analysis[7] if analysis else 0
+                "id": upload['id'],
+                "upload_date": upload['upload_date'],
+                "filename": upload['filename'],
+                "total_stocks": upload['total_stocks'],
+                "uploaded_at": upload['uploaded_at'],
+                "buy_signals": analysis['total_buy_signals'] if analysis else 0,
+                "sell_signals": analysis['total_sell_signals'] if analysis else 0,
+                "hold_signals": analysis['total_hold_signals'] if analysis else 0,
+                "confidence_score": analysis['confidence_score'] if analysis else 0
             }
     
     except Exception as e:
@@ -107,11 +107,11 @@ async def list_all_uploads():
                 "total": len(uploads),
                 "uploads": [
                     {
-                        "id": u[0],
-                        "upload_date": u[1],
-                        "filename": u[2],
-                        "total_stocks": u[3],
-                        "uploaded_at": u[4]
+                        "id": u['id'],
+                        "upload_date": u['upload_date'],
+                        "filename": u['filename'],
+                        "total_stocks": u['total_stocks'],
+                        "uploaded_at": u['uploaded_at']
                     }
                     for u in uploads
                 ]
@@ -140,7 +140,7 @@ async def get_training_summary():
                 }
             
             # Calculate statistics
-            labels = {row[0]: row[1] for row in rows}
+            labels = {row['label']: row['COUNT(*)'] for row in rows}
             total = sum(labels.values())
             correct_predictions = sum(count for label, count in labels.items() if 'PROFIT' in label)
             
@@ -148,11 +148,13 @@ async def get_training_summary():
             
             # Get unique stocks trained
             cursor.execute("SELECT COUNT(DISTINCT stock_code) FROM ai_training_data")
-            stocks_trained = cursor.fetchone()[0]
+            stocks_trained = cursor.fetchone()
+            stocks_trained = stocks_trained['COUNT(DISTINCT stock_code)'] if stocks_trained else 0
             
             # Get average return
             cursor.execute("SELECT AVG(actual_return) FROM ai_training_data")
-            avg_return = cursor.fetchone()[0] or 0
+            avg_return_row = cursor.fetchone()
+            avg_return = avg_return_row['AVG(actual_return)'] if avg_return_row and avg_return_row['AVG(actual_return)'] else 0
             
             return {
                 "total_records": total,
@@ -196,7 +198,7 @@ async def record_actual_result(
             return {
                 "success": True,
                 "message": "Actual result recorded successfully",
-                "stock_code": prediction[2],
+                "stock_code": prediction['stock_code'],
                 "actual_profit": actual_profit,
                 "was_correct": was_correct
             }
@@ -228,9 +230,9 @@ async def get_upload_details(upload_id: int):
             predictions = cursor.fetchall()
             
             # Parse predictions
-            buy_stocks = [p for p in predictions if p[4] == 'BUY']
-            sell_stocks = [p for p in predictions if p[4] == 'SELL']
-            hold_stocks = [p for p in predictions if p[4] == 'HOLD']
+            buy_stocks = [p for p in predictions if p['trade_signal'] == 'BUY']
+            sell_stocks = [p for p in predictions if p['trade_signal'] == 'SELL']
+            hold_stocks = [p for p in predictions if p['trade_signal'] == 'HOLD']
             
             # Get analysis summary
             cursor.execute("""
@@ -241,20 +243,20 @@ async def get_upload_details(upload_id: int):
             
             def format_prediction(p, include_reasoning=True):
                 data = {
-                    "code": p[2],
-                    "confidence": p[5],
-                    "expected_profit": p[6],
-                    "risk_level": p[7],
+                    "code": p['stock_code'],
+                    "confidence": p['confidence'],
+                    "expected_profit": p['expected_profit_percentage'],
+                    "risk_level": p['risk_level'],
                 }
                 if include_reasoning:
-                    data["reasoning"] = p[8]
+                    data["reasoning"] = p['reasoning']
                 return data
             
             return {
-                "id": upload[0],
-                "upload_date": upload[1],
-                "filename": upload[2],
-                "total_stocks": upload[3],
+                "id": upload['id'],
+                "upload_date": upload['upload_date'],
+                "filename": upload['filename'],
+                "total_stocks": upload['total_stocks'],
                 "buy_recommendations": [format_prediction(p) for p in buy_stocks],
                 "sell_recommendations": [format_prediction(p) for p in sell_stocks],
                 "hold_recommendations": [format_prediction(p, include_reasoning=False) for p in hold_stocks],
@@ -262,7 +264,7 @@ async def get_upload_details(upload_id: int):
                     "total_buy": len(buy_stocks),
                     "total_sell": len(sell_stocks),
                     "total_hold": len(hold_stocks),
-                    "average_confidence": analysis[7] if analysis else 0
+                    "average_confidence": analysis['confidence_score'] if analysis else 0
                 }
             }
     

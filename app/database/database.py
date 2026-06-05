@@ -41,9 +41,24 @@ class MySQLRow(dict):
 
 class MySQLCursorWrapper:
     """Wrap MySQL cursor to provide sqlite3.Row-like interface."""
-    def __init__(self, cursor):
+    def __init__(self, cursor, connection=None):
         self._cursor = cursor
+        self._connection = connection
         self.description = cursor.description
+
+    def cursor(self):
+        """Return self as cursor (compatibility with connection.cursor() pattern)."""
+        return self
+
+    def commit(self):
+        """Commit the underlying connection."""
+        if self._connection:
+            self._connection.commit()
+
+    def rollback(self):
+        """Rollback the underlying connection."""
+        if self._connection:
+            self._connection.rollback()
 
     def _row_to_dict(self, row):
         if row is None:
@@ -146,7 +161,7 @@ def get_db():
     if DB_TYPE == "mysql":
         conn = _get_mysql_connection()
         cursor = conn.cursor()
-        wrapped = MySQLCursorWrapper(cursor)
+        wrapped = MySQLCursorWrapper(cursor, connection=conn)
         try:
             yield wrapped
             conn.commit()
@@ -355,6 +370,77 @@ def init_db():
                     result_json TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
+                -- Daily Upload tables (Money Flow Analysis)
+                CREATE TABLE IF NOT EXISTS daily_uploads (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    upload_date DATE DEFAULT (CURRENT_DATE),
+                    filename VARCHAR(255),
+                    total_stocks INT DEFAULT 0,
+                    file_path TEXT,
+                    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS daily_stock_data (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    upload_id INT,
+                    stock_code VARCHAR(50) NOT NULL,
+                    date DATE,
+                    open_price DOUBLE,
+                    high_price DOUBLE,
+                    low_price DOUBLE,
+                    close_price DOUBLE,
+                    volume BIGINT,
+                    sma_20 DOUBLE,
+                    sma_50 DOUBLE,
+                    rsi DOUBLE,
+                    macd DOUBLE,
+                    macd_signal DOUBLE,
+                    foreign_net_buy DOUBLE DEFAULT 0,
+                    foreign_accumulation_days INT DEFAULT 0,
+                    broker_buy DOUBLE DEFAULT 0,
+                    broker_sell DOUBLE DEFAULT 0,
+                    ihsg_change DOUBLE DEFAULT 0,
+                    sector VARCHAR(100) DEFAULT '',
+                    additional_data TEXT,
+                    FOREIGN KEY (upload_id) REFERENCES daily_uploads(id)
+                );
+                CREATE TABLE IF NOT EXISTS day_trade_predictions (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    stock_data_id INT,
+                    stock_code VARCHAR(50) NOT NULL,
+                    prediction_date DATE,
+                    trade_signal VARCHAR(10),
+                    confidence DOUBLE,
+                    expected_profit_percentage DOUBLE,
+                    risk_level VARCHAR(20),
+                    reasoning TEXT,
+                    features_used TEXT,
+                    actual_profit DOUBLE,
+                    was_correct TINYINT(1) DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (stock_data_id) REFERENCES daily_stock_data(id)
+                );
+                CREATE TABLE IF NOT EXISTS upload_analysis_results (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    upload_id INT,
+                    analysis_date DATE,
+                    total_buy_signals INT DEFAULT 0,
+                    total_sell_signals INT DEFAULT 0,
+                    total_hold_signals INT DEFAULT 0,
+                    confidence_score DOUBLE,
+                    results_data TEXT,
+                    FOREIGN KEY (upload_id) REFERENCES daily_uploads(id)
+                );
+                CREATE TABLE IF NOT EXISTS ai_training_data (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    stock_code VARCHAR(50),
+                    prediction_date DATE,
+                    features_used TEXT,
+                    actual_outcome VARCHAR(10),
+                    ai_prediction VARCHAR(10),
+                    ai_confidence DOUBLE,
+                    accuracy DOUBLE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
             """)
         else:
             conn.executescript("""
@@ -523,6 +609,77 @@ def init_db():
                     strategy TEXT,
                     risk_level TEXT,
                     result_json TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                -- Daily Upload tables (Money Flow Analysis)
+                CREATE TABLE IF NOT EXISTS daily_uploads (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    upload_date DATE DEFAULT (date('now')),
+                    filename TEXT,
+                    total_stocks INTEGER DEFAULT 0,
+                    file_path TEXT,
+                    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS daily_stock_data (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    upload_id INTEGER,
+                    stock_code TEXT NOT NULL,
+                    date DATE,
+                    open_price REAL,
+                    high_price REAL,
+                    low_price REAL,
+                    close_price REAL,
+                    volume INTEGER,
+                    sma_20 REAL,
+                    sma_50 REAL,
+                    rsi REAL,
+                    macd REAL,
+                    macd_signal REAL,
+                    foreign_net_buy REAL DEFAULT 0,
+                    foreign_accumulation_days INTEGER DEFAULT 0,
+                    broker_buy REAL DEFAULT 0,
+                    broker_sell REAL DEFAULT 0,
+                    ihsg_change REAL DEFAULT 0,
+                    sector TEXT DEFAULT '',
+                    additional_data TEXT,
+                    FOREIGN KEY (upload_id) REFERENCES daily_uploads(id)
+                );
+                CREATE TABLE IF NOT EXISTS day_trade_predictions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    stock_data_id INTEGER,
+                    stock_code TEXT NOT NULL,
+                    prediction_date DATE,
+                    trade_signal TEXT,
+                    confidence REAL,
+                    expected_profit_percentage REAL,
+                    risk_level TEXT,
+                    reasoning TEXT,
+                    features_used TEXT,
+                    actual_profit REAL,
+                    was_correct INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (stock_data_id) REFERENCES daily_stock_data(id)
+                );
+                CREATE TABLE IF NOT EXISTS upload_analysis_results (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    upload_id INTEGER,
+                    analysis_date DATE,
+                    total_buy_signals INTEGER DEFAULT 0,
+                    total_sell_signals INTEGER DEFAULT 0,
+                    total_hold_signals INTEGER DEFAULT 0,
+                    confidence_score REAL,
+                    results_data TEXT,
+                    FOREIGN KEY (upload_id) REFERENCES daily_uploads(id)
+                );
+                CREATE TABLE IF NOT EXISTS ai_training_data (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    stock_code TEXT,
+                    prediction_date DATE,
+                    features_used TEXT,
+                    actual_outcome TEXT,
+                    ai_prediction TEXT,
+                    ai_confidence REAL,
+                    accuracy REAL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)

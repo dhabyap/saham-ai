@@ -35,13 +35,34 @@ def get_sector_performance():
     result = {}
     for sector, data in sector_data.items():
         if data["changes"]:
+            perf = round(np.mean(data["changes"]), 2)
             result[sector] = {
-                "performance": round(np.mean(data["changes"]), 2),
+                "performance": perf,
                 "count": data["count"],
-                "status": "Positive" if np.mean(data["changes"]) > 0 else "Negative",
+                "status": "Positive" if perf > 0 else "Negative",
+                "flow": "INFLOW" if perf > 0.5 else ("OUTFLOW" if perf < -0.5 else "NEUTRAL"),
             }
 
+    # Update global sector flow cache
+    global SECTOR_FLOW
+    SECTOR_FLOW = result
+
     return result
+
+def get_sector_flow():
+    """Get sector rotation flow summary for AI context"""
+    if not SECTOR_FLOW:
+        get_sector_performance()
+    
+    inflow_sectors = [s for s, d in SECTOR_FLOW.items() if d.get("flow") == "INFLOW"]
+    outflow_sectors = [s for s, d in SECTOR_FLOW.items() if d.get("flow") == "OUTFLOW"]
+    
+    return {
+        "inflow_sectors": inflow_sectors[:3],
+        "outflow_sectors": outflow_sectors[:3],
+        "top_sector": max(SECTOR_FLOW, key=lambda s: SECTOR_FLOW[s]["performance"]) if SECTOR_FLOW else None,
+        "worst_sector": min(SECTOR_FLOW, key=lambda s: SECTOR_FLOW[s]["performance"]) if SECTOR_FLOW else None,
+    }
 
 
 def get_market_summary():

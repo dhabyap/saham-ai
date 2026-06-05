@@ -9,18 +9,114 @@
     <link href="/static/style.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@1.2.1/dist/chartjs-chart-financial.min.js"></script>
+    <style>
+        .landing-section { display: block; }
+        .stock-detail-section { display: none; }
+        body.showing-detail .landing-section { display: none; }
+        body.showing-detail .stock-detail-section { display: block; }
+        body.showing-detail #currentStockLabel { display: inline; }
+        body:not(.showing-detail) #currentStockLabel { display: none; }
+
+        .hero-section {
+            padding: 2.5rem 1rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-sub {
+            color: #aaa;
+            max-width: 600px;
+            margin: 0.75rem auto 1.25rem;
+            font-size: 0.95rem;
+        }
+        .hero-badges .badge {
+            font-size: 0.78rem;
+            padding: 0.4rem 0.9rem;
+            margin: 0 0.25rem;
+        }
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.9rem 0.75rem;
+            text-align: center;
+            height: 100%;
+        }
+        .metric-value { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+        .metric-label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+        .mover-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.4rem 0.5rem; border-bottom: 1px solid #222; font-size: 0.85rem;
+        }
+        .mover-item:last-child { border-bottom: none; }
+        .mover-code { font-weight: 600; }
+        .mover-change { font-weight: 600; }
+        .sector-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem 0.75rem; border-bottom: 1px solid #222; font-size: 0.85rem;
+        }
+        .sector-row:last-child { border-bottom: none; }
+        .sector-name { font-weight: 600; }
+        .flow-inflow { color: #22c55e; font-size: 0.7rem; }
+        .flow-outflow { color: #ef4444; font-size: 0.7rem; }
+        .flow-neutral { color: #888; font-size: 0.7rem; }
+        .feature-card {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 1.25rem 1rem; text-align: center;
+            height: 100%; cursor: pointer; transition: border-color 0.2s;
+        }
+        .feature-card:hover { border-color: #0d6efd; }
+        .feature-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .feature-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem; }
+        .feature-desc { font-size: 0.78rem; color: #888; }
+        .stock-grid-item {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 0.6rem 0.8rem; cursor: pointer; transition: border-color 0.15s;
+        }
+        .stock-grid-item:hover { border-color: #0d6efd; }
+        .stock-grid-code { font-weight: 700; font-size: 0.85rem; }
+        .stock-grid-price { font-size: 0.8rem; color: #aaa; }
+        .stock-grid-change { font-size: 0.78rem; font-weight: 600; }
+        .section-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .section-title i { font-size: 1.1rem; color: #0d6efd; }
+        .pred-table td, .pred-table th {
+            padding: 0.4rem 0.5rem; font-size: 0.82rem; vertical-align: middle;
+        }
+        @media (max-width: 576px) {
+            .hero-title { font-size: 1.5rem; }
+            .metric-value { font-size: 1.2rem; }
+            .feature-card { padding: 1rem 0.75rem; }
+        }
+    </style>
 </head>
 <body>
     <div class="d-flex" id="wrapper">
-        <!-- Sidebar -->
+        <!-- SIDEBAR -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <i class="bi bi-graph-up-arrow"></i>
                 <span class="sidebar-title">Stock Analyzer</span>
             </div>
+            <div class="sidebar-nav">
+                <a href="/" class="stock-item active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+                <a href="/ai-settings" class="stock-item"><i class="bi bi-gear me-2"></i>AI Settings</a>
+                <a href="/ai-performance" class="stock-item"><i class="bi bi-graph-up me-2"></i>AI Performance</a>
+                <a href="/upload-analyzer" class="stock-item"><i class="bi bi-upload me-2"></i>Upload Analyzer</a>
+                <div class="px-3 mt-2 mb-1"><small class="text-muted">DAFTAR SAHAM</small></div>
+            </div>
             <div class="sidebar-stocks" id="stockList">
                 <div class="text-center py-3">
-                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <div class="spinner-border spinner-border-sm text-primary"></div>
                     <small class="d-block text-muted mt-1">Loading stocks...</small>
                 </div>
             </div>
@@ -29,7 +125,7 @@
             </div>
         </div>
 
-        <!-- Main Content -->
+        <!-- MAIN CONTENT -->
         <div class="main-content" id="mainContent">
             <!-- Navbar -->
             <nav class="navbar navbar-dark border-bottom px-3 py-2">
@@ -37,7 +133,10 @@
                     <button class="btn btn-sm btn-outline-secondary" id="sidebarToggle">
                         <i class="bi bi-list"></i>
                     </button>
-                    <span id="currentStock" class="fw-bold">Select a stock</span>
+                    <span class="fw-bold back-btn d-none" id="backBtn" onclick="showLanding()">
+                        <i class="bi bi-arrow-left me-1"></i>Overview
+                    </span>
+                    <span id="currentStockLabel" class="fw-bold d-none">Select a stock</span>
                 </div>
                 <div class="d-flex gap-2">
                     <div class="input-group input-group-sm" style="max-width:250px">
@@ -47,110 +146,106 @@
                 </div>
             </nav>
 
-            <!-- Content -->
-            <div class="p-3">
-                <!-- Summary Cards -->
-                <div class="row g-2 mb-3" id="summaryCards">
-                    <div class="col-md-3 col-6">
-                        <div class="card summary-card">
-                            <div class="card-body p-2">
-                                <small class="text-muted">Price</small>
-                                <h5 class="mb-0" id="cardPrice">-</h5>
-                                <small id="cardChange" class="text-muted">-</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="card summary-card">
-                            <div class="card-body p-2">
-                                <small class="text-muted">RSI</small>
-                                <h5 class="mb-0" id="cardRsi">-</h5>
-                                <small id="cardRsiStatus" class="text-muted">-</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="card summary-card">
-                            <div class="card-body p-2">
-                                <small class="text-muted">MACD</small>
-                                <h5 class="mb-0" id="cardMacd">-</h5>
-                                <small id="cardMacdStatus" class="text-muted">-</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="card summary-card">
-                            <div class="card-body p-2">
-                                <small class="text-muted">Recommendation</small>
-                                <h5 class="mb-0" id="cardRec">-</h5>
-                                <small id="cardConf" class="text-muted">-</small>
-                            </div>
-                        </div>
+            <!-- LANDING PAGE -->
+            <div class="landing-section">
+                <!-- HERO -->
+                <div class="hero-section">
+                    <h1 class="hero-title">AI Stock Analyzer Indonesia</h1>
+                    <p class="hero-sub">Analisis saham IDX berbasis AI dengan data real-time dari Yahoo Finance. Dapatkan rekomendasi BUY / HOLD / SELL, pantau market, dan optimalkan trading kamu.</p>
+                    <div class="hero-badges">
+                        <span class="badge bg-primary"><i class="bi bi-database me-1"></i>25 Saham IDX</span>
+                        <span class="badge bg-success"><i class="bi bi-clock me-1"></i>Real-time Data</span>
+                        <span class="badge bg-warning text-dark"><i class="bi bi-robot me-1"></i>AI-Powered</span>
+                        <span class="badge bg-info text-dark"><i class="bi bi-telegram me-1"></i>Telegram Bot</span>
                     </div>
                 </div>
+                <div class="p-3">
+                    <!-- SECTION: MARKET OVERVIEW -->
+                    <div class="section-title"><i class="bi bi-bar-chart-fill"></i> Market Overview</div>
+                    <div class="row g-2 mb-4" id="marketOverview"></div>
 
-                <!-- Chart + Info -->
+                    <!-- SECTION: TOP MOVERS -->
+                    <div class="section-title"><i class="bi bi-trophy"></i> Top Movers</div>
+                    <div class="row g-2 mb-4" id="topMovers">
+                        <div class="col-md-4"><div class="card"><div class="card-header text-success"><i class="bi bi-arrow-up-circle me-1"></i>TOP GAINERS</div><div class="card-body p-2" id="topGainers"><div class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm"></div></div></div></div></div>
+                        <div class="col-md-4"><div class="card"><div class="card-header text-danger"><i class="bi bi-arrow-down-circle me-1"></i>TOP LOSERS</div><div class="card-body p-2" id="topLosers"><div class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm"></div></div></div></div></div>
+                        <div class="col-md-4"><div class="card"><div class="card-header text-primary"><i class="bi bi-bar-chart me-1"></i>TOP VOLUME</div><div class="card-body p-2" id="topVolume"><div class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm"></div></div></div></div></div>
+                    </div>
+
+                    <!-- SECTION: AI PERFORMANCE -->
+                    <div class="section-title"><i class="bi bi-graph-up"></i> AI Performance</div>
+                    <div class="row g-2 mb-4" id="aiPerformance"></div>
+
+                    <!-- SECTION: SECTOR PERFORMANCE -->
+                    <div class="section-title"><i class="bi bi-pie-chart"></i> Sector Rotation</div>
+                    <div class="card mb-4"><div class="card-body p-0" id="sectorPerformance"><div class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm"></div></div></div></div>
+
+                    <!-- SECTION: RECENT PREDICTIONS -->
+                    <div class="section-title"><i class="bi bi-table"></i> Recent Predictions</div>
+                    <div class="card mb-4"><div class="card-body p-0 table-responsive" id="recentPredictions"><div class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm"></div></div></div></div>
+
+                    <!-- SECTION: FITUR -->
+                    <div class="section-title"><i class="bi bi-grid-3x3-gap"></i> Fitur</div>
+                    <div class="row g-2 mb-4" id="featureGrid">
+                        <div class="col-6 col-md-3"><div class="feature-card" onclick="alert('Pilih saham dari sidebar untuk analisis real-time')"><div class="feature-icon">📊</div><div class="feature-title">Real-time Analysis</div><div class="feature-desc">Data real-time dari Yahoo Finance untuk 25 saham IDX</div></div></div>
+                        <div class="col-6 col-md-3"><div class="feature-card" onclick="alert('Setiap analisis AI menghasilkan rekomendasi BUY/HOLD/SELL')"><div class="feature-icon">🤖</div><div class="feature-title">AI Recommendations</div><div class="feature-desc">Rekomendasi BUY/HOLD/SELL dengan confidence score</div></div></div>
+                        <div class="col-6 col-md-3"><div class="feature-card" onclick="window.location='/ai-settings'"><div class="feature-icon">⚙️</div><div class="feature-title">AI Settings</div><div class="feature-desc">Konfigurasi risk level, strategy, bobot indikator</div></div></div>
+                        <div class="col-6 col-md-3"><div class="feature-card" onclick="window.location='/ai-performance'"><div class="feature-icon">📈</div><div class="feature-title">Performance</div><div class="feature-desc">Track akurasi, winrate, dan profit prediksi</div></div></div>
+                        <div class="col-6 col-md-3"><div class="feature-card" onclick="alert('Analisis saham langsung dari Telegram!')"><div class="feature-icon">📱</div><div class="feature-title">Telegram Bot</div><div class="feature-desc">Analisis saham langsung dari Telegram</div></div></div>
+                        <div class="col-6 col-md-3"><div class="feature-card" onclick="window.location='/upload-analyzer'"><div class="feature-icon">📋</div><div class="feature-title">Excel Upload</div><div class="feature-desc">Upload data harian untuk day trading analysis</div></div></div>
+                        <div class="col-6 col-md-3"><div class="feature-card" onclick="alert('Machine Learning: Random Forest, XGBoost, LightGBM')"><div class="feature-icon">🧠</div><div class="feature-title">Machine Learning</div><div class="feature-desc">Random Forest, XGBoost, LightGBM untuk prediksi</div></div></div>
+                        <div class="col-6 col-md-3"><div class="feature-card" onclick="selectStock('BBCA')"><div class="feature-icon">📊</div><div class="feature-title">Interactive Charts</div><div class="feature-desc">Chart harga, RSI, MACD, Volume interaktif</div></div></div>
+                    </div>
+
+                    <!-- SECTION: STOCK LIST -->
+                    <div class="section-title"><i class="bi bi-building"></i> 25 Saham IDX</div>
+                    <div class="row g-2 mb-3" id="stockGrid"><div class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm"></div><div class="mt-1 small">Memuat data saham...</div></div></div>
+                </div>
+
+                <!-- FOOTER -->
+                <footer class="text-center text-muted py-3 border-top mt-2">
+                    <small>AI Stock Analyzer Indonesia v1.0.0 | Data: Yahoo Finance | <span class="text-warning">&#x26A0;&#xFE0F; DYOR — Do Your Own Research</span></small>
+                </footer>
+            </div>
+
+            <!-- STOCK DETAIL VIEW -->
+            <div class="stock-detail-section p-3">
+                <div class="row g-2 mb-3" id="summaryCards">
+                    <div class="col-md-3 col-6"><div class="card summary-card"><div class="card-body p-2"><small class="text-muted">Price</small><h5 class="mb-0" id="cardPrice">-</h5><small id="cardChange" class="text-muted">-</small></div></div></div>
+                    <div class="col-md-3 col-6"><div class="card summary-card"><div class="card-body p-2"><small class="text-muted">RSI</small><h5 class="mb-0" id="cardRsi">-</h5><small id="cardRsiStatus" class="text-muted">-</small></div></div></div>
+                    <div class="col-md-3 col-6"><div class="card summary-card"><div class="card-body p-2"><small class="text-muted">MACD</small><h5 class="mb-0" id="cardMacd">-</h5><small id="cardMacdStatus" class="text-muted">-</small></div></div></div>
+                    <div class="col-md-3 col-6"><div class="card summary-card"><div class="card-body p-2"><small class="text-muted">Recommendation</small><h5 class="mb-0" id="cardRec">-</h5><small id="cardConf" class="text-muted">-</small></div></div></div>
+                </div>
                 <div class="row g-2 mb-3">
                     <div class="col-lg-8">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <span><i class="bi bi-graph-up"></i> Chart</span>
                                 <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-secondary period-btn active" data-period="1mo">1M</button>
+                                    <button class="btn btn-outline-secondary period-btn" data-period="1mo">1M</button>
                                     <button class="btn btn-outline-secondary period-btn" data-period="3mo">3M</button>
                                     <button class="btn btn-outline-secondary period-btn" data-period="6mo">6M</button>
                                     <button class="btn btn-outline-secondary period-btn" data-period="1y">1Y</button>
                                 </div>
                             </div>
-                            <div class="card-body p-2">
-                                <canvas id="mainChart" height="350"></canvas>
-                            </div>
+                            <div class="card-body p-2"><canvas id="mainChart" height="350"></canvas></div>
                         </div>
                     </div>
                     <div class="col-lg-4">
                         <div class="card">
                             <div class="card-header"><i class="bi bi-info-circle"></i> Analysis</div>
-                            <div class="card-body" id="analysisPanel">
-                                <div class="text-center py-5 text-muted">
-                                    <i class="bi bi-arrow-left-circle fs-1"></i>
-                                    <p class="mt-2">Pilih saham dari sidebar untuk analisa</p>
-                                </div>
-                            </div>
+                            <div class="card-body" id="analysisPanel"><div class="text-center py-5 text-muted"><i class="bi bi-arrow-left-circle fs-1"></i><p class="mt-2">Pilih saham dari sidebar untuk analisa</p></div></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Bottom Row: RSI + MACD + Volume -->
                 <div class="row g-2">
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header"><i class="bi bi-activity"></i> RSI</div>
-                            <div class="card-body p-2">
-                                <canvas id="rsiChart" height="120"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header"><i class="bi bi-bar-chart"></i> MACD</div>
-                            <div class="card-body p-2">
-                                <canvas id="macdChart" height="120"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header"><i class="bi bi-bar-chart-fill"></i> Volume</div>
-                            <div class="card-body p-2">
-                                <canvas id="volumeChart" height="120"></canvas>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="col-md-4"><div class="card"><div class="card-header"><i class="bi bi-activity"></i> RSI</div><div class="card-body p-2"><canvas id="rsiChart" height="120"></canvas></div></div></div>
+                    <div class="col-md-4"><div class="card"><div class="card-header"><i class="bi bi-bar-chart"></i> MACD</div><div class="card-body p-2"><canvas id="macdChart" height="120"></canvas></div></div></div>
+                    <div class="col-md-4"><div class="card"><div class="card-header"><i class="bi bi-bar-chart-fill"></i> Volume</div><div class="card-body p-2"><canvas id="volumeChart" height="120"></canvas></div></div></div>
                 </div>
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/dashboard.js"></script>
 </body>

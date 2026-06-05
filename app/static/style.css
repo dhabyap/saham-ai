@@ -107,13 +107,20 @@ body {
     text-align: center;
 }
 
-/* Main Content */
-.main-content {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    background: #13151a;
+/* Sidebar navigation links */
+.sidebar-nav {
+    border-bottom: 1px solid var(--border-color);
+    padding: 4px 8px;
+}
+
+.sidebar-nav .stock-item {
+    font-size: 13px;
+}
+
+.sidebar-nav .stock-item i {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
 }
 
 /* Cards */

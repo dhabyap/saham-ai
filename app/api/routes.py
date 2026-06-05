@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List
+from dataclasses import asdict
 import os
 
 from app.services.stock_service import (
@@ -19,6 +20,7 @@ from app.services.market_service import (
 )
 from app.services.ihsg_service import IHSGService
 from app.services.relative_strength import calculate_relative_strength, calculate_all_relative_strength
+from app.ai.scoring_engine import ScoringEngine
 from app.charts.chart_generator import generate_full_analysis_chart
 from app.database import crud
 from app.database.foreign_flow_models import (
@@ -287,5 +289,35 @@ async def foreign_flow_summary():
             "top_accumulating": top_accumulating,
             "top_distributing": top_distributing,
             "total_tracked": len(all_status),
+        },
+    }
+
+
+@router.get("/scored-analysis/{code}")
+async def get_scored_analysis(
+    code: str,
+    strategy: str = Query("swing", description="Strategy: swing, day_trade, long_term"),
+    risk_level: str = Query("moderate", description="Risk level: low, moderate, high"),
+):
+    engine = ScoringEngine()
+    try:
+        result = engine.calculate_score(code, strategy, risk_level)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    return {
+        "status": "ok",
+        "data": {
+            "stock_code": result.stock_code,
+            "strategy": result.strategy,
+            "risk_level": result.risk_level,
+            "total_score": result.total_score,
+            "recommendation": result.recommendation,
+            "confidence": result.confidence,
+            "summary": result.summary,
+            "risks": result.risks,
+            "catalysts": result.catalysts,
+            "components": [asdict(c) for c in result.components],
+            "last_updated": result.last_updated,
         },
     }

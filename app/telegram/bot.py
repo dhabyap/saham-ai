@@ -28,6 +28,8 @@ from app.ai.strategies.creative_trader_strategy import CreativeTraderStrategy
 
 
 class TelegramBot:
+    """Telegram bot for AI Stock Analyzer Indonesia."""
+
     def __init__(self):
         self.token = Config.TELEGRAM_BOT_TOKEN
         self.app = None
@@ -35,509 +37,660 @@ class TelegramBot:
         self.learning = LearningEngine()
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user = update.effective_user
-        db_user = crud.add_user(telegram_id=user.id, username=user.username)
+        """Handle /start command - welcome message."""
+        try:
+            user = update.effective_user
+            db_user = crud.add_user(telegram_id=user.id, username=user.username)
 
-        await update.message.reply_text(
-            f"🤖 *AI Stock Analyzer Indonesia*\n\n"
-            f"Halo {user.first_name}! Saya adalah bot analisa saham IDX.\n\n"
-            f"*Commands:*\n"
-            f"/analyze BBCA - Analisa saham\n"
-            f"/watchlist - Lihat watchlist\n"
-            f"/add BBCA - Tambah ke watchlist\n"
-            f"/remove BBCA - Hapus dari watchlist\n"
-            f"/topgainer - Top gainer hari ini\n"
-            f"/toploser - Top loser hari ini\n"
-             f"/topvolume - Top volume\n"
-             f"/market - Ringkasan market\n"
-             f"/sentiment - Sentimen market\n"
-             f"/rekomendasi - Rekomendasi beli besok\n"
-             f"/daytrade BBCA - BPJS Day Trade signal\n"
-             f"/bpjs - Kandidat BPJS hari ini\n"
-             f"/longterm BBCA - Long term akumulasi\n"
-             f"/longtermcandidates - Kandidat long term\n"
-             f"/feedback benar BBCA - Beri feedback\n"
-             f"/accuracy - Skor AI\n"
-             f"/performance - Performa AI\n"
-             f"/strategy - Mode strategi\n"
-             f"/help - Bantuan\n\n"
-            f"Contoh: /analyze BBCA",
-            parse_mode="Markdown",
-        )
+            await update.message.reply_text(
+                f"🤖 *AI Stock Analyzer Indonesia*\n\n"
+                f"Halo {user.first_name}! Saya adalah bot analisa saham IDX.\n\n"
+                f"*Commands:*\n"
+                f"/analyze BBCA - Analisa saham\n"
+                f"/watchlist - Lihat watchlist\n"
+                f"/add BBCA - Tambah ke watchlist\n"
+                f"/remove BBCA - Hapus dari watchlist\n"
+                f"/topgainer - Top gainer hari ini\n"
+                f"/toploser - Top loser hari ini\n"
+                f"/topvolume - Top volume\n"
+                f"/market - Ringkasan market\n"
+                f"/sentiment - Sentimen market\n"
+                f"/rekomendasi - Rekomendasi beli besok\n"
+                f"/daytrade BBCA - BPJS Day Trade signal\n"
+                f"/bpjs - Kandidat BPJS hari ini\n"
+                f"/longterm BBCA - Long term akumulasi\n"
+                f"/longtermcandidates - Kandidat long term\n"
+                f"/feedback benar BBCA - Beri feedback\n"
+                f"/accuracy - Skor AI\n"
+                f"/performance - Performa AI\n"
+                f"/strategy - Mode strategi\n"
+                f"/help - Bantuan\n\n"
+                f"Contoh: /analyze BBCA",
+                parse_mode="Markdown",
+            )
+        except Exception as e:
+            print(f"Error in start: {e}")
+            await update.message.reply_text(
+                "❌ Error: /start tidak tersedia saat ini"
+            )
 
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text(
-            "📚 *Bantuan AI Stock Analyzer*\n\n"
-            "*Analisa Saham:*\n"
-            "/analyze BBCA - Analisa detail + chart\n\n"
-            "*Watchlist:*\n"
-            "/add BBCA - Tambah saham\n"
-            "/remove BBCA - Hapus saham\n"
-            "/watchlist - Daftar watchlist\n\n"
-            "*Market:*\n"
-            "/topgainer - Top gainer\n"
-            "/toploser - Top loser\n"
-            "/topvolume - Top volume\n"
-            "/market - Overview market\n"
-            "/sentiment - Sentimen market\n"
-            "/rekomendasi - Rekomendasi beli besok\n"
-            "/daytrade BBCA - BPJS Day Trade signal\n"
-            "/bpjs - Kandidat BPJS hari ini\n"
-            "/longterm BBCA - Long term akumulasi\n"
-            "/longtermcandidates - Kandidat long term\n\n"
-            "*Saham tersedia:*\n"
-            f"{', '.join(sorted(STOCK_LIST.keys())[:10])}\n"
-            "dan lainnya...",
-            parse_mode="Markdown",
-        )
+        """Handle /help command - list all commands."""
+        try:
+            help_text = (
+                "📚 *Bantuan AI Stock Analyzer*\n\n"
+                "*Analisa Saham:*\n"
+                "/analyze BBCA - Analisa detail + chart\n"
+                "/rekomendasi - Rekomendasi saham beli besok\n\n"
+                "*Watchlist:*\n"
+                "/add BBCA - Tambah saham\n"
+                "/remove BBCA - Hapus saham\n"
+                "/watchlist - Daftar watchlist\n\n"
+                "*Market:*\n"
+                "/topgainer - Top gainer hari ini\n"
+                "/toploser - Top loser hari ini\n"
+                "/topvolume - Top volume perdagangan\n"
+                "/market - Overview market IDX\n"
+                "/sentiment - Sentimen market\n\n"
+                "*Strategi:*\n"
+                "/daytrade BBCA - BPJS Day Trade signal\n"
+                "/bpjs - Kandidat BPJS hari ini\n"
+                "/longterm BBCA - Long term akumulasi\n"
+                "/longtermcandidates - Kandidat long term\n\n"
+                "*AI & Feedback:*\n"
+                "/feedback benar BBCA - Kirim feedback\n"
+                "/accuracy - Akurasi prediksi AI\n"
+                "/performance - Performa prediksi\n"
+                "/strategy - Mode strategi aktif\n\n"
+                "*Saham tersedia:*\n"
+                f"{', '.join(sorted(STOCK_LIST.keys())[:10])}\n"
+                "dan lainnya..."
+            )
+            await update.message.reply_text(help_text, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in help: {e}")
+            await update.message.reply_text(
+                "❌ Error: /help tidak tersedia saat ini"
+            )
 
     async def analyze(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if not context.args:
-            await update.message.reply_text("Gunakan: /analyze BBCA")
-            return
+        """Handle /analyze command - analyze single stock."""
+        try:
+            if not context.args:
+                await update.message.reply_text("Gunakan: /analyze BBCA")
+                return
 
-        code = context.args[0].upper()
-        await update.message.reply_text(f"🔍 Menganalisa {code}...")
+            code = context.args[0].upper()
+            await update.message.reply_text(f"🔍 Menganalisa {code}...")
 
-        # Run analysis in thread pool
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(
-            None, lambda: self.analysis_service.analyze_stock(code, use_ai=True)
-        )
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(
+                None, lambda: self.analysis_service.analyze_stock(code, use_ai=True)
+            )
 
-        if "error" in result:
-            await update.message.reply_text(f"❌ {result['error']}")
-            return
+            if "error" in result:
+                await update.message.reply_text(f"❌ {result['error']}")
+                return
 
-        # Generate chart
-        chart_path = None
-        df = result.get("dataframe")
-        if df is not None:
-            try:
-                chart_path = generate_full_analysis_chart(
-                    df, result["stock_code"], result.get("stock_name", "")
-                )
-            except Exception as e:
-                print(f"Chart error: {e}")
+            chart_path = None
+            df = result.get("dataframe")
+            if df is not None:
+                try:
+                    chart_path = generate_full_analysis_chart(
+                        df, result["stock_code"], result.get("stock_name", "")
+                    )
+                except Exception as e:
+                    print(f"Chart error: {e}")
 
-        # Format response
-        emoji = {"BUY": "🟢", "HOLD": "🟡", "SELL": "🔴"}
-        rec_emoji = emoji.get(result["recommendation"], "⚪")
-        
-        # Source indicator
-        source = result.get("source", "unknown")
-        source_emoji = {"ai_api": "🤖", "cache": "💾", "database": "💾", "rule_based": "⚙️"}
-        source_label = {"ai_api": "AI API (live)", "cache": "Cache", "database": "Database", "rule_based": "Rule-based"}
-        src_icon = source_emoji.get(source, "❓")
-        src_text = source_label.get(source, source)
+            emoji = {"BUY": "🟢", "HOLD": "🟡", "SELL": "🔴"}
+            rec_emoji = emoji.get(result["recommendation"], "⚪")
 
-        message = (
-            f"{rec_emoji} *{result['stock_code']}* - {result.get('stock_name', '')}\n"
-            f"💰 Harga: Rp{result['price']:,.0f} "
-            f"({result['change_pct']:+.2f}%)\n"
-            f"📊 *Analisa Teknikal:*\n"
-            f"• Trend: {result['trend']}\n"
-            f"• RSI: {result['rsi']} ({result['rsi_status']})\n"
-            f"• MACD: {result['macd_status']}\n"
-            f"• MA20: Rp{result['ma20']:,.0f}\n"
-            f"• MA50: Rp{result['ma50']:,.0f}\n"
-            f"• Support: Rp{result['support']:,.0f}\n"
-            f"• Resistance: Rp{result['resistance']:,.0f}\n\n"
-            f"🎯 *Rekomendasi: {result['recommendation']}*\n"
-            f"📈 Confidence: {result['confidence']}%\n"
-            f"{src_icon} _Sumber: {src_text}_\n\n"
-            f"💡 *Reason:*\n{result['reason']}\n\n"
-            f"#IDX #{result['stock_code'].replace('.JK', '')}"
-        )
+            source = result.get("source", "unknown")
+            source_emoji = {"ai_api": "🤖", "cache": "💾", "database": "💾", "rule_based": "⚙️"}
+            source_label = {"ai_api": "AI API (live)", "cache": "Cache", "database": "Database", "rule_based": "Rule-based"}
+            src_icon = source_emoji.get(source, "❓")
+            src_text = source_label.get(source, source)
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+            message = (
+                f"{rec_emoji} *{result['stock_code']}* - {result.get('stock_name', '')}\n"
+                f"💰 Harga: Rp{result['price']:,.0f} "
+                f"({result['change_pct']:+.2f}%)\n"
+                f"📊 *Analisa Teknikal:*\n"
+                f"• Trend: {result['trend']}\n"
+                f"• RSI: {result['rsi']} ({result['rsi_status']})\n"
+                f"• MACD: {result['macd_status']}\n"
+                f"• MA20: Rp{result['ma20']:,.0f}\n"
+                f"• MA50: Rp{result['ma50']:,.0f}\n"
+                f"• Support: Rp{result['support']:,.0f}\n"
+                f"• Resistance: Rp{result['resistance']:,.0f}\n\n"
+                f"🎯 *Rekomendasi: {result['recommendation']}*\n"
+                f"📈 Confidence: {result['confidence']}%\n"
+                f"{src_icon} _Sumber: {src_text}_\n\n"
+                f"💡 *Reason:*\n{result['reason']}\n\n"
+                f"#IDX #{result['stock_code'].replace('.JK', '')}"
+            )
 
-        # Send chart
-        if chart_path and os.path.exists(chart_path):
-            with open(chart_path, "rb") as f:
-                await update.message.reply_photo(
-                    photo=f,
-                    caption=f"Chart {result['stock_code']} - {result['trend']} | Rec: {result['recommendation']} ({result['confidence']}%)",
-                )
+            await update.message.reply_text(message, parse_mode="Markdown")
+
+            if chart_path and os.path.exists(chart_path):
+                with open(chart_path, "rb") as f:
+                    await update.message.reply_photo(
+                        photo=f,
+                        caption=f"Chart {result['stock_code']} - {result['trend']} | Rec: {result['recommendation']} ({result['confidence']}%)",
+                    )
+        except Exception as e:
+            print(f"Error in analyze: {e}")
+            await update.message.reply_text(
+                "❌ Error: /analyze tidak tersedia saat ini"
+            )
 
     async def add_watchlist(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if not context.args:
-            await update.message.reply_text("Gunakan: /add BBCA")
-            return
+        """Handle /add command - add stock to watchlist."""
+        try:
+            if not context.args:
+                await update.message.reply_text("Gunakan: /add BBCA")
+                return
 
-        code = context.args[0].upper()
-        user = crud.get_user(update.effective_user.id)
-        if not user:
-            user = crud.add_user(update.effective_user.id, update.effective_user.username)
+            code = context.args[0].upper()
+            user = crud.get_user(update.effective_user.id)
+            if not user:
+                user = crud.add_user(update.effective_user.id, update.effective_user.username)
 
-        crud.add_to_watchlist(user["id"], code, STOCK_LIST.get(code, ""))
-        await update.message.reply_text(f"✅ {code} ditambahkan ke watchlist!")
+            crud.add_to_watchlist(user["id"], code, STOCK_LIST.get(code, ""))
+            await update.message.reply_text(f"✅ {code} ditambahkan ke watchlist!")
+        except Exception as e:
+            print(f"Error in add_watchlist: {e}")
+            await update.message.reply_text(
+                f"❌ Gagal menambahkan {context.args[0].upper() if context.args else ''} ke watchlist"
+            )
 
     async def remove_watchlist(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if not context.args:
-            await update.message.reply_text("Gunakan: /remove BBCA")
-            return
+        """Handle /remove command - remove stock from watchlist."""
+        try:
+            if not context.args:
+                await update.message.reply_text("Gunakan: /remove BBCA")
+                return
 
-        code = context.args[0].upper()
-        user = crud.get_user(update.effective_user.id)
-        if user:
-            crud.remove_from_watchlist(user["id"], code)
+            code = context.args[0].upper()
+            user = crud.get_user(update.effective_user.id)
+            if user:
+                crud.remove_from_watchlist(user["id"], code)
 
-        await update.message.reply_text(f"🗑 {code} dihapus dari watchlist!")
+            await update.message.reply_text(f"🗑 {code} dihapus dari watchlist!")
+        except Exception as e:
+            print(f"Error in remove_watchlist: {e}")
+            await update.message.reply_text(
+                f"❌ Gagal menghapus {context.args[0].upper() if context.args else ''} dari watchlist"
+            )
 
     async def watchlist(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user = crud.get_user(update.effective_user.id)
-        if not user:
-            await update.message.reply_text("Kamu belum punya watchlist. Gunakan /add BBCA")
-            return
+        """Handle /watchlist command - show user watchlist."""
+        try:
+            user = crud.get_user(update.effective_user.id)
+            if not user:
+                await update.message.reply_text("Kamu belum punya watchlist. Gunakan /add BBCA")
+                return
 
-        items = crud.get_watchlist(user["id"])
-        if not items:
-            await update.message.reply_text("Watchlist kosong. Gunakan /add BBCA")
-            return
+            items = crud.get_watchlist(user["id"])
+            if not items:
+                await update.message.reply_text("Watchlist kosong. Gunakan /add BBCA")
+                return
 
-        message = "📋 *Watchlist:*\n\n"
-        for item in items:
-            message += f"• {item['stock_code']}"
-            if item["stock_name"]:
-                message += f" - {item['stock_name']}"
-            message += "\n"
+            message = "📋 *Watchlist:*\n\n"
+            for item in items:
+                message += f"• {item['stock_code']}"
+                if item["stock_name"]:
+                    message += f" - {item['stock_name']}"
+                message += "\n"
 
-        message += "\nGunakan /analyze BBCA untuk analisa"
-        await update.message.reply_text(message, parse_mode="Markdown")
+            message += "\nGunakan /analyze BBCA untuk analisa"
+            await update.message.reply_text(message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in watchlist: {e}")
+            await update.message.reply_text(
+                "❌ Error: /watchlist tidak tersedia saat ini"
+            )
 
     async def top_gainer(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("📈 Mengambil data top gainer...")
-        gainers = get_top_gainers(10)
+        """Handle /topgainer command - top gainers today."""
+        try:
+            await update.message.reply_text("📈 Mengambil data top gainer...")
+            gainers = get_top_gainers(10)
 
-        message = "📈 *Top Gainer Hari Ini:*\n\n"
-        for i, g in enumerate(gainers, 1):
-            message += f"{i}. {g['code']} - Rp{g['price']:,.0f} ({g['change_pct']:+.2f}%)\n"
+            if not gainers:
+                await update.message.reply_text("📈 Tidak ada data top gainer saat ini.")
+                return
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+            message = "📈 *Top Gainer Hari Ini:*\n\n"
+            for i, g in enumerate(gainers, 1):
+                message += f"{i}. {g['code']} - Rp{g['price']:,.0f} ({g['change_pct']:+.2f}%)\n"
+
+            await update.message.reply_text(message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in top_gainer: {e}")
+            await update.message.reply_text(
+                "❌ Error: /topgainer tidak tersedia saat ini"
+            )
 
     async def top_loser(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("📉 Mengambil data top loser...")
-        losers = get_top_losers(10)
+        """Handle /toploser command - top losers today."""
+        try:
+            await update.message.reply_text("📉 Mengambil data top loser...")
+            losers = get_top_losers(10)
 
-        message = "📉 *Top Loser Hari Ini:*\n\n"
-        for i, g in enumerate(losers, 1):
-            message += f"{i}. {g['code']} - Rp{g['price']:,.0f} ({g['change_pct']:+.2f}%)\n"
+            if not losers:
+                await update.message.reply_text("📉 Tidak ada data top loser saat ini.")
+                return
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+            message = "📉 *Top Loser Hari Ini:*\n\n"
+            for i, g in enumerate(losers, 1):
+                message += f"{i}. {g['code']} - Rp{g['price']:,.0f} ({g['change_pct']:+.2f}%)\n"
+
+            await update.message.reply_text(message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in top_loser: {e}")
+            await update.message.reply_text(
+                "❌ Error: /toploser tidak tersedia saat ini"
+            )
 
     async def top_volume(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("📊 Mengambil data top volume...")
-        volumes = get_top_volume(10)
+        """Handle /topvolume command - top volume today."""
+        try:
+            await update.message.reply_text("📊 Mengambil data top volume...")
+            volumes = get_top_volume(10)
 
-        message = "📊 *Top Volume Hari Ini:*\n\n"
-        for i, g in enumerate(volumes, 1):
-            message += f"{i}. {g['code']} - {g['volume']:,} lembar\n"
+            if not volumes:
+                await update.message.reply_text("📊 Tidak ada data top volume saat ini.")
+                return
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+            message = "📊 *Top Volume Hari Ini:*\n\n"
+            for i, g in enumerate(volumes, 1):
+                message += f"{i}. {g['code']} - {g['volume']:,} lembar\n"
+
+            await update.message.reply_text(message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in top_volume: {e}")
+            await update.message.reply_text(
+                "❌ Error: /topvolume tidak tersedia saat ini"
+            )
 
     async def market(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("📊 Mengambil data market...")
-        summary = get_market_summary()
+        """Handle /market command - market summary."""
+        try:
+            await update.message.reply_text("📊 Mengambil data market...")
+            summary = get_market_summary()
 
-        fg = summary["fear_greed"]
-        if fg["index"] >= 60:
-            fg_emoji = "🟢"
-        elif fg["index"] >= 40:
-            fg_emoji = "🟡"
-        else:
-            fg_emoji = "🔴"
+            fg = summary["fear_greed"]
+            if fg["index"] >= 60:
+                fg_emoji = "🟢"
+            elif fg["index"] >= 40:
+                fg_emoji = "🟡"
+            else:
+                fg_emoji = "🔴"
 
-        message = (
-            "📊 *Ringkasan Market IDX:*\n\n"
-            f"📈 Advancing: {summary['advancing']}\n"
-            f"📉 Declining: {summary['declining']}\n"
-            f"⏸ Unchanged: {summary['unchanged']}\n"
-            f"📊 Total: {summary['total_stocks']} saham\n\n"
-            f"{fg_emoji} Fear & Greed: {fg['index']} - {fg['label']}\n\n"
-            f"Data: {summary['timestamp'][:19]}"
-        )
+            message = (
+                "📊 *Ringkasan Market IDX:*\n\n"
+                f"📈 Advancing: {summary['advancing']}\n"
+                f"📉 Declining: {summary['declining']}\n"
+                f"⏸ Unchanged: {summary['unchanged']}\n"
+                f"📊 Total: {summary['total_stocks']} saham\n\n"
+                f"{fg_emoji} Fear & Greed: {fg['index']} - {fg['label']}\n\n"
+                f"Data: {summary['timestamp'][:19]}"
+            )
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+            await update.message.reply_text(message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in market: {e}")
+            await update.message.reply_text(
+                "❌ Error: /market tidak tersedia saat ini"
+            )
 
     async def sentiment(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        sent = get_market_sentiment()
-        fg = sent["fear_greed"]
+        """Handle /sentiment command - market sentiment."""
+        try:
+            sent = get_market_sentiment()
+            fg = sent["fear_greed"]
 
-        if sent["sentiment"] == "Bullish":
-            emoji = "🟢"
-        elif sent["sentiment"] == "Neutral":
-            emoji = "🟡"
-        else:
-            emoji = "🔴"
+            if sent["sentiment"] == "Bullish":
+                emoji = "🟢"
+            elif sent["sentiment"] == "Neutral":
+                emoji = "🟡"
+            else:
+                emoji = "🔴"
 
-        message = (
-            f"{emoji} *Market Sentiment: {sent['sentiment']}*\n\n"
-            f"{sent['description']}\n\n"
-            f"📊 Fear & Greed Index: {fg['index']} - {fg['label']}\n"
-            f"📈 Advancing: {sent['advancing']}\n"
-            f"📉 Declining: {sent['declining']}\n"
-            f"📊 A/D Ratio: {sent['advance_decline_ratio']}"
-        )
+            message = (
+                f"{emoji} *Market Sentiment: {sent['sentiment']}*\n\n"
+                f"{sent['description']}\n\n"
+                f"📊 Fear & Greed Index: {fg['index']} - {fg['label']}\n"
+                f"📈 Advancing: {sent['advancing']}\n"
+                f"📉 Declining: {sent['declining']}\n"
+                f"📊 A/D Ratio: {sent['advance_decline_ratio']}"
+            )
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+            await update.message.reply_text(message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in sentiment: {e}")
+            await update.message.reply_text(
+                "❌ Error: /sentiment tidak tersedia saat ini"
+            )
 
     async def feedback_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if not context.args:
-            await update.message.reply_text(
-                "Gunakan: /feedback [benar|salah|bullish|bearish] BBCA\n\n"
-                "Contoh: /feedback benar BBCA"
+        """Handle /feedback command - submit feedback."""
+        try:
+            if not context.args:
+                await update.message.reply_text(
+                    "Gunakan: /feedback [benar|salah|bullish|bearish] BBCA\n\n"
+                    "Contoh: /feedback benar BBCA"
+                )
+                return
+
+            value = context.args[0].lower()
+            code = context.args[1].upper() if len(context.args) > 1 else None
+
+            if value not in ("benar", "salah", "bullish", "bearish"):
+                await update.message.reply_text("Feedback: benar, salah, bullish, atau bearish")
+                return
+
+            fb_map = {"benar": "helpful", "salah": "wrong",
+                       "bullish": "bullish", "bearish": "bearish"}
+
+            user = crud.get_user(update.effective_user.id)
+            if not user:
+                user = crud.add_user(update.effective_user.id, update.effective_user.username)
+
+            ai_crud.save_feedback(
+                user["id"], code or "GENERAL", None,
+                "telegram", fb_map[value], None,
             )
-            return
 
-        value = context.args[0].lower()
-        code = context.args[1].upper() if len(context.args) > 1 else None
-
-        if value not in ("benar", "salah", "bullish", "bearish"):
-            await update.message.reply_text("Feedback: benar, salah, bullish, atau bearish")
-            return
-
-        fb_map = {"benar": "helpful", "salah": "wrong",
-                   "bullish": "bullish", "bearish": "bearish"}
-
-        user = crud.get_user(update.effective_user.id)
-        if not user:
-            user = crud.add_user(update.effective_user.id, update.effective_user.username)
-
-        ai_crud.save_feedback(
-            user["id"], code or "GENERAL", None,
-            "telegram", fb_map[value], None,
-        )
-
-        await update.message.reply_text(f"✅ Feedback '{value}' diterima! Terima kasih!")
+            await update.message.reply_text(f"✅ Feedback '{value}' diterima! Terima kasih!")
+        except Exception as e:
+            print(f"Error in feedback: {e}")
+            await update.message.reply_text(
+                "❌ Error: /feedback tidak tersedia saat ini"
+            )
 
     async def accuracy_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        perf = self.learning.get_performance_summary()
-        scores = perf.get("scores", {})
+        """Handle /accuracy command - AI accuracy scores."""
+        try:
+            perf = self.learning.get_performance_summary()
+            scores = perf.get("scores", {})
 
-        acc7 = scores.get("accuracy_7d", {})
-        acc30 = scores.get("accuracy_30d", {})
-        overall = scores.get("accuracy_overall", {})
-        winrate = scores.get("winrate", {})
-        avg_profit = scores.get("avg_profit", {})
+            acc7 = scores.get("accuracy_7d", {})
+            acc30 = scores.get("accuracy_30d", {})
+            overall = scores.get("accuracy_overall", {})
+            winrate = scores.get("winrate", {})
+            avg_profit = scores.get("avg_profit", {})
 
-        message = (
-            "📊 *AI Learning Performance*\n\n"
-            f"🎯 7d Accuracy: {acc7.get('score_value', 0):.1f}% "
-            f"({acc7.get('correct_predictions', 0)}/{acc7.get('total_predictions', 0)})\n"
-            f"📈 30d Accuracy: {acc30.get('score_value', 0):.1f}%\n"
-            f"📊 Overall: {overall.get('score_value', 0):.1f}%\n"
-            f"🏆 Winrate: {winrate.get('score_value', 0):.1f}%\n"
-            f"💰 Avg Profit: {avg_profit.get('score_value', 0):.2f}%\n\n"
-            f"💬 Feedback: "
-            f"👍{perf.get('feedback', {}).get('helpful', 0)} "
-            f"👎{perf.get('feedback', {}).get('wrong', 0)}"
-        )
+            message = (
+                "📊 *AI Learning Performance*\n\n"
+                f"🎯 7d Accuracy: {acc7.get('score_value', 0):.1f}% "
+                f"({acc7.get('correct_predictions', 0)}/{acc7.get('total_predictions', 0)})\n"
+                f"📈 30d Accuracy: {acc30.get('score_value', 0):.1f}%\n"
+                f"📊 Overall: {overall.get('score_value', 0):.1f}%\n"
+                f"🏆 Winrate: {winrate.get('score_value', 0):.1f}%\n"
+                f"💰 Avg Profit: {avg_profit.get('score_value', 0):.2f}%\n\n"
+                f"💬 Feedback: "
+                f"👍{perf.get('feedback', {}).get('helpful', 0)} "
+                f"👎{perf.get('feedback', {}).get('wrong', 0)}"
+            )
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+            await update.message.reply_text(message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in accuracy: {e}")
+            await update.message.reply_text(
+                "❌ Error: /accuracy tidak tersedia saat ini"
+            )
 
     async def performance_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        perf = self.learning.get_performance_summary()
-        recent = perf.get("recent_predictions", [])
+        """Handle /performance command - AI performance summary."""
+        try:
+            perf = self.learning.get_performance_summary()
+            recent = perf.get("recent_predictions", [])
 
-        message = "📈 *AI Performance Summary*\n\n"
-        if recent:
-            message += "*Prediksi Terbaru:*\n"
-            for p in recent[:5]:
-                emoji = {"SUCCESS": "✅", "FAIL": "❌", "Pending": "⏳"}
-                profit = p.get("profit", 0)
-                profit_str = f" ({profit:+.2f}%)" if profit else ""
-                message += (
-                    f"{emoji.get(p.get('actual', 'Pending'), '⏳')} "
-                    f"{p['stock']}: {p['prediction']} "
-                    f"(Conf: {p.get('confidence', 0)}%)"
-                    f"{profit_str}\n"
-                )
-        else:
-            message += "Belum ada prediksi.\n"
+            message = "📈 *AI Performance Summary*\n\n"
+            if recent:
+                message += "*Prediksi Terbaru:*\n"
+                for p in recent[:5]:
+                    emoji = {"SUCCESS": "✅", "FAIL": "❌", "Pending": "⏳"}
+                    profit = p.get("profit", 0)
+                    profit_str = f" ({profit:+.2f}%)" if profit else ""
+                    message += (
+                        f"{emoji.get(p.get('actual', 'Pending'), '⏳')} "
+                        f"{p['stock']}: {p['prediction']} "
+                        f"(Conf: {p.get('confidence', 0)}%)"
+                        f"{profit_str}\n"
+                    )
+            else:
+                message += "Belum ada prediksi.\n"
 
-        message += f"\nGunakan /accuracy untuk detail skor."
+            message += f"\nGunakan /accuracy untuk detail skor."
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+            await update.message.reply_text(message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in performance: {e}")
+            await update.message.reply_text(
+                "❌ Error: /performance tidak tersedia saat ini"
+            )
 
     async def strategy_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        strategies = ai_crud.get_strategies(active_only=True)
-        if not strategies:
-            await update.message.reply_text("Belum ada strategi dikonfigurasi.")
-            return
+        """Handle /strategy command - list active strategies."""
+        try:
+            strategies = ai_crud.get_strategies(active_only=True)
+            if not strategies:
+                await update.message.reply_text("Belum ada strategi dikonfigurasi.")
+                return
 
-        message = "🎯 *Strategy Modes:*\n\n"
-        for s in strategies:
-            message += (
-                f"• {s.get('display_name', s.get('strategy_name', s['name']))}\n"
-                f"  {s.get('description', '')}\n"
-                f"  Risk: {s.get('risk_profile', '-')} | "
-                f"Period: {s.get('holding_period', '-')}\n\n"
+            message = "🎯 *Strategy Modes:*\n\n"
+            for s in strategies:
+                message += (
+                    f"• {s.get('display_name', s.get('strategy_name', s['name']))}\n"
+                    f"  {s.get('description', '')}\n"
+                    f"  Risk: {s.get('risk_profile', '-')} | "
+                    f"Period: {s.get('holding_period', '-')}\n\n"
+                )
+
+            await update.message.reply_text(message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in strategy: {e}")
+            await update.message.reply_text(
+                "❌ Error: /strategy tidak tersedia saat ini"
             )
-
-        await update.message.reply_text(message, parse_mode="Markdown")
 
     async def rekomendasi_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("🔍 Mencari rekomendasi saham untuk besok...")
+        """Handle /rekomendasi command - AI stock recommendations."""
+        try:
+            await update.message.reply_text("🔍 Mencari rekomendasi saham untuk besok...")
 
-        # Run heavy analysis in thread pool to avoid blocking event loop
-        loop = asyncio.get_event_loop()
-        buy_list = await loop.run_in_executor(None, self._scan_buy_list)
+            loop = asyncio.get_event_loop()
+            buy_list = await loop.run_in_executor(None, self._scan_buy_list)
 
-        if not buy_list:
-            await update.message.reply_text(
-                "📭 *Tidak ada rekomendasi BUY untuk besok.*\n\n"
-                "Semua saham dalam HOLD/SELL.",
-                parse_mode="Markdown"
+            if not buy_list:
+                await update.message.reply_text(
+                    "📭 *Tidak ada rekomendasi BUY untuk besok.*\n\n"
+                    "Semua saham dalam HOLD/SELL.",
+                    parse_mode="Markdown"
+                )
+                return
+
+            buy_list.sort(key=lambda x: x["confidence"], reverse=True)
+            top = buy_list[:10]
+
+            msg = (
+                "🟢 *REKOMENDASI SAHAM BESOK* 🟢\n"
+                f"📅 {datetime.now().strftime('%d %B %Y')}\n"
+                f"🎯 Strategi: Day Trading (Pagi Beli, Sore Jual)\n\n"
             )
-            return
 
-        # Sort by confidence
-        buy_list.sort(key=lambda x: x["confidence"], reverse=True)
-        top = buy_list[:10]
+            for i, s in enumerate(top, 1):
+                src_icon = {"ai_api": "🤖", "cache": "💾", "database": "💾"}.get(s["source"], "⚙️")
+                msg += (
+                    f"{'🟢' if i <= 3 else '🟡'} *{i}. {s['code']}* - {s['name']}\n"
+                    f"   💰 Rp{s['price']:,.0f} ({s['change_pct']:+.2f}%)\n"
+                    f"   📊 RSI: {s['rsi']} ({s['rsi_status']}) | Trend: {s['trend']}\n"
+                    f"   🎯 Confidence: {s['confidence']}% {src_icon}\n"
+                    f"   💡 {s['reason'][:100]}\n\n"
+                )
 
-        msg = (
-            "🟢 *REKOMENDASI SAHAM BESOK* 🟢\n"
-            f"📅 {datetime.now().strftime('%d %B %Y')}\n"
-            f"🎯 Strategi: Day Trading (Pagi Beli, Sore Jual)\n\n"
-        )
-
-        for i, s in enumerate(top, 1):
-            src_icon = {"ai_api": "🤖", "cache": "💾", "database": "💾"}.get(s["source"], "⚙️")
             msg += (
-                f"{'🟢' if i <= 3 else '🟡'} *{i}. {s['code']}* - {s['name']}\n"
-                f"   💰 Rp{s['price']:,.0f} ({s['change_pct']:+.2f}%)\n"
-                f"   📊 RSI: {s['rsi']} ({s['rsi_status']}) | Trend: {s['trend']}\n"
-                f"   🎯 Confidence: {s['confidence']}% {src_icon}\n"
-                f"   💡 {s['reason'][:100]}\n\n"
+                f"\n⚠️ _Data dari {len(buy_list)} saham BUY. "
+                f"AI: 9Router. Selalu DYOR!_"
             )
 
-        msg += (
-            f"\n⚠️ _Data dari {len(buy_list)} saham BUY. "
-            f"AI: 9Router. Selalu DYOR!_"
-        )
-
-        await update.message.reply_text(msg, parse_mode="Markdown")
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in rekomendasi: {e}")
+            await update.message.reply_text(
+                "❌ Error: /rekomendasi tidak tersedia saat ini"
+            )
 
     async def daytrade_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if not context.args:
-            await update.message.reply_text("Gunakan: /daytrade BBCA")
-            return
+        """Handle /daytrade command - BPJS single stock analysis."""
+        try:
+            if not context.args:
+                await update.message.reply_text("Gunakan: /daytrade BBCA")
+                return
 
-        code = context.args[0].upper()
-        await update.message.reply_text(f"🔍 Scanning BPJS untuk {code}...")
+            code = context.args[0].upper()
+            await update.message.reply_text(f"🔍 Scanning BPJS untuk {code}...")
 
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, lambda: BPJSStrategy().analyze(code))
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, lambda: BPJSStrategy().analyze(code))
 
-        signal = result.get("entry_signal", {}) or result
-        action = signal.get("action", "WAIT")
-        emoji = "🟢" if action == "ENTER" else "⏳"
+            signal = result.get("entry_signal", {}) or result
+            action = signal.get("action", "WAIT")
+            emoji = "🟢" if action == "ENTER" else "⏳"
 
-        msg = (
-            f"{emoji} *BPJS Day Trade: {code}*\n"
-            f"📊 Harga: Rp{result.get('current_price', 0):,.0f}\n"
-            f"🎯 Signal: *{action}*\n"
-            f"💡 {signal.get('reason', '-')}\n"
-        )
-        if action == "ENTER":
-            msg += (
-                f"💰 Entry: Rp{signal.get('entry_price', 0):,.0f}\n"
-                f"🎯 TP: Rp{signal.get('target_profit', 0):,.0f} (+1.5%)\n"
-                f"🛑 CL: Rp{signal.get('cut_loss', 0):,.0f} (-0.7%)\n"
+            msg = (
+                f"{emoji} *BPJS Day Trade: {code}*\n"
+                f"📊 Harga: Rp{result.get('current_price', 0):,.0f}\n"
+                f"🎯 Signal: *{action}*\n"
+                f"💡 {signal.get('reason', '-')}\n"
             )
-        msg += f"📊 Volume: {signal.get('volume_ratio', 0):.1f}x | Confidence: {signal.get('confidence', 0)}%\n"
-        ff = signal.get("foreign_flow_status", "-")
-        msg += f"🌍 Foreign: {ff}\n"
-        msg += f"\n🔍 /analyze {code} untuk analisa lengkap"
+            if action == "ENTER":
+                msg += (
+                    f"💰 Entry: Rp{signal.get('entry_price', 0):,.0f}\n"
+                    f"🎯 TP: Rp{signal.get('target_profit', 0):,.0f} (+1.5%)\n"
+                    f"🛑 CL: Rp{signal.get('cut_loss', 0):,.0f} (-0.7%)\n"
+                )
+            msg += f"📊 Volume: {signal.get('volume_ratio', 0):.1f}x | Confidence: {signal.get('confidence', 0)}%\n"
+            ff = signal.get("foreign_flow_status", "-")
+            msg += f"🌍 Foreign: {ff}\n"
+            msg += f"\n🔍 /analyze {code} untuk analisa lengkap"
 
-        await update.message.reply_text(msg, parse_mode="Markdown")
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in daytrade: {e}")
+            await update.message.reply_text(
+                "❌ Error: /daytrade tidak tersedia saat ini"
+            )
 
     async def daytrade_candidates_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("🔍 Mencari kandidat BPJS hari ini...")
+        """Handle /bpjs and /daytradecandidates commands."""
+        try:
+            await update.message.reply_text("🔍 Mencari kandidat BPJS hari ini...")
 
-        loop = asyncio.get_event_loop()
-        candidates = await loop.run_in_executor(None, lambda: BPJSStrategy().scan_candidates())
+            loop = asyncio.get_event_loop()
+            candidates = await loop.run_in_executor(None, lambda: BPJSStrategy().scan_candidates())
 
-        if not candidates:
-            await update.message.reply_text("📭 Tidak ada kandidat BPJS hari ini.")
-            return
+            if not candidates:
+                await update.message.reply_text("📭 Tidak ada kandidat BPJS hari ini.")
+                return
 
-        msg = "🎯 *BPJS Candidates Hari Ini*\n\n"
-        for i, c in enumerate(candidates[:10], 1):
-            action = c.get("action", "WAIT")
-            emoji = "🟢" if action == "ENTER" else "⏳"
-            conf = c.get("confidence", 0)
-            msg += f"{emoji} {i}. *{c['stock_code']}* | Conf: {conf}%\n"
-            msg += f"   💡 {c.get('reason', '-')[:80]}\n"
-        msg += f"\nTotal: {len(candidates)} kandidat"
+            msg = "🎯 *BPJS Candidates Hari Ini*\n\n"
+            for i, c in enumerate(candidates[:10], 1):
+                action = c.get("action", "WAIT")
+                emoji = "🟢" if action == "ENTER" else "⏳"
+                conf = c.get("confidence", 0)
+                msg += f"{emoji} {i}. *{c['stock_code']}* | Conf: {conf}%\n"
+                msg += f"   💡 {c.get('reason', '-')[:80]}\n"
+            msg += f"\nTotal: {len(candidates)} kandidat"
 
-        await update.message.reply_text(msg, parse_mode="Markdown")
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in bpjs/daytradecandidates: {e}")
+            await update.message.reply_text(
+                "❌ Error: /bpjs tidak tersedia saat ini"
+            )
 
     async def longterm_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if not context.args:
-            await update.message.reply_text("Gunakan: /longterm BBCA")
-            return
+        """Handle /longterm command - long term single stock analysis."""
+        try:
+            if not context.args:
+                await update.message.reply_text("Gunakan: /longterm BBCA")
+                return
 
-        code = context.args[0].upper()
-        await update.message.reply_text(f"🔍 Analisis akumulasi untuk {code}...")
+            code = context.args[0].upper()
+            await update.message.reply_text(f"🔍 Analisis akumulasi untuk {code}...")
 
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, lambda: CreativeTraderStrategy().analyze(code))
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, lambda: CreativeTraderStrategy().analyze(code))
 
-        acc = result.get("accumulation", {})
-        entry = result.get("entry", {})
-        tf = result.get("timeframes", {})
-        scoring = result.get("scoring", {})
+            acc = result.get("accumulation", {})
+            entry = result.get("entry", {})
+            tf = result.get("timeframes", {})
+            scoring = result.get("scoring", {})
 
-        phase = acc.get("phase", "neutral")
-        phase_emoji = {"active_accumulation": "🟢", "early_accumulation": "🟡", "heavy_distribution": "🔴", "early_distribution": "🟠", "neutral": "⚪"}
+            phase = acc.get("phase", "neutral")
+            phase_emoji = {"active_accumulation": "🟢", "early_accumulation": "🟡", "heavy_distribution": "🔴", "early_distribution": "🟠", "neutral": "⚪"}
 
-        action = entry.get("action", "WAIT")
-        action_emoji = {"BUY": "🟢", "ACCUMULATE": "🟡", "WAIT": "⏳"}
+            action = entry.get("action", "WAIT")
+            action_emoji = {"BUY": "🟢", "ACCUMULATE": "🟡", "WAIT": "⏳"}
 
-        msg = (
-            f"📈 *Long Term: {code}*\n"
-            f"💎 Fase: {phase_emoji.get(phase, '⚪')} {phase.replace('_', ' ').title()}\n"
-            f"📊 Akumulasi: {acc.get('accumulation_days', 0)} hari | RS: {acc.get('confidence', 0):.0f}%\n"
-            f"💰 Harga: Rp{acc.get('current_price', 0):,.0f}\n"
-            f"🎯 Entry: *{action_emoji.get(action, '⏳')} {action}*\n"
-            f"💡 {entry.get('reason', '-')}\n"
-        )
-        if action in ("BUY", "ACCUMULATE"):
-            msg += (
-                f"   Entry: Rp{entry.get('entry_price', 0):,.0f}\n"
-                f"   Range: Rp{entry.get('suggested_range', {}).get('min', 0):,.0f} - Rp{entry.get('suggested_range', {}).get('max', 0):,.0f}\n"
-                f"   TP: +6% / +15% | SL: -3%\n"
+            msg = (
+                f"📈 *Long Term: {code}*\n"
+                f"💎 Fase: {phase_emoji.get(phase, '⚪')} {phase.replace('_', ' ').title()}\n"
+                f"📊 Akumulasi: {acc.get('accumulation_days', 0)} hari | RS: {acc.get('confidence', 0):.0f}%\n"
+                f"💰 Harga: Rp{acc.get('current_price', 0):,.0f}\n"
+                f"🎯 Entry: *{action_emoji.get(action, '⏳')} {action}*\n"
+                f"💡 {entry.get('reason', '-')}\n"
             )
-        msg += (
-            f"📅 Timeframe: {tf.get('alignment', '-')}\n"
-            f"   Weekly: {tf.get('weekly_outlook', '-')} | Daily: {tf.get('daily_phase', '-')}\n"
-        )
-        score_val = scoring.get("total_score", 0) if isinstance(scoring, dict) else 0
-        if score_val:
-            msg += f"📊 Score: {score_val:.0f}/100\n"
+            if action in ("BUY", "ACCUMULATE"):
+                msg += (
+                    f"   Entry: Rp{entry.get('entry_price', 0):,.0f}\n"
+                    f"   Range: Rp{entry.get('suggested_range', {}).get('min', 0):,.0f} - Rp{entry.get('suggested_range', {}).get('max', 0):,.0f}\n"
+                    f"   TP: +6% / +15% | SL: -3%\n"
+                )
+            msg += (
+                f"📅 Timeframe: {tf.get('alignment', '-')}\n"
+                f"   Weekly: {tf.get('weekly_outlook', '-')} | Daily: {tf.get('daily_phase', '-')}\n"
+            )
+            score_val = scoring.get("total_score", 0) if isinstance(scoring, dict) else 0
+            if score_val:
+                msg += f"📊 Score: {score_val:.0f}/100\n"
 
-        await update.message.reply_text(msg, parse_mode="Markdown")
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in longterm: {e}")
+            await update.message.reply_text(
+                "❌ Error: /longterm tidak tersedia saat ini"
+            )
 
     async def longtermcandidates_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("🔍 Mencari kandidat long term...")
+        """Handle /longtermcandidates command - all long term candidates."""
+        try:
+            await update.message.reply_text("🔍 Mencari kandidat long term...")
 
-        loop = asyncio.get_event_loop()
-        candidates = await loop.run_in_executor(None, lambda: CreativeTraderStrategy().scan_for_long_term_candidates())
+            loop = asyncio.get_event_loop()
+            candidates = await loop.run_in_executor(None, lambda: CreativeTraderStrategy().scan_for_long_term_candidates())
 
-        if not candidates:
-            await update.message.reply_text("📭 Tidak ada kandidat long term saat ini.")
-            return
+            if not candidates:
+                await update.message.reply_text("📭 Tidak ada kandidat long term saat ini.")
+                return
 
-        msg = "💎 *Long Term Candidates*\n\n"
-        for i, c in enumerate(candidates[:10], 1):
-            phase = c.get("phase", "neutral")
-            emoji = {"active_accumulation": "🟢", "early_accumulation": "🟡", "heavy_distribution": "🔴", "early_distribution": "🟠"}.get(phase, "⚪")
-            msg += f"{emoji} {i}. *{c['stock_code']}* | Accum: {c.get('accumulation_days', 0)}d | Conf: {c.get('confidence', 0):.0f}%\n"
-        msg += f"\nTotal: {len(candidates)} kandidat\nGunakan /longterm BBCA untuk detail"
+            msg = "💎 *Long Term Candidates*\n\n"
+            for i, c in enumerate(candidates[:10], 1):
+                phase = c.get("phase", "neutral")
+                emoji = {"active_accumulation": "🟢", "early_accumulation": "🟡", "heavy_distribution": "🔴", "early_distribution": "🟠"}.get(phase, "⚪")
+                msg += f"{emoji} {i}. *{c['stock_code']}* | Accum: {c.get('accumulation_days', 0)}d | Conf: {c.get('confidence', 0):.0f}%\n"
+            msg += f"\nTotal: {len(candidates)} kandidat\nGunakan /longterm BBCA untuk detail"
 
-        await update.message.reply_text(msg, parse_mode="Markdown")
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in longtermcandidates: {e}")
+            await update.message.reply_text(
+                "❌ Error: /longtermcandidates tidak tersedia saat ini"
+            )
 
     def _scan_buy_list(self):
         """Scan all stocks and return BUY candidates. Runs in thread."""
@@ -568,6 +721,7 @@ class TelegramBot:
         return buy_list
 
     async def error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle uncaught errors from any handler."""
         print(f"Telegram error: {context.error}")
         if update and update.effective_message:
             await update.effective_message.reply_text(
@@ -575,6 +729,7 @@ class TelegramBot:
             )
 
     async def set_commands(self, app: Application) -> None:
+        """Register bot command list with Telegram."""
         commands = [
             BotCommand("start", "Mulai bot"),
             BotCommand("help", "Bantuan & daftar perintah"),
@@ -594,6 +749,7 @@ class TelegramBot:
             BotCommand("rekomendasi", "Rekomendasi saham beli besok"),
             BotCommand("daytrade", "BPJS Day Trade (contoh: /daytrade BBCA)"),
             BotCommand("bpjs", "Kandidat BPJS hari ini"),
+            BotCommand("daytradecandidates", "Kandidat BPJS (alias /bpjs)"),
             BotCommand("longterm", "Long term akumulasi (contoh: /longterm BBCA)"),
             BotCommand("longtermcandidates", "Kandidat long term"),
         ]
@@ -602,6 +758,7 @@ class TelegramBot:
         await self._send_startup_notification(app)
 
     async def _send_startup_notification(self, app: Application) -> None:
+        """Send startup notification to all active users."""
         telegram_ids = crud.get_telegram_ids()
         if not telegram_ids:
             return
@@ -619,6 +776,7 @@ class TelegramBot:
                 pass
 
     def run(self):
+        """Start the Telegram bot polling."""
         if not self.token:
             print("⚠️ TELEGRAM_BOT_TOKEN tidak dikonfigurasi. Bot Telegram tidak akan aktif.")
             return
@@ -651,4 +809,3 @@ class TelegramBot:
 
         print("🤖 Telegram Bot started...")
         self.app.run_polling(allowed_updates=Update.ALL_TYPES)
- 

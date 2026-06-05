@@ -245,6 +245,98 @@ def get_latest_data(code, period="3mo"):
     return result
 
 
+VALID_INTERVALS = {"1m", "2m", "5m", "15m", "30m", "60m"}
+
+
+def fetch_intraday_data(code: str, interval: str = "5m", period: str = "2d", max_retries: int = 3):
+    if interval not in VALID_INTERVALS:
+        print(f"Invalid interval: {interval}. Using 5m.")
+        interval = "5m"
+    code = get_stock_code(code).upper()
+
+    for attempt in range(max_retries):
+        try:
+            if attempt > 0:
+                time.sleep(2 ** attempt)
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{code}?range={period}&interval={interval}"
+            r = _session.get(url, timeout=15)
+            if r.status_code == 429:
+                if attempt < max_retries - 1:
+                    print(f"  ⏳ Rate limited for {code}, retrying in {2 ** attempt}s...")
+                    continue
+                print(f"Error fetching {code}: rate limited (429)")
+                return None
+            r.raise_for_status()
+            data = r.json()
+            result = data["chart"]["result"]
+            if not result:
+                return None
+            result = result[0]
+            timestamps = result["timestamp"]
+            quotes = result["indicators"]["quote"][0]
+            df = pd.DataFrame({
+                "Open": quotes["open"],
+                "High": quotes["high"],
+                "Low": quotes["low"],
+                "Close": quotes["close"],
+                "Volume": quotes["volume"],
+            }, index=pd.to_datetime(timestamps, unit="s"))
+            df.index.name = "Date"
+            df = df.dropna()
+            if df.empty:
+                return None
+            return df
+        except Exception as e:
+            if attempt < max_retries - 1:
+                continue
+            print(f"Error fetching intraday {code}: {e}")
+            return None
+    return None
+
+
+def get_opening_range(df: pd.DataFrame, interval: str = "5m") -> dict:
+    if df is None or df.empty:
+        return {"error": "No data"}
+
+    interval_minutes = int(interval.replace("m", ""))
+    opening_rows = max(1, 30 // interval_minutes)
+    opening_df = df.iloc[:opening_rows]
+
+    first_open = opening_df["Open"].iloc[0]
+    open_range_high = float(opening_df["High"].max())
+    open_range_low = float(opening_df["Low"].min())
+    open_range_mid = (open_range_high + open_range_low) / 2
+    range_size = open_range_high - open_range_low
+    range_pct = (range_size / first_open * 100) if first_open != 0 else 0
+
+    first_30min_volume = int(opening_df["Volume"].sum())
+    total_volume = int(df["Volume"].sum())
+    total_rows = len(df)
+    avg_per_row_volume = total_volume / total_rows if total_rows > 0 else 1
+    volume_ratio = first_30min_volume / (avg_per_row_volume * opening_rows) if avg_per_row_volume > 0 else 1
+
+    gap_pct = 0.0
+    if len(df) > opening_rows + 1:
+        prev_close = df["Close"].iloc[opening_rows]
+        if prev_close != 0:
+            gap_pct = (first_open - prev_close) / prev_close * 100
+    elif len(df) == opening_rows + 1:
+        prev_close = df["Close"].iloc[opening_rows - 1]
+        if prev_close != 0:
+            gap_pct = 0
+
+    return {
+        "open_range_high": round(open_range_high, 2),
+        "open_range_low": round(open_range_low, 2),
+        "open_range_mid": round(open_range_mid, 2),
+        "range_pct": round(range_pct, 2),
+        "gap_pct": round(gap_pct, 2),
+        "first_30min_volume": first_30min_volume,
+        "volume_ratio": round(volume_ratio, 2),
+        "first_open": round(first_open, 2),
+    }
+
+
 def get_top_gainers(limit=10):
     results = []
     for code in list(STOCK_LIST.keys())[:30]:

@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List
 from dataclasses import asdict
+from datetime import datetime
 import os
 
 from app.services.stock_service import (
@@ -289,6 +290,29 @@ async def foreign_flow_summary():
             "top_accumulating": top_accumulating,
             "top_distributing": top_distributing,
             "total_tracked": len(all_status),
+        },
+    }
+
+
+@router.get("/day-trade/{code}")
+async def day_trade_analysis(code: str):
+    from app.ai.strategies.bpjs_strategy import BPJSStrategy
+    result = BPJSStrategy().analyze(code)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return {"status": "ok", "data": result}
+
+
+@router.get("/day-trade/candidates")
+async def day_trade_candidates():
+    from app.ai.strategies.bpjs_strategy import BPJSStrategy
+    candidates = BPJSStrategy().scan_candidates()
+    return {
+        "status": "ok",
+        "data": {
+            "candidates": candidates,
+            "count": len(candidates),
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         },
     }
 

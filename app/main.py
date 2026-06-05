@@ -15,6 +15,10 @@ from app.api.learning_routes import router as learning_router
 from app.api.upload_routes import router as upload_router
 from app.scheduler.scheduler import start_scheduler
 
+# Globals for graceful Telegram Bot shutdown
+_telegram_bot_loop = None
+_telegram_bot_app = None
+
 app = FastAPI(
     title="AI Stock Analyzer Indonesia",
     description="Analisa saham IDX dengan AI, Telegram Bot, dan Dashboard",
@@ -80,6 +84,14 @@ def _start_telegram_bot():
             print("⚠ Telegram Bot disabled (no token)")
     except Exception as e:
         print(f"⚠ Telegram Bot error: {e}")
+
+@app.on_event("shutdown")
+async def shutdown():
+    """Graceful shutdown — stop Telegram bot polling to avoid Conflict on reload."""
+    global _telegram_bot_loop, _telegram_bot_app
+    if _telegram_bot_loop and _telegram_bot_loop.is_running():
+        _telegram_bot_loop.call_soon_threadsafe(_telegram_bot_loop.stop)
+        print("⏹ Telegram Bot stopped")
 
 
 @app.get("/")

@@ -17,6 +17,8 @@ from app.services.market_service import (
     get_market_sentiment,
     get_sector_performance,
 )
+from app.services.ihsg_service import IHSGService
+from app.services.relative_strength import calculate_relative_strength, calculate_all_relative_strength
 from app.charts.chart_generator import generate_full_analysis_chart
 from app.database import crud
 import pandas as pd
@@ -234,3 +236,23 @@ def analysis_history(limit: int = Query(20, ge=1, le=100)):
 def get_alerts(limit: int = Query(20, ge=1, le=100)):
     alerts = crud.get_alerts(limit)
     return {"alerts": alerts}
+
+
+@router.get("/ihsg")
+async def get_ihsg():
+    data = IHSGService().get_ihsg_summary()
+    return {"status": "ok", "data": data}
+
+
+@router.get("/relative-strength/{code}")
+async def get_relative_strength(code: str):
+    data = calculate_relative_strength(code)
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"Relative strength data for {code} not found")
+    return {"status": "ok", "data": data}
+
+
+@router.get("/market-breadth")
+async def get_market_breadth():
+    data = calculate_all_relative_strength()
+    return {"status": "ok", "data": data}

@@ -23,6 +23,7 @@ from app.charts.chart_generator import generate_full_analysis_chart
 from app.database import crud
 from app.database import ai_crud
 from app.ai.learning_engine import LearningEngine
+from app.ai.strategies.bpjs_strategy import BPJSStrategy
 
 
 class TelegramBot:
@@ -413,6 +414,61 @@ class TelegramBot:
 
         await update.message.reply_text(msg, parse_mode="Markdown")
 
+    async def daytrade_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not context.args:
+            await update.message.reply_text("Gunakan: /daytrade BBCA")
+            return
+
+        code = context.args[0].upper()
+        await update.message.reply_text(f"🔍 Scanning BPJS untuk {code}...")
+
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, lambda: BPJSStrategy().analyze(code))
+
+        signal = result.get("entry_signal", {}) or result
+        action = signal.get("action", "WAIT")
+        emoji = "🟢" if action == "ENTER" else "⏳"
+
+        msg = (
+            f"{emoji} *BPJS Day Trade: {code}*\n"
+            f"📊 Harga: Rp{result.get('current_price', 0):,.0f}\n"
+            f"🎯 Signal: *{action}*\n"
+            f"💡 {signal.get('reason', '-')}\n"
+        )
+        if action == "ENTER":
+            msg += (
+                f"💰 Entry: Rp{signal.get('entry_price', 0):,.0f}\n"
+                f"🎯 TP: Rp{signal.get('target_profit', 0):,.0f} (+1.5%)\n"
+                f"🛑 CL: Rp{signal.get('cut_loss', 0):,.0f} (-0.7%)\n"
+            )
+        msg += f"📊 Volume: {signal.get('volume_ratio', 0):.1f}x | Confidence: {signal.get('confidence', 0)}%\n"
+        ff = signal.get("foreign_flow_status", "-")
+        msg += f"🌍 Foreign: {ff}\n"
+        msg += f"\n🔍 /analyze {code} untuk analisa lengkap"
+
+        await update.message.reply_text(msg, parse_mode="Markdown")
+
+    async def daytrade_candidates_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text("🔍 Mencari kandidat BPJS hari ini...")
+
+        loop = asyncio.get_event_loop()
+        candidates = await loop.run_in_executor(None, lambda: BPJSStrategy().scan_candidates())
+
+        if not candidates:
+            await update.message.reply_text("📭 Tidak ada kandidat BPJS hari ini.")
+            return
+
+        msg = "🎯 *BPJS Candidates Hari Ini*\n\n"
+        for i, c in enumerate(candidates[:10], 1):
+            action = c.get("action", "WAIT")
+            emoji = "🟢" if action == "ENTER" else "⏳"
+            conf = c.get("confidence", 0)
+            msg += f"{emoji} {i}. *{c['stock_code']}* | Conf: {conf}%\n"
+            msg += f"   💡 {c.get('reason', '-')[:80]}\n"
+        msg += f"\nTotal: {len(candidates)} kandidat"
+
+        await update.message.reply_text(msg, parse_mode="Markdown")
+
     def _scan_buy_list(self):
         """Scan all stocks and return BUY candidates. Runs in thread."""
         all_codes = list(STOCK_LIST.keys())[:20]
@@ -466,7 +522,7 @@ class TelegramBot:
             BotCommand("performance", "Performa portofolio"),
             BotCommand("strategy", "Strategi rekomendasi"),
             BotCommand("rekomendasi", "Rekomendasi saham beli besok"),
-            BotCommand("daytrade", "BPJS Day Trade signal (contoh: /daytrade BBCA)"),
+            BotCommand("daytrade", "BPJS Day Trade (contoh: /daytrade BBCA)"),
             BotCommand("daytrade-candidates", "Kandidat BPJS hari ini"),
         ]
         await app.bot.set_my_commands(commands)
@@ -514,6 +570,8 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("performance", self.performance_cmd))
         self.app.add_handler(CommandHandler("strategy", self.strategy_cmd))
         self.app.add_handler(CommandHandler("rekomendasi", self.rekomendasi_cmd))
+        self.app.add_handler(CommandHandler("daytrade", self.daytrade_cmd))
+        self.app.add_handler(CommandHandler("daytrade-candidates", self.daytrade_candidates_cmd))
         self.app.add_error_handler(self.error_handler)
 
         print("🤖 Telegram Bot started...")

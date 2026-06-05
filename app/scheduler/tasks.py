@@ -146,3 +146,32 @@ def evaluate_predictions_task():
         adj_result = engine.adjust_weights_auto()
         if adj_result.get("adjusted"):
             print(f"  ✓ Weights adjusted: {adj_result.get('adjustments', {})}")
+
+
+def bpjs_daily_scan():
+    """Run after market close (~16:00) to pre-scan BPJS candidates for next day."""
+    from app.ai.strategies.bpjs_strategy import BPJSStrategy
+
+    print(f"  ✓ BPJS daily scan started: {datetime.now().strftime('%H:%M:%S')}")
+    try:
+        candidates = BPJSStrategy().scan_candidates()
+        if candidates:
+            print(f"  ✓ Found {len(candidates)} BPJS candidates")
+            telegram_ids = crud.get_telegram_ids()
+            for tid in telegram_ids:
+                user = crud.get_user(tid)
+                if user:
+                    for c in candidates[:5]:
+                        action = c.get("action", "WAIT")
+                        if action == "ENTER":
+                            crud.save_alert(
+                                user["id"],
+                                c["stock_code"],
+                                "BPJS_CANDIDATE",
+                                f"🎯 BPJS Candidate: {c['stock_code']} - Confidence: {c.get('confidence', 0)}%",
+                            )
+            print(f"  ✓ BPJS alerts saved for {len(telegram_ids)} users")
+        else:
+            print(f"  ✓ No BPJS candidates found")
+    except Exception as e:
+        print(f"  ✗ BPJS daily scan error: {e}")

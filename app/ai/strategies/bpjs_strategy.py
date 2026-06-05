@@ -11,17 +11,29 @@ from app.services.stock_service import (
 from app.database.foreign_flow_models import get_accumulation_status
 
 
+def _today_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter dataframe for today's data only."""
+    if df is None or df.empty:
+        return df
+    today = pd.Timestamp.now().normalize()
+    return df[df.index.normalize() == today]
+
+
 class BPJSStrategy:
 
     def get_entry_signal(self, stock_code: str, df_intraday: pd.DataFrame) -> dict:
         if df_intraday is None or df_intraday.empty:
             return {"action": "WAIT", "reason": "No intraday data"}
 
+        today_data = _today_df(df_intraday)
+        if today_data.empty:
+            return {"action": "WAIT", "reason": "Market closed — no today data"}
+
         open_range = get_opening_range(df_intraday)
         if "error" in open_range:
             return {"action": "WAIT", "reason": open_range["error"]}
 
-        current_price = float(df_intraday["Close"].iloc[-1])
+        current_price = float(today_data["Close"].iloc[-1])
         breakout = current_price > open_range["open_range_high"]
         volume_ratio = open_range["volume_ratio"]
         gap_pct = open_range["gap_pct"]
@@ -158,7 +170,8 @@ class BPJSStrategy:
             return {"error": f"No intraday data for {code}"}
 
         entry_signal = self.get_entry_signal(code, df)
-        current_price = float(df["Close"].iloc[-1])
+        today_data = _today_df(df)
+        current_price = float(today_data["Close"].iloc[-1]) if not today_data.empty else 0
 
         result = {
             "stock_code": code.upper(),

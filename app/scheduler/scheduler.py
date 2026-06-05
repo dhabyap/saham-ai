@@ -9,6 +9,7 @@ from app.scheduler.tasks import (
     run_send_telegram_alerts,
     evaluate_predictions_task,
     bpjs_daily_scan,
+    longterm_daily_scan,
 )
 
 
@@ -58,6 +59,14 @@ def start_scheduler():
         replace_existing=True,
     )
 
+    scheduler.add_job(
+        longterm_daily_scan,
+        trigger=CronTrigger(hour=16, minute=10, timezone="Asia/Jakarta"),
+        id="longterm_daily_scan",
+        name="Long term daily scan",
+        replace_existing=True,
+    )
+
     scheduler.start()
     print(f"⏰ Scheduler started (interval: {interval} minutes)")
     print("  - Market summary update")
@@ -65,6 +74,7 @@ def start_scheduler():
     print("  - Telegram alert delivery")
     print("  - AI prediction evaluation")
     print("  - BPJS daily scan (16:05 WIB)")
+    print("  - Long term daily scan (16:10 WIB)")
 
 
 def stop_scheduler():

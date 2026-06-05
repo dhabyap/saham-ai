@@ -298,9 +298,19 @@ def get_opening_range(df: pd.DataFrame, interval: str = "5m") -> dict:
     if df is None or df.empty:
         return {"error": "No data"}
 
+    today = pd.Timestamp.now().normalize()
+    today_df = df[df.index.normalize() == today]
+
+    if today_df.empty:
+        return {"error": "Market closed — no intraday data for today"}
+    if len(today_df) < 2:
+        return {"error": "Market baru buka — data belum cukup"}
+
     interval_minutes = int(interval.replace("m", ""))
     opening_rows = max(1, 30 // interval_minutes)
-    opening_df = df.iloc[:opening_rows]
+    opening_df = today_df.iloc[:opening_rows]
+    if opening_df.empty:
+        return {"error": "Opening range not available yet"}
 
     first_open = opening_df["Open"].iloc[0]
     open_range_high = float(opening_df["High"].max())
@@ -310,20 +320,21 @@ def get_opening_range(df: pd.DataFrame, interval: str = "5m") -> dict:
     range_pct = (range_size / first_open * 100) if first_open != 0 else 0
 
     first_30min_volume = int(opening_df["Volume"].sum())
-    total_volume = int(df["Volume"].sum())
-    total_rows = len(df)
+    total_volume = int(today_df["Volume"].sum())
+    total_rows = len(today_df)
     avg_per_row_volume = total_volume / total_rows if total_rows > 0 else 1
     volume_ratio = first_30min_volume / (avg_per_row_volume * opening_rows) if avg_per_row_volume > 0 else 1
 
     gap_pct = 0.0
-    if len(df) > opening_rows + 1:
-        prev_close = df["Close"].iloc[opening_rows]
+    if len(today_df) > opening_rows:
+        first_candle_open = today_df["Open"].iloc[0]
+        second_candle_open = today_df["Open"].iloc[1]
+        if second_candle_open != 0:
+            gap_pct = (first_candle_open - second_candle_open) / second_candle_open * 100
+    if len(today_df) >= 2:
+        prev_close = today_df["Close"].iloc[0]
         if prev_close != 0:
             gap_pct = (first_open - prev_close) / prev_close * 100
-    elif len(df) == opening_rows + 1:
-        prev_close = df["Close"].iloc[opening_rows - 1]
-        if prev_close != 0:
-            gap_pct = 0
 
     return {
         "open_range_high": round(open_range_high, 2),

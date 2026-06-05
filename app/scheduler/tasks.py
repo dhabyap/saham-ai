@@ -175,3 +175,30 @@ def bpjs_daily_scan():
             print(f"  ✓ No BPJS candidates found")
     except Exception as e:
         print(f"  ✗ BPJS daily scan error: {e}")
+
+
+def longterm_daily_scan():
+    """Daily scan for long term candidates after market close."""
+    from app.ai.strategies.creative_trader_strategy import CreativeTraderStrategy
+
+    print(f"  ✓ Long Term scan started: {datetime.now().strftime('%H:%M:%S')}")
+    try:
+        candidates = CreativeTraderStrategy().scan_for_long_term_candidates()
+        if candidates:
+            print(f"  ✓ Found {len(candidates)} long term candidates")
+            telegram_ids = crud.get_telegram_ids()
+            for tid in telegram_ids:
+                user = crud.get_user(tid)
+                if user:
+                    for c in candidates[:5]:
+                        crud.save_alert(
+                            user["id"],
+                            c["stock_code"],
+                            "LONGTERM_CANDIDATE",
+                            f"💎 Long Term: {c['stock_code']} - Fase: {c.get('phase', '')} - Confidence: {c.get('confidence', 0):.0f}%"
+                        )
+            print(f"  ✓ Long term alerts saved")
+        else:
+            print(f"  ✓ No long term candidates found")
+    except Exception as e:
+        print(f"  ✗ Long term scan error: {e}")

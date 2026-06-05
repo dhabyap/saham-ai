@@ -24,6 +24,7 @@ from app.database import crud
 from app.database import ai_crud
 from app.ai.learning_engine import LearningEngine
 from app.ai.strategies.bpjs_strategy import BPJSStrategy
+from app.ai.strategies.creative_trader_strategy import CreativeTraderStrategy
 
 
 class TelegramBot:
@@ -52,7 +53,9 @@ class TelegramBot:
              f"/sentiment - Sentimen market\n"
              f"/rekomendasi - Rekomendasi beli besok\n"
              f"/daytrade BBCA - BPJS Day Trade signal\n"
-             f"/daytrade-candidates - Kandidat BPJS hari ini\n"
+             f"/bpjs - Kandidat BPJS hari ini\n"
+             f"/longterm BBCA - Long term akumulasi\n"
+             f"/longtermcandidates - Kandidat long term\n"
              f"/feedback benar BBCA - Beri feedback\n"
              f"/accuracy - Skor AI\n"
              f"/performance - Performa AI\n"
@@ -79,7 +82,9 @@ class TelegramBot:
             "/sentiment - Sentimen market\n"
             "/rekomendasi - Rekomendasi beli besok\n"
             "/daytrade BBCA - BPJS Day Trade signal\n"
-            "/daytrade-candidates - Kandidat BPJS hari ini\n\n"
+            "/bpjs - Kandidat BPJS hari ini\n"
+            "/longterm BBCA - Long term akumulasi\n"
+            "/longtermcandidates - Kandidat long term\n\n"
             "*Saham tersedia:*\n"
             f"{', '.join(sorted(STOCK_LIST.keys())[:10])}\n"
             "dan lainnya...",
@@ -469,6 +474,71 @@ class TelegramBot:
 
         await update.message.reply_text(msg, parse_mode="Markdown")
 
+    async def longterm_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not context.args:
+            await update.message.reply_text("Gunakan: /longterm BBCA")
+            return
+
+        code = context.args[0].upper()
+        await update.message.reply_text(f"🔍 Analisis akumulasi untuk {code}...")
+
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, lambda: CreativeTraderStrategy().analyze(code))
+
+        acc = result.get("accumulation", {})
+        entry = result.get("entry", {})
+        tf = result.get("timeframes", {})
+        scoring = result.get("scoring", {})
+
+        phase = acc.get("phase", "neutral")
+        phase_emoji = {"active_accumulation": "🟢", "early_accumulation": "🟡", "heavy_distribution": "🔴", "early_distribution": "🟠", "neutral": "⚪"}
+
+        action = entry.get("action", "WAIT")
+        action_emoji = {"BUY": "🟢", "ACCUMULATE": "🟡", "WAIT": "⏳"}
+
+        msg = (
+            f"📈 *Long Term: {code}*\n"
+            f"💎 Fase: {phase_emoji.get(phase, '⚪')} {phase.replace('_', ' ').title()}\n"
+            f"📊 Akumulasi: {acc.get('accumulation_days', 0)} hari | RS: {acc.get('confidence', 0):.0f}%\n"
+            f"💰 Harga: Rp{acc.get('current_price', 0):,.0f}\n"
+            f"🎯 Entry: *{action_emoji.get(action, '⏳')} {action}*\n"
+            f"💡 {entry.get('reason', '-')}\n"
+        )
+        if action in ("BUY", "ACCUMULATE"):
+            msg += (
+                f"   Entry: Rp{entry.get('entry_price', 0):,.0f}\n"
+                f"   Range: Rp{entry.get('suggested_range', {}).get('min', 0):,.0f} - Rp{entry.get('suggested_range', {}).get('max', 0):,.0f}\n"
+                f"   TP: +6% / +15% | SL: -3%\n"
+            )
+        msg += (
+            f"📅 Timeframe: {tf.get('alignment', '-')}\n"
+            f"   Weekly: {tf.get('weekly_outlook', '-')} | Daily: {tf.get('daily_phase', '-')}\n"
+        )
+        score_val = scoring.get("total_score", 0) if isinstance(scoring, dict) else 0
+        if score_val:
+            msg += f"📊 Score: {score_val:.0f}/100\n"
+
+        await update.message.reply_text(msg, parse_mode="Markdown")
+
+    async def longtermcandidates_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text("🔍 Mencari kandidat long term...")
+
+        loop = asyncio.get_event_loop()
+        candidates = await loop.run_in_executor(None, lambda: CreativeTraderStrategy().scan_for_long_term_candidates())
+
+        if not candidates:
+            await update.message.reply_text("📭 Tidak ada kandidat long term saat ini.")
+            return
+
+        msg = "💎 *Long Term Candidates*\n\n"
+        for i, c in enumerate(candidates[:10], 1):
+            phase = c.get("phase", "neutral")
+            emoji = {"active_accumulation": "🟢", "early_accumulation": "🟡", "heavy_distribution": "🔴", "early_distribution": "🟠"}.get(phase, "⚪")
+            msg += f"{emoji} {i}. *{c['stock_code']}* | Accum: {c.get('accumulation_days', 0)}d | Conf: {c.get('confidence', 0):.0f}%\n"
+        msg += f"\nTotal: {len(candidates)} kandidat\nGunakan /longterm BBCA untuk detail"
+
+        await update.message.reply_text(msg, parse_mode="Markdown")
+
     def _scan_buy_list(self):
         """Scan all stocks and return BUY candidates. Runs in thread."""
         all_codes = list(STOCK_LIST.keys())[:20]
@@ -523,7 +593,9 @@ class TelegramBot:
             BotCommand("strategy", "Strategi rekomendasi"),
             BotCommand("rekomendasi", "Rekomendasi saham beli besok"),
             BotCommand("daytrade", "BPJS Day Trade (contoh: /daytrade BBCA)"),
-            BotCommand("daytrade_candidates", "Kandidat BPJS hari ini"),
+            BotCommand("bpjs", "Kandidat BPJS hari ini"),
+            BotCommand("longterm", "Long term akumulasi (contoh: /longterm BBCA)"),
+            BotCommand("longtermcandidates", "Kandidat long term"),
         ]
         await app.bot.set_my_commands(commands)
 
@@ -572,7 +644,10 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("strategy", self.strategy_cmd))
         self.app.add_handler(CommandHandler("rekomendasi", self.rekomendasi_cmd))
         self.app.add_handler(CommandHandler("daytrade", self.daytrade_cmd))
-        self.app.add_handler(CommandHandler("daytrade_candidates", self.daytrade_candidates_cmd))
+        self.app.add_handler(CommandHandler("bpjs", self.daytrade_candidates_cmd))
+        self.app.add_handler(CommandHandler("daytradecandidates", self.daytrade_candidates_cmd))
+        self.app.add_handler(CommandHandler("longterm", self.longterm_cmd))
+        self.app.add_handler(CommandHandler("longtermcandidates", self.longtermcandidates_cmd))
         self.app.add_error_handler(self.error_handler)
 
         # Non-blocking polling so we can stop gracefully

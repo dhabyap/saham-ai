@@ -50,6 +50,8 @@ class TelegramBot:
              f"/market - Ringkasan market\n"
              f"/sentiment - Sentimen market\n"
              f"/rekomendasi - Rekomendasi beli besok\n"
+             f"/daytrade BBCA - BPJS Day Trade signal\n"
+             f"/daytrade-candidates - Kandidat BPJS hari ini\n"
              f"/feedback benar BBCA - Beri feedback\n"
              f"/accuracy - Skor AI\n"
              f"/performance - Performa AI\n"
@@ -74,7 +76,9 @@ class TelegramBot:
             "/topvolume - Top volume\n"
             "/market - Overview market\n"
             "/sentiment - Sentimen market\n"
-            "/rekomendasi - Rekomendasi beli besok\n\n"
+            "/rekomendasi - Rekomendasi beli besok\n"
+            "/daytrade BBCA - BPJS Day Trade signal\n"
+            "/daytrade-candidates - Kandidat BPJS hari ini\n\n"
             "*Saham tersedia:*\n"
             f"{', '.join(sorted(STOCK_LIST.keys())[:10])}\n"
             "dan lainnya...",
@@ -462,6 +466,8 @@ class TelegramBot:
             BotCommand("performance", "Performa portofolio"),
             BotCommand("strategy", "Strategi rekomendasi"),
             BotCommand("rekomendasi", "Rekomendasi saham beli besok"),
+            BotCommand("daytrade", "BPJS Day Trade signal (contoh: /daytrade BBCA)"),
+            BotCommand("daytrade-candidates", "Kandidat BPJS hari ini"),
         ]
         await app.bot.set_my_commands(commands)
 

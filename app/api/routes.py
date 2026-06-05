@@ -321,3 +321,26 @@ async def get_scored_analysis(
             "last_updated": result.last_updated,
         },
     }
+
+
+@router.get("/long-term/{code}")
+async def long_term_analysis(code: str):
+    from app.ai.strategies.creative_trader_strategy import CreativeTraderStrategy
+    strategy = CreativeTraderStrategy()
+    data = strategy.analyze(code)
+    return {"status": "ok", "data": data}
+
+
+@router.get("/long-term/candidates")
+async def long_term_candidates():
+    from app.ai.strategies.creative_trader_strategy import CreativeTraderStrategy
+    strategy = CreativeTraderStrategy()
+    candidates = strategy.scan_for_long_term_candidates()
+    return {
+        "status": "ok",
+        "data": {
+            "candidates": candidates,
+            "count": len(candidates),
+            "last_updated": __import__("datetime").datetime.now().isoformat(),
+        },
+    }

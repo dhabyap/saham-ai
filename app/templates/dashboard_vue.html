@@ -27,11 +27,12 @@
 html[data-theme="dark"] .header{background:linear-gradient(135deg,#0d0d1a,#1a0a2e,#0a0a0a);border-bottom:1px solid rgba(124,58,237,0.15)}html[data-theme="dark"] .sidebar{border-right:1px solid rgba(124,58,237,0.1)}html[data-theme="dark"] .card{border:1px solid var(--border-color)}html[data-theme="dark"] .candidate-card::before{background:linear-gradient(90deg,#7C3AED,#06D9FF)}html[data-theme="dark"] .nav li a.active{border-left-color:#06D9FF}html[data-theme="dark"] .card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.15)}html[data-theme="dark"] .card-accent{box-shadow:0 8px 32px rgba(0,0,0,0.5),0 0 24px rgba(124,58,237,0.15)}html[data-theme="dark"] .card-accent:hover{box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 32px rgba(124,58,237,0.2)}html[data-theme="dark"] .candidate-card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.15)}html[data-theme="dark"] .view-all{box-shadow:0 4px 20px rgba(124,58,237,0.3)}html[data-theme="dark"] .badge{box-shadow:inset 0 1px 2px rgba(0,0,0,0.2);background:rgba(124,58,237,0.1)}html[data-theme="dark"] .badge-success{background:rgba(16,185,129,0.15)}html[data-theme="dark"] .badge-danger{background:rgba(239,83,80,0.15)}html[data-theme="dark"] .badge-warning{background:rgba(245,158,11,0.15)}html[data-theme="dark"] .badge-accent{background:rgba(124,58,237,0.2)}html[data-theme="dark"] .search-panel .sr-item:hover{background:rgba(124,58,237,0.1)}
 html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-weight:600;letter-spacing:0}html[data-theme="classy"] .section-title::after{background:var(--accent-gradient);height:2px;width:36px}html[data-theme="classy"] .card{border:1px solid var(--border-color)}html[data-theme="classy"] .card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.05),0 2px 4px rgba(0,0,0,0.03)}html[data-theme="classy"] .candidate-card{border:1px solid var(--border-color)}html[data-theme="classy"] .candidate-card:hover{transform:translateY(-1px)}html[data-theme="classy"] .candidate-card::before{background:var(--accent-gradient)}html[data-theme="classy"] .sidebar-brand .logo{background:var(--accent-gradient);box-shadow:none}html[data-theme="classy"] .nav li a{box-shadow:none;border:1px solid transparent}html[data-theme="classy"] .nav li a:hover{box-shadow:none;border-color:var(--border-color)}html[data-theme="classy"] .nav li a.active{box-shadow:none;border-left-color:var(--accent);background:rgba(217,119,6,0.04)}html[data-theme="classy"] .badge{box-shadow:none;border:1px solid currentColor;opacity:.8}html[data-theme="classy"] .view-all{background:var(--accent);box-shadow:none}html[data-theme="classy"] .view-all:hover{background:#b45309;box-shadow:none;transform:none}html[data-theme="classy"] .header{border-bottom:1px solid var(--border-color)}html[data-theme="classy"] .header-user{box-shadow:none;border:1px solid var(--border-color)}html[data-theme="classy"] .header-user:hover{box-shadow:none}html[data-theme="classy"] .sidebar{border-right:1px solid var(--border-color)}html[data-theme="classy"] .tabs{border-bottom:1px solid var(--border-color)}html[data-theme="classy"] .tab-btn.active{border-bottom-color:var(--accent)}html[data-theme="classy"] .mover-item{border-bottom-color:var(--border-color)}html[data-theme="classy"] .sector-item{border-bottom-color:var(--border-color)}html[data-theme="classy"] thead th{border-bottom-color:var(--border-color)}html[data-theme="classy"] tbody td{border-bottom-color:var(--border-color)}html[data-theme="classy"] .fgi-outer{box-shadow:none;border:1px solid var(--border-color)}html[data-theme="classy"] .sector-bar-wrap{box-shadow:none;border:1px solid var(--border-color)}html[data-theme="classy"] .header-search input{box-shadow:none;border:1px solid var(--border-color);background:var(--surface)}html[data-theme="classy"] .header-search input:focus{border-color:var(--accent)}html[data-theme="classy"] .sidebar-watchlist h4{letter-spacing:1.5px}html[data-theme="classy"] .wl-item:hover{box-shadow:none;background:rgba(0,0,0,0.02)}html[data-theme="classy"] .search-panel{box-shadow:0 4px 16px rgba(0,0,0,0.06);border:1px solid var(--border-color)}html[data-theme="classy"] .theme-btn.active{box-shadow:none;border:1px solid var(--accent);background:rgba(217,119,6,0.06)}
 .theme-switcher{display:flex;gap:4px;background:var(--surface-2);padding:3px;border-radius:20px;box-shadow:var(--shadow-inset);flex-shrink:0}.theme-btn{background:none;border:none;color:var(--muted);padding:5px 12px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;letter-spacing:.2px}.theme-btn:hover{color:var(--text)}.theme-btn.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow-sm)}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.form-control{width:100%;padding:9px 14px;border:none;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text);font-size:13px;outline:none;box-shadow:var(--shadow-inset);font-family:inherit}.form-control:focus{box-shadow:inset 3px 3px 6px rgba(0,0,0,0.08),inset -3px -3px 6px rgba(255,255,255,0.6)}.form-control::placeholder{color:var(--muted)}select.form-control{cursor:pointer}label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}.btn-primary{background:var(--accent-gradient);color:#fff;box-shadow:0 4px 12px rgba(124,58,237,0.25)}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,0.35)}.btn-sm{padding:6px 14px;font-size:12px}.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{transform:translateY(-2px)}.btn-outline{background:none;border:1px solid var(--muted);color:var(--muted);cursor:pointer;font-family:inherit;padding:6px 14px;font-size:12px;border-radius:var(--radius-sm)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}.setting-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.04)}.setting-row:last-child{border-bottom:none}.alert-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:var(--radius-sm);margin-bottom:8px;box-shadow:var(--shadow-sm)}.alert-item:hover{box-shadow:var(--shadow)}.detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.detail-item{padding:12px;border-radius:var(--radius-sm);background:var(--surface-2);box-shadow:var(--shadow-inset)}.detail-label{font-size:11px;color:var(--muted);margin-bottom:2px;font-weight:600}.detail-value{font-size:16px;font-weight:700;color:var(--text)}.comp-card{padding:16px;border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow)}.comp-card h3{font-size:15px;margin-bottom:12px;color:var(--accent)}.comp-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px}.comp-row:last-child{border-bottom:none}.comp-label{color:var(--muted)}.comp-value{font-weight:600}.flex-center{display:flex;align-items:center;gap:8px}.w-full{width:100%}label input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent)}@media(max-width:768px){.grid-2{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
   <div id="app">
-    <!-- Search Overlay -->
     <div class="search-overlay" :class="{ open: searchOpen }" @click="closeSearch">
       <div class="search-panel">
         <div v-for="item in filteredStocks" :key="item.code" class="sr-item">
@@ -40,8 +41,6 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
         </div>
       </div>
     </div>
-
-    <!-- Sidebar -->
     <aside class="sidebar" :class="{ closed: !sidebarOpen }">
       <div class="sidebar-inner">
         <div class="sidebar-brand">
@@ -49,8 +48,10 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           <span>AI Stock Analyzer</span>
         </div>
         <ul class="nav">
-          <li v-for="nav in navItems" :key="nav.tab">
-            <a :class="{ active: activeTab === nav.tab }" @click="switchTab(nav.tab)" v-html="nav.html"></a>
+          <li v-for="nav in navItems" :key="nav.view">
+            <a :class="{ active: currentView === nav.view }" @click="switchView(nav.view)">
+              <span class="ico" v-html="nav.icon"></span> {{ nav.label }}
+            </a>
           </li>
         </ul>
         <div class="sidebar-watchlist">
@@ -62,13 +63,10 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
         </div>
       </div>
     </aside>
-
-    <!-- Main -->
-    <div class="main" :class="{ closed: !sidebarOpen }">
-      <!-- Header -->
+    <div class="main">
       <header class="header">
         <button class="hamburger" @click="toggleSidebar" aria-label="Toggle menu">&#9776;</button>
-        <span class="header-title">Dashboard</span>
+        <span class="header-title">{{ headerTitle }}</span>
         <div class="header-search">
           <span class="search-ico">&#128269;</span>
           <input type="text" v-model="searchQuery" placeholder="Search stocks..." @focus="searchOpen = true" @input="onSearchInput" autocomplete="off" />
@@ -83,219 +81,678 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
         </div>
         <span class="date-display">{{ dateStr }}</span>
       </header>
-
-      <!-- Tabs -->
-      <div class="tabs">
-        <button v-for="t in tabItems" :key="t.id" class="tab-btn" :class="{ active: activeTab === t.id }" @click="activeTab = t.id">{{ t.label }}</button>
+      <div v-if="currentView === 'dashboard'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'aiperf' }" @click="currentTab = 'aiperf'">AI Performance</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'movers' }" @click="currentTab = 'movers'">Market Movers</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'sectors' }" @click="currentTab = 'sectors'">Sectors</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'preds' }" @click="currentTab = 'preds'">Predictions</button>
       </div>
-
-      <!-- Content -->
+      <div v-else-if="currentView === 'daytrading'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">Signals</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'candidates' }" @click="currentTab = 'candidates'">Candidates</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">History</button>
+      </div>
+      <div v-else-if="currentView === 'longterm'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'accumulation' }" @click="currentTab = 'accumulation'">Accumulation</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'portfolio' }" @click="currentTab = 'portfolio'">Portfolio</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'watchlist' }" @click="currentTab = 'watchlist'">Watchlist</button>
+      </div>
+      <div v-else-if="currentView === 'analysis'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">Search</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'detail' }" @click="currentTab = 'detail'">Detail</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'comparison' }" @click="currentTab = 'comparison'">Comparison</button>
+      </div>
+      <div v-else-if="currentView === 'settings'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">General</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Account</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">Alerts</button>
+      </div>
       <div class="content">
-
-        <!-- TAB: Overview -->
-        <div class="tab-pane" :class="{ active: activeTab === 'overview' }">
-
-          <!-- Section 1: Market Summary -->
-          <div class="section">
-            <div class="section-title">Market Summary</div>
-            <div class="grid-6">
-              <div class="card card-accent card-big">
-                <div class="card-header"><span class="card-label">Fear &amp; Greed Index</span></div>
-                <div><span class="card-value" style="color:var(--warning)">{{ market.fgi.value }}</span><span class="card-sub" style="font-size:14px;font-weight:700;color:var(--warning)"> {{ market.fgi.label }}</span></div>
-                <div class="fgi-outer"><div class="fgi-fill" :style="{ width: market.fgi.value + '%', background: 'linear-gradient(90deg,var(--danger),var(--warning),var(--success))' }"></div></div>
-                <div class="fgi-labels"><span>Extreme Fear</span><span>Extreme Greed</span></div>
+        <div v-if="currentView === 'dashboard'">
+          <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <div class="section">
+              <div class="section-title">Market Summary</div>
+              <div class="grid-6">
+                <div class="card card-accent card-big">
+                  <div class="card-header"><span class="card-label">Fear &amp; Greed Index</span></div>
+                  <div><span class="card-value" style="color:var(--warning)">{{ market.fgi.value }}</span><span class="card-sub" style="font-size:14px;font-weight:700;color:var(--warning)"> {{ market.fgi.label }}</span></div>
+                  <div class="fgi-outer"><div class="fgi-fill" :style="{ width: market.fgi.value + '%', background: 'linear-gradient(90deg,var(--danger),var(--warning),var(--success))' }"></div></div>
+                  <div class="fgi-labels"><span>Extreme Fear</span><span>Extreme Greed</span></div>
+                </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">Advancing</span><span class="badge badge-success">+{{ market.advancing.change }}</span></div>
+                  <span class="card-value" style="color:var(--success)">{{ market.advancing.count }}</span>
+                  <span class="card-sub">{{ market.advancing.pct }} of all stocks</span>
+                </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">Declining</span><span class="badge badge-danger">-{{ market.declining.change }}</span></div>
+                  <span class="card-value" style="color:var(--danger)">{{ market.declining.count }}</span>
+                  <span class="card-sub">{{ market.declining.pct }} of all stocks</span>
+                </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">Avg Change %</span></div>
+                  <span class="card-value" style="color:var(--success)">{{ market.avgChange }}</span>
+                  <span class="card-sub">Market-wide average</span>
+                </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">Total Volume</span></div>
+                  <span class="card-value" style="color:var(--accent)">{{ market.totalVolume }}</span>
+                  <span class="card-sub">{{ market.volumeChange }}</span>
+                </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">Market Status</span></div>
+                  <span class="card-value" style="font-size:24px;color:var(--success)"><span style="color:var(--success)">&#9679;</span> {{ market.status }}</span>
+                  <span class="card-sub">{{ market.hours }}</span>
+                </div>
               </div>
-              <div class="card card-big">
-                <div class="card-header"><span class="card-label">Advancing</span><span class="badge badge-success">+{{ market.advancing.change }}</span></div>
-                <span class="card-value" style="color:var(--success)">{{ market.advancing.count }}</span>
-                <span class="card-sub">{{ market.advancing.pct }} of all stocks</span>
+            </div>
+            <div class="section">
+              <div class="section-title">AI Performance</div>
+              <div class="grid-4">
+                <div class="card card-accent"><div class="card-header"><span class="card-label">Accuracy 7d</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.accuracy }}</span><span class="card-sub">&#9650; {{ aiPerf.accuracyChange }}</span></div>
+                <div class="card"><div class="card-header"><span class="card-label">Win Rate</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.winRate }}</span><span class="card-sub">&#9650; {{ aiPerf.winRateChange }}</span></div>
+                <div class="card"><div class="card-header"><span class="card-label">Avg Profit</span></div><span class="card-value" style="color:var(--success)">{{ aiPerf.avgProfit }}</span><span class="card-sub">Per winning trade</span></div>
+                <div class="card"><div class="card-header"><span class="card-label">Total Predictions</span></div><span class="card-value" style="color:var(--muted)">{{ aiPerf.totalPredictions }}</span><span class="card-sub">Last 7 days</span></div>
               </div>
-              <div class="card card-big">
-                <div class="card-header"><span class="card-label">Declining</span><span class="badge badge-danger">-{{ market.declining.change }}</span></div>
-                <span class="card-value" style="color:var(--danger)">{{ market.declining.count }}</span>
-                <span class="card-sub">{{ market.declining.pct }} of all stocks</span>
+            </div>
+            <div class="section">
+              <div class="section-title">Top Movers</div>
+              <div class="grid-3">
+                <div class="card">
+                  <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
+                  <div v-for="item in movers.gainers" :key="item.code" class="mover-item is-up">
+                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
+                    <span class="mover-trend is-up"><span></span><span></span><span></span></span>
+                    <span class="mover-val" style="color:var(--success)">{{ item.chg }}</span>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Top Losers</span></div>
+                  <div v-for="item in movers.losers" :key="item.code" class="mover-item is-down">
+                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
+                    <span class="mover-trend is-down"><span></span><span></span><span></span></span>
+                    <span class="mover-val" style="color:var(--danger)">{{ item.chg }}</span>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Top Volume</span></div>
+                  <div v-for="item in movers.volume" :key="item.code" class="mover-item is-vol">
+                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
+                    <span class="mover-trend is-vol"><span></span><span></span><span></span></span>
+                    <span class="mover-val">{{ item.vol }}</span>
+                  </div>
+                </div>
               </div>
-              <div class="card card-big">
-                <div class="card-header"><span class="card-label">Avg Change %</span></div>
-                <span class="card-value" style="color:var(--success)">{{ market.avgChange }}</span>
-                <span class="card-sub">Market-wide average</span>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title">&#127793; BPJS Day Trading Signals</div>
+                <button class="view-all" @click="alert('View all day trading candidates')">View All &rarr;</button>
               </div>
-              <div class="card card-big">
-                <div class="card-header"><span class="card-label">Total Volume</span></div>
-                <span class="card-value" style="color:var(--accent)">{{ market.totalVolume }}</span>
-                <span class="card-sub">{{ market.volumeChange }}</span>
+              <div class="candidate-row">
+                <div v-for="item in bpjsSignals" :key="item.code" class="candidate-card">
+                  <div class="cc-head">
+                    <span class="cc-code">{{ item.code }}</span>
+                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
+                  </div>
+                  <div class="cc-detail">Confidence</div>
+                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
+                  <div class="cc-detail" style="margin-top:4px">Price</div>
+                  <div class="cc-val">{{ item.price }}</div>
+                </div>
               </div>
-              <div class="card card-big">
-                <div class="card-header"><span class="card-label">Market Status</span></div>
-                <span class="card-value" style="font-size:24px;color:var(--success)"><span style="color:var(--success)">&#9679;</span> {{ market.status }}</span>
-                <span class="card-sub">{{ market.hours }}</span>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title">&#128142; Long Term Accumulation</div>
+                <button class="view-all" @click="alert('View all long term candidates')">View All &rarr;</button>
+              </div>
+              <div class="candidate-row">
+                <div v-for="item in longTermSignals" :key="item.code" class="candidate-card">
+                  <div class="cc-head">
+                    <span class="cc-code">{{ item.code }}</span>
+                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
+                  </div>
+                  <div class="cc-detail">Confidence</div>
+                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
+                  <div class="cc-detail" style="margin-top:4px">Entry Zone</div>
+                  <div class="cc-val">{{ item.entryZone }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">Sector Rotation</div>
+              <div class="card" style="padding:18px 22px">
+                <div v-for="s in sectors" :key="s.name" class="sector-item">
+                  <span class="sector-name">{{ s.name }}</span>
+                  <div class="sector-bar-wrap"><div class="sector-bar-fill" :style="{ width: s.width, background: s.barColor }"></div></div>
+                  <span class="sector-pct" :style="{ color: s.textColor }">{{ s.change }}</span>
+                  <span class="sector-flow badge" :class="'badge-' + s.flowClass" style="text-transform:uppercase">{{ s.flow }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">Recent Predictions</div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>Stock</th><th>Signal</th><th>Confidence</th><th>Result</th><th>Profit %</th><th>Date</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in predictions" :key="row.code + row.date">
+                        <td style="font-weight:600">{{ row.code }}</td>
+                        <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
+                        <td>{{ row.confidence }}%</td>
+                        <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
+                        <td :class="row.profitClass">{{ row.profit }}</td>
+                        <td>{{ row.date }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
-
-          <!-- Section 2: AI Performance -->
-          <div class="section">
-            <div class="section-title">AI Performance</div>
-            <div class="grid-4">
-              <div class="card card-accent"><div class="card-header"><span class="card-label">Accuracy 7d</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.accuracy }}</span><span class="card-sub">&#9650; {{ aiPerf.accuracyChange }}</span></div>
-              <div class="card"><div class="card-header"><span class="card-label">Win Rate</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.winRate }}</span><span class="card-sub">&#9650; {{ aiPerf.winRateChange }}</span></div>
-              <div class="card"><div class="card-header"><span class="card-label">Avg Profit</span></div><span class="card-value" style="color:var(--success)">{{ aiPerf.avgProfit }}</span><span class="card-sub">Per winning trade</span></div>
-              <div class="card"><div class="card-header"><span class="card-label">Total Predictions</span></div><span class="card-value" style="color:var(--muted)">{{ aiPerf.totalPredictions }}</span><span class="card-sub">Last 7 days</span></div>
+          <div class="tab-pane" :class="{ active: currentTab === 'aiperf' }">
+            <div class="section">
+              <div class="section-title">AI Performance Details</div>
+              <div class="grid-4" style="margin-bottom:24px">
+                <div class="card card-accent"><div class="card-header"><span class="card-label">Accuracy 7d</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.accuracy }}</span><span class="card-sub">&#9650; {{ aiPerf.accuracyChange }}</span></div>
+                <div class="card"><div class="card-header"><span class="card-label">Win Rate</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.winRate }}</span><span class="card-sub">&#9650; {{ aiPerf.winRateChange }}</span></div>
+                <div class="card"><div class="card-header"><span class="card-label">Avg Profit</span></div><span class="card-value" style="color:var(--success)">{{ aiPerf.avgProfit }}</span><span class="card-sub">Per winning trade</span></div>
+                <div class="card"><div class="card-header"><span class="card-label">Total Predictions</span></div><span class="card-value" style="color:var(--muted)">{{ aiPerf.totalPredictions }}</span><span class="card-sub">Last 7 days</span></div>
+              </div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>Metric</th><th>Value</th><th>Trend</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in aiPerfDetails" :key="row.metric">
+                        <td style="font-weight:600">{{ row.metric }}</td>
+                        <td>{{ row.value }}</td>
+                        <td><span :class="row.trendClass">{{ row.trend }}</span></td>
+                        <td style="color:var(--muted)">{{ row.desc }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
-
-          <!-- Section 3: Top Movers -->
-          <div class="section">
-            <div class="section-title">Top Movers</div>
-            <div class="grid-3">
-              <div class="card">
-                <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
-                <div v-for="item in movers.gainers" :key="item.code" class="mover-item is-up">
-                  <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                  <span class="mover-trend is-up"><span></span><span></span><span></span></span>
-                  <span class="mover-val" style="color:var(--success)">{{ item.chg }}</span>
+          <div class="tab-pane" :class="{ active: currentTab === 'movers' }">
+            <div class="section">
+              <div class="section-title">Market Movers — Full List</div>
+              <div class="grid-3">
+                <div class="card">
+                  <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
+                  <div v-for="item in allGainers" :key="item.code" class="mover-item is-up">
+                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
+                    <span class="mover-trend is-up"><span></span><span></span><span></span></span>
+                    <span class="mover-val" style="color:var(--success)">{{ item.chg }}</span>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Top Losers</span></div>
+                  <div v-for="item in allLosers" :key="item.code" class="mover-item is-down">
+                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
+                    <span class="mover-trend is-down"><span></span><span></span><span></span></span>
+                    <span class="mover-val" style="color:var(--danger)">{{ item.chg }}</span>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Most Active (Volume)</span></div>
+                  <div v-for="item in allVolume" :key="item.code" class="mover-item is-vol">
+                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
+                    <span class="mover-trend is-vol"><span></span><span></span><span></span></span>
+                    <span class="mover-val">{{ item.vol }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'sectors' }">
+            <div class="section">
+              <div class="section-title">Sector Analysis</div>
+              <div class="card" style="padding:18px 22px">
+                <div v-for="s in sectors" :key="s.name" class="sector-item">
+                  <span class="sector-name">{{ s.name }}</span>
+                  <div class="sector-bar-wrap"><div class="sector-bar-fill" :style="{ width: s.width, background: s.barColor }"></div></div>
+                  <span class="sector-pct" :style="{ color: s.textColor }">{{ s.change }}</span>
+                  <span class="sector-flow badge" :class="'badge-' + s.flowClass" style="text-transform:uppercase">{{ s.flow }}</span>
+                </div>
+              </div>
+              <div class="card" style="margin-top:16px;padding:18px 22px">
+                <span class="card-label">Sector Rotation Summary</span>
+                <p style="color:var(--muted);margin-top:8px;font-size:13px">Technology and Financials leading the market with strong inflows. Energy showing neutral momentum. Healthcare and Infrastructure under pressure with capital outflows.</p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'preds' }">
+            <div class="section">
+              <div class="section-title">All Predictions</div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>Stock</th><th>Signal</th><th>Confidence</th><th>Result</th><th>Profit %</th><th>Date</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in allPredictions" :key="row.code + row.date">
+                        <td style="font-weight:600">{{ row.code }}</td>
+                        <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
+                        <td>{{ row.confidence }}%</td>
+                        <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
+                        <td :class="row.profitClass">{{ row.profit }}</td>
+                        <td>{{ row.date }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="currentView === 'daytrading'">
+          <div class="tab-pane" :class="{ active: currentTab === 'signals' }">
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title">&#127919; BPJS Day Trading — Active Signals</div>
+                <button class="view-all" @click="mockScan">Scan Now &rarr;</button>
+              </div>
+              <div class="candidate-row">
+                <div v-for="item in dayTradingSignals" :key="item.code" class="candidate-card">
+                  <div class="cc-head">
+                    <span class="cc-code">{{ item.code }}</span>
+                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
+                  </div>
+                  <div class="cc-detail">Confidence</div>
+                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
+                  <div class="cc-detail" style="margin-top:4px">Price</div>
+                  <div class="cc-val">{{ item.price }}</div>
+                  <div class="cc-detail" style="margin-top:4px">Entry / Exit</div>
+                  <div class="cc-val" style="font-size:13px">{{ item.entry }} / {{ item.exit }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'candidates' }">
+            <div class="section">
+              <div class="section-title">&#128203; BPJS Candidates — Sorted by Confidence</div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>Stock</th><th>Signal</th><th>Conf</th><th>Entry Price</th><th>TP</th><th>CL</th><th>Volume Ratio</th><th>Foreign Flow</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in dayTradingCandidates" :key="row.stock">
+                        <td style="font-weight:600">{{ row.stock }}</td>
+                        <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
+                        <td>{{ row.conf }}%</td>
+                        <td>{{ row.entry }}</td>
+                        <td>{{ row.tp }}</td>
+                        <td>{{ row.cl }}</td>
+                        <td>{{ row.volRatio }}</td>
+                        <td>{{ row.foreignFlow }}</td>
+                        <td><span class="badge" :class="row.action === 'Buy' ? 'badge-success' : 'badge-warning'">{{ row.action }}</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'history' }">
+            <div class="section">
+              <div class="section-title">&#128214; Day Trading History</div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>Date</th><th>Stock</th><th>Entry</th><th>Exit</th><th>Profit %</th><th>Result</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in dayTradingHistory" :key="row.stock + row.date">
+                        <td style="color:var(--muted)">{{ row.date }}</td>
+                        <td style="font-weight:600">{{ row.stock }}</td>
+                        <td>{{ row.entry }}</td>
+                        <td>{{ row.exit }}</td>
+                        <td :class="row.profitClass">{{ row.profit }}</td>
+                        <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="currentView === 'longterm'">
+          <div class="tab-pane" :class="{ active: currentTab === 'accumulation' }">
+            <div class="section">
+              <div class="section-title">&#128142; Long Term — Accumulation Candidates</div>
+              <div class="candidate-row">
+                <div v-for="item in ltAccumulation" :key="item.code" class="candidate-card">
+                  <div class="cc-head">
+                    <span class="cc-code">{{ item.code }}</span>
+                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.phase }}</span>
+                  </div>
+                  <div class="cc-detail">Confidence</div>
+                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
+                  <div class="cc-detail" style="margin-top:4px">Entry Zone</div>
+                  <div class="cc-val">{{ item.entryZone }}</div>
+                  <div class="cc-detail" style="margin-top:4px">Accum Days / RS</div>
+                  <div class="cc-val" style="font-size:13px">{{ item.accumDays }} days / {{ item.rsStatus }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'portfolio' }">
+            <div class="section">
+              <div class="section-title">&#128188; Portfolio</div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>Stock</th><th>Entry Date</th><th>Avg Price</th><th>Current Price</th><th>Profit %</th><th>Position</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in ltPortfolio" :key="row.stock">
+                        <td style="font-weight:600">{{ row.stock }}</td>
+                        <td>{{ row.entryDate }}</td>
+                        <td>{{ row.avgPrice }}</td>
+                        <td>{{ row.currentPrice }}</td>
+                        <td :class="row.profitClass">{{ row.profitPct }}</td>
+                        <td>{{ row.position }}</td>
+                        <td><span class="badge" :class="'badge-' + row.statusClass">{{ row.status }}</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'watchlist' }">
+            <div class="section">
+              <div class="section-title">&#128065; Watchlist — Full Details</div>
+              <div class="grid-2">
+                <div v-for="item in ltWatchlist" :key="item.code" class="card">
+                  <div class="flex-center" style="justify-content:space-between;margin-bottom:8px">
+                    <span style="font-size:17px;font-weight:700">{{ item.code }}</span>
+                    <span class="badge" :class="item.chg >= 0 ? 'badge-success' : 'badge-danger'">{{ item.chg >= 0 ? '+' : '' }}{{ item.chg }}%</span>
+                  </div>
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:4px">{{ item.name }}</div>
+                  <div style="font-size:13px;color:var(--muted)">Volume: {{ item.volume }} &middot; Sector: {{ item.sector }}</div>
+                  <div style="margin-top:10px;display:flex;gap:8px">
+                    <button class="btn btn-sm btn-primary">Detail</button>
+                    <button class="btn btn-sm btn-outline" @click="item._removed = true">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="currentView === 'analysis'">
+          <div class="tab-pane" :class="{ active: currentTab === 'search' }">
+            <div class="section">
+              <div class="section-title">&#128269; Search Stocks</div>
+              <div class="card" style="margin-bottom:20px">
+                <div style="position:relative;max-width:600px">
+                  <input type="text" class="form-control" v-model="analysisQuery" placeholder="Search by stock code or name..." style="padding-left:36px;font-size:15px" />
+                  <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px">&#128269;</span>
+                </div>
+                <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                  <span style="font-size:12px;color:var(--muted);margin-right:4px">Filter sector:</span>
+                  <button v-for="s in analysisSectors" :key="s" class="btn btn-sm" :class="analysisSector === s ? 'btn-primary' : 'btn-outline'" @click="analysisSector = s">{{ s }}</button>
+                </div>
+              </div>
+              <div v-if="filteredAnalysis.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted)">
+                No stocks found for "{{ analysisQuery }}"
+              </div>
+              <div class="grid-3" v-else>
+                <div v-for="item in filteredAnalysis" :key="item.code" class="candidate-card" @click="selectStock(item)" style="cursor:pointer">
+                  <div class="cc-head">
+                    <span class="cc-code">{{ item.code }}</span>
+                    <span class="badge" :class="item.chg >= 0 ? 'badge-success' : 'badge-danger'">{{ item.chg >= 0 ? '+' : '' }}{{ item.chg }}%</span>
+                  </div>
+                  <div class="cc-detail">{{ item.name }}</div>
+                  <div class="cc-detail" style="margin-top:4px">Sector: {{ item.sector }}</div>
+                  <div class="cc-val" style="margin-top:4px">{{ item.price }}</div>
+                  <div class="cc-detail" style="margin-top:4px">Score: <span :style="{color: item.score >= 70 ? 'var(--success)' : item.score >= 50 ? 'var(--warning)' : 'var(--danger)'}">{{ item.score }}/100</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'detail' }">
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title">&#128202; Analysis — {{ selectedStock.code }}</div>
+                <span class="badge" :class="'badge-' + selectedStock.signalClass" style="font-size:13px;padding:5px 16px">{{ selectedStock.recommendation }}</span>
+              </div>
+              <div class="grid-4" style="margin-bottom:20px">
+                <div class="card"><span class="card-label">Current Price</span><span class="card-value card-value-sm" style="color:var(--text)">{{ selectedStock.price }}</span><span class="card-sub">Updated {{ dateStr }}</span></div>
+                <div class="card"><span class="card-label">Change</span><span class="card-value card-value-sm" :style="{color: selectedStock.chg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ selectedStock.chg >= 0 ? '+' : '' }}{{ selectedStock.chg }}%</span><span class="card-sub">Today</span></div>
+                <div class="card"><span class="card-label">RSI</span><span class="card-value card-value-sm">{{ selectedStock.rsi }}</span><span class="card-sub" :style="{color: selectedStock.rsi > 70 ? 'var(--danger)' : selectedStock.rsi > 60 ? 'var(--warning)' : 'var(--success)'}">{{ selectedStock.rsiLabel }}</span></div>
+                <div class="card card-accent"><span class="card-label">AI Score</span><span class="card-value card-value-sm" style="color:var(--accent)">{{ selectedStock.score }}/100</span><span class="card-sub">Confidence: {{ selectedStock.confidence }}%</span></div>
+              </div>
+              <div class="grid-2" style="margin-bottom:20px">
+                <div class="card">
+                  <span class="card-label" style="margin-bottom:12px;display:block">Technical Indicators</span>
+                  <div class="detail-grid">
+                    <div class="detail-item"><div class="detail-label">RSI (14)</div><div class="detail-value">{{ selectedStock.rsi }}</div></div>
+                    <div class="detail-item"><div class="detail-label">MACD</div><div class="detail-value" :style="{color: selectedStock.macd.startsWith('+') ? 'var(--success)' : 'var(--danger)'}">{{ selectedStock.macd }}</div></div>
+                    <div class="detail-item"><div class="detail-label">MA 20</div><div class="detail-value">{{ selectedStock.ma20 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">MA 50</div><div class="detail-value">{{ selectedStock.ma50 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Bollinger Upper</div><div class="detail-value">{{ selectedStock.bbUpper }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Bollinger Lower</div><div class="detail-value">{{ selectedStock.bbLower }}</div></div>
+                  </div>
+                </div>
+                <div class="card">
+                  <span class="card-label" style="margin-bottom:12px;display:block">Support &amp; Resistance</span>
+                  <div class="detail-grid">
+                    <div class="detail-item"><div class="detail-label">Resistance R2</div><div class="detail-value" style="color:var(--danger)">{{ selectedStock.r2 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Resistance R1</div><div class="detail-value" style="color:var(--warning)">{{ selectedStock.r1 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Pivot Point</div><div class="detail-value">{{ selectedStock.pivot }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Support S1</div><div class="detail-value" style="color:var(--success)">{{ selectedStock.s1 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Support S2</div><div class="detail-value" style="color:var(--success)">{{ selectedStock.s2 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Volume</div><div class="detail-value">{{ selectedStock.volume }}</div></div>
+                  </div>
                 </div>
               </div>
               <div class="card">
-                <div class="card-header"><span class="card-label" style="color:var(--danger)">Top Losers</span></div>
-                <div v-for="item in movers.losers" :key="item.code" class="mover-item is-down">
-                  <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                  <span class="mover-trend is-down"><span></span><span></span><span></span></span>
-                  <span class="mover-val" style="color:var(--danger)">{{ item.chg }}</span>
+                <span class="card-label" style="margin-bottom:8px;display:block">AI Recommendation</span>
+                <p style="font-size:14px;line-height:1.7;color:var(--text)">{{ selectedStock.analysis }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'comparison' }">
+            <div class="section">
+              <div class="section-title">&#128200; Stock Comparison</div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:140px">Metric</th>
+                        <th v-for="s in comparisonStocks" :key="s.code" style="text-align:center;font-size:14px">{{ s.code }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in comparisonRows" :key="row.label">
+                        <td style="font-weight:600;color:var(--muted)">{{ row.label }}</td>
+                        <td v-for="s in comparisonStocks" :key="s.code" style="text-align:center" :class="row.getClass ? row.getClass(s) : ''">{{ row.getValue(s) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
+              <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+                <span style="font-size:13px;color:var(--muted)">Compare with:</span>
+                <select class="form-control" style="width:auto;min-width:120px" v-model="comparisonAddCode">
+                  <option value="">Select stock...</option>
+                  <option v-for="s in comparisonAvailable" :key="s" :value="s">{{ s }}</option>
+                </select>
+                <button class="btn btn-sm btn-primary" @click="addComparison" :disabled="!comparisonAddCode">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="currentView === 'settings'">
+          <div class="tab-pane" :class="{ active: currentTab === 'general' }">
+            <div class="section">
+              <div class="section-title">&#9881; General Settings</div>
               <div class="card">
-                <div class="card-header"><span class="card-label" style="color:var(--accent)">Top Volume</span></div>
-                <div v-for="item in movers.volume" :key="item.code" class="mover-item is-vol">
-                  <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                  <span class="mover-trend is-vol"><span></span><span></span><span></span></span>
-                  <span class="mover-val">{{ item.vol }}</span>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Theme</div>
+                    <div style="font-size:12px;color:var(--muted)">Choose your preferred theme</div>
+                  </div>
+                  <div class="theme-switcher">
+                    <button v-for="t in themes" :key="t.id" class="theme-btn" :class="{ active: currentTheme === t.id }" @click="switchTheme(t.id)" :title="t.label">{{ t.label }}</button>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Language</div>
+                    <div style="font-size:12px;color:var(--muted)">Interface language</div>
+                  </div>
+                  <select class="form-control" style="width:auto;min-width:140px" v-model="settingsLanguage">
+                    <option value="en">English</option>
+                    <option value="id">Bahasa Indonesia</option>
+                  </select>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Risk Tolerance</div>
+                    <div style="font-size:12px;color:var(--muted)">Default risk level for signals</div>
+                  </div>
+                  <select class="form-control" style="width:auto;min-width:140px" v-model="settingsRiskTolerance">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Target Profit %</div>
+                    <div style="font-size:12px;color:var(--muted)">Default take-profit target</div>
+                  </div>
+                  <select class="form-control" style="width:auto;min-width:140px" v-model="settingsTargetProfit">
+                    <option value="3">3%</option>
+                    <option value="5">5%</option>
+                    <option value="8">8%</option>
+                    <option value="10">10%</option>
+                  </select>
+                </div>
+                <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.04);display:flex;gap:12px">
+                  <button class="btn btn-primary" @click="mockSave">Save Settings</button>
+                  <button class="btn btn-outline" @click="mockSave">Reset</button>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Section 4: BPJS Day Trading -->
-          <div class="section">
-            <div class="section-head">
-              <div class="section-title">&#127793; BPJS Day Trading Signals</div>
-              <button class="view-all" @click="alert('View all day trading candidates')">View All &rarr;</button>
-            </div>
-            <div class="candidate-row">
-              <div v-for="item in bpjsSignals" :key="item.code" class="candidate-card">
-                <div class="cc-head">
-                  <span class="cc-code">{{ item.code }}</span>
-                  <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
+          <div class="tab-pane" :class="{ active: currentTab === 'account' }">
+            <div class="section">
+              <div class="section-title">&#128100; Account</div>
+              <div class="card">
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Telegram ID</div>
+                    <div style="font-size:12px;color:var(--muted)">Connected Telegram account for alerts</div>
+                  </div>
+                  <span class="badge badge-success" style="font-size:13px">@dhaby_analyst</span>
                 </div>
-                <div class="cc-detail">Confidence</div>
-                <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                <div class="cc-detail" style="margin-top:4px">Price</div>
-                <div class="cc-val">{{ item.price }}</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 5: Long Term -->
-          <div class="section">
-            <div class="section-head">
-              <div class="section-title">&#128142; Long Term Accumulation</div>
-              <button class="view-all" @click="alert('View all long term candidates')">View All &rarr;</button>
-            </div>
-            <div class="candidate-row">
-              <div v-for="item in longTermSignals" :key="item.code" class="candidate-card">
-                <div class="cc-head">
-                  <span class="cc-code">{{ item.code }}</span>
-                  <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Email Notifications</div>
+                    <div style="font-size:12px;color:var(--muted)">Receive email alerts for signals</div>
+                  </div>
+                  <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer">
+                    <input type="checkbox" v-model="settingsEmailNotif" />
+                    <span>{{ settingsEmailNotif ? 'Enabled' : 'Disabled' }}</span>
+                  </label>
                 </div>
-                <div class="cc-detail">Confidence</div>
-                <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                <div class="cc-detail" style="margin-top:4px">Entry Zone</div>
-                <div class="cc-val">{{ item.entryZone }}</div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Push Notifications</div>
+                    <div style="font-size:12px;color:var(--muted)">Browser push alerts</div>
+                  </div>
+                  <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer">
+                    <input type="checkbox" v-model="settingsPushNotif" />
+                    <span>{{ settingsPushNotif ? 'Enabled' : 'Disabled' }}</span>
+                  </label>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">API Status</div>
+                    <div style="font-size:12px;color:var(--muted)">Data provider connection status</div>
+                  </div>
+                  <span class="badge badge-success">&#9679; Connected</span>
+                </div>
               </div>
             </div>
           </div>
-
-          <!-- Section 6: Sector Rotation -->
-          <div class="section">
-            <div class="section-title">Sector Rotation</div>
-            <div class="card" style="padding:18px 22px">
-              <div v-for="s in sectors" :key="s.name" class="sector-item">
-                <span class="sector-name">{{ s.name }}</span>
-                <div class="sector-bar-wrap"><div class="sector-bar-fill" :style="{ width: s.width, background: s.barColor }"></div></div>
-                <span class="sector-pct" :style="{ color: s.textColor }">{{ s.change }}</span>
-                <span class="sector-flow badge" :class="'badge-' + s.flowClass" style="text-transform:uppercase">{{ s.flow }}</span>
+          <div class="tab-pane" :class="{ active: currentTab === 'alerts' }">
+            <div class="section">
+              <div class="section-title">&#128276; Active Alerts</div>
+              <div v-for="alert in settingsAlerts" :key="alert.stock + alert.type" class="alert-item">
+                <div>
+                  <div style="font-weight:600;font-size:14px">{{ alert.stock }} — {{ alert.type }}</div>
+                  <div style="font-size:12px;color:var(--muted)">{{ alert.condition }}</div>
+                </div>
+                <div class="flex-center">
+                  <span class="badge" :class="alert.status === 'Active' ? 'badge-success' : 'badge-warning'" style="margin-right:8px">{{ alert.status }}</span>
+                  <button class="btn btn-sm btn-danger" @click="removeAlert(alert)">X</button>
+                </div>
+              </div>
+              <div v-if="settingsAlerts.length === 0" class="card" style="text-align:center;padding:30px;color:var(--muted)">
+                No active alerts. Create one below.
+              </div>
+              <div class="card" style="margin-top:16px">
+                <span class="card-label" style="margin-bottom:12px;display:block">Add Alert</span>
+                <div class="grid-2">
+                  <div>
+                    <label>Stock</label>
+                    <select class="form-control" v-model="newAlertStock">
+                      <option value="">Select stock...</option>
+                      <option v-for="s in allStocks" :key="s.code" :value="s.code">{{ s.code }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Alert Type</label>
+                    <select class="form-control" v-model="newAlertType">
+                      <option value="Price Alert">Price Alert</option>
+                      <option value="RSI Alert">RSI Alert</option>
+                      <option value="Volume Alert">Volume Alert</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Condition</label>
+                    <input type="text" class="form-control" v-model="newAlertCondition" placeholder="e.g. Above 10,000" />
+                  </div>
+                  <div style="display:flex;align-items:flex-end">
+                    <button class="btn btn-primary w-full" @click="addAlert" :disabled="!newAlertStock || !newAlertCondition">Add Alert</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          <!-- Section 7: Recent Predictions -->
-          <div class="section">
-            <div class="section-title">Recent Predictions</div>
-            <div class="card" style="padding:0;overflow:hidden">
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr><th>Stock</th><th>Signal</th><th>Confidence</th><th>Result</th><th>Profit %</th><th>Date</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="row in predictions" :key="row.code + row.date">
-                      <td style="font-weight:600">{{ row.code }}</td>
-                      <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
-                      <td>{{ row.confidence }}%</td>
-                      <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
-                      <td :class="row.profitClass">{{ row.profit }}</td>
-                      <td>{{ row.date }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
         </div>
-
-        <!-- TAB: AI Performance -->
-        <div class="tab-pane" :class="{ active: activeTab === 'aiperf' }">
-          <div class="section">
-            <div class="section-title">AI Performance Details</div>
-            <p style="color:var(--muted)">Detailed AI model performance metrics, confusion matrix, and prediction history will be displayed here.</p>
-          </div>
-        </div>
-
-        <!-- TAB: Market Movers -->
-        <div class="tab-pane" :class="{ active: activeTab === 'movers' }">
-          <div class="section">
-            <div class="section-title">Market Movers</div>
-            <p style="color:var(--muted)">Full list of top gainers, losers, and most active stocks across all exchanges.</p>
-          </div>
-        </div>
-
-        <!-- TAB: Sectors -->
-        <div class="tab-pane" :class="{ active: activeTab === 'sectors' }">
-          <div class="section">
-            <div class="section-title">Sector Analysis</div>
-            <p style="color:var(--muted)">Detailed sector-by-sector performance breakdown with historical trends.</p>
-          </div>
-        </div>
-
-        <!-- TAB: Predictions -->
-        <div class="tab-pane" :class="{ active: activeTab === 'preds' }">
-          <div class="section">
-            <div class="section-title">All Predictions</div>
-            <p style="color:var(--muted)">Complete prediction history with filter and export capabilities.</p>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
-
   <script>
     const { createApp, ref, computed, onMounted, watch } = Vue;
 
     createApp({
       setup() {
         const currentTheme = ref('neumorphism');
-        const activeTab = ref('overview');
+        const currentView = ref('dashboard');
+        const currentTab = ref('overview');
         const searchQuery = ref('');
         const sidebarOpen = ref(true);
         const searchOpen = ref(false);
@@ -308,19 +765,44 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
         ];
 
         const navItems = [
-          { tab: 'overview', html: '<span class="ico">&#9751;</span> Dashboard' },
-          { tab: 'daytrading', html: '<span class="ico">&#8644;</span> Day Trading' },
-          { tab: 'longterm', html: '<span class="ico">&#9670;</span> Long Term' },
-          { tab: 'analysis', html: '<span class="ico">&#9776;</span> Analysis' },
-          { tab: 'settings', html: '<span class="ico">&#9881;</span> Settings' },
+          { view: 'dashboard',  icon: '&#9751;', label: 'Dashboard' },
+          { view: 'daytrading', icon: '&#8644;', label: 'Day Trading' },
+          { view: 'longterm',   icon: '&#9670;', label: 'Long Term' },
+          { view: 'analysis',   icon: '&#9776;', label: 'Analysis' },
+          { view: 'settings',   icon: '&#9881;', label: 'Settings' },
         ];
 
-        const tabItems = [
+        const headerTitle = computed(() => {
+          const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', settings: 'Settings' };
+          return map[currentView.value] || 'Dashboard';
+        });
+
+        const dashboardTabs = [
           { id: 'overview', label: 'Overview' },
           { id: 'aiperf', label: 'AI Performance' },
           { id: 'movers', label: 'Market Movers' },
           { id: 'sectors', label: 'Sectors' },
           { id: 'preds', label: 'Predictions' },
+        ];
+        const daytradingTabs = [
+          { id: 'signals', label: 'Signals' },
+          { id: 'candidates', label: 'Candidates' },
+          { id: 'history', label: 'History' },
+        ];
+        const longtermTabs = [
+          { id: 'accumulation', label: 'Accumulation' },
+          { id: 'portfolio', label: 'Portfolio' },
+          { id: 'watchlist', label: 'Watchlist' },
+        ];
+        const analysisTabs = [
+          { id: 'search', label: 'Search' },
+          { id: 'detail', label: 'Detail' },
+          { id: 'comparison', label: 'Comparison' },
+        ];
+        const settingsTabs = [
+          { id: 'general', label: 'General' },
+          { id: 'account', label: 'Account' },
+          { id: 'alerts', label: 'Alerts' },
         ];
 
         const watchlist = ref([
@@ -343,6 +825,8 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: 1.9 },
           { code: 'UNVR', name: 'Unilever Indonesia', chg: -0.8 },
           { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: -3.2 },
+          { code: 'BBNI', name: 'Bank Negara Indonesia', chg: 1.1 },
+          { code: 'INDF', name: 'Indofood Sukses Makmur', chg: -0.5 },
         ];
 
         const filteredStocks = computed(() => {
@@ -373,6 +857,17 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           totalPredictions: '127',
         });
 
+        const aiPerfDetails = ref([
+          { metric: 'Accuracy (30d)', value: '71.2%', trend: '+1.8%', trendClass: 'profit-positive', desc: 'Overall prediction accuracy over 30 days' },
+          { metric: 'Win Rate (30d)', value: '64.7%', trend: '+0.9%', trendClass: 'profit-positive', desc: 'Percentage of profitable trades' },
+          { metric: 'Avg Hold Time', value: '2.4 days', trend: '-0.3d', trendClass: 'profit-positive', desc: 'Average position holding period' },
+          { metric: 'Max Drawdown', value: '-4.2%', trend: '-1.1%', trendClass: 'profit-positive', desc: 'Maximum portfolio drawdown' },
+          { metric: 'Sharpe Ratio', value: '1.84', trend: '+0.12', trendClass: 'profit-positive', desc: 'Risk-adjusted return metric' },
+          { metric: 'Profit Factor', value: '2.31', trend: '+0.18', trendClass: 'profit-positive', desc: 'Gross profit / gross loss' },
+          { metric: 'Best Trade', value: 'BBCA +8.2%', trend: '-', trendClass: '', desc: 'Highest profit single trade' },
+          { metric: 'Worst Trade', value: 'GOTO -4.1%', trend: '-', trendClass: '', desc: 'Highest loss single trade' },
+        ]);
+
         const movers = ref({
           gainers: [
             { code: 'BBCA', name: 'Bank Central Asia', chg: '+3.5%' },
@@ -390,6 +885,31 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
             { code: 'BBCA', name: 'Bank Central Asia', vol: '142.1M' },
           ],
         });
+
+        const allGainers = ref([
+          { code: 'BBCA', name: 'Bank Central Asia', chg: '+3.5%' },
+          { code: 'ASII', name: 'Astra International', chg: '+2.8%' },
+          { code: 'ADRO', name: 'Adaro Energy', chg: '+2.1%' },
+          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: '+1.9%' },
+          { code: 'ICBP', name: 'Indofood CBP', chg: '+1.2%' },
+          { code: 'BBNI', name: 'Bank Negara Indonesia', chg: '+1.1%' },
+        ]);
+
+        const allLosers = ref([
+          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: '-3.2%' },
+          { code: 'TLKM', name: 'Telkom Indonesia', chg: '-2.1%' },
+          { code: 'UNVR', name: 'Unilever Indonesia', chg: '-0.8%' },
+          { code: 'INDF', name: 'Indofood Sukses Makmur', chg: '-0.5%' },
+          { code: 'SMGR', name: 'Semen Indonesia', chg: '-0.3%' },
+        ]);
+
+        const allVolume = ref([
+          { code: 'BBRI', name: 'Bank Rakyat Indonesia', vol: '218.3M' },
+          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', vol: '187.6M' },
+          { code: 'BBCA', name: 'Bank Central Asia', vol: '142.1M' },
+          { code: 'ASII', name: 'Astra International', vol: '98.7M' },
+          { code: 'TLKM', name: 'Telkom Indonesia', vol: '76.4M' },
+        ]);
 
         const bpjsSignals = ref([
           { code: 'BBCA', signal: 'ENTER', signalClass: 'success', confidence: 87, price: 'Rp 9,850' },
@@ -422,13 +942,241 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           { code: 'ADRO', signal: 'HOLD', signalClass: 'warning', confidence: 55, result: 'Pending', resultClass: 'warning', profit: '+0.2%', profitClass: 'profit-positive', date: 'Jun 02' },
         ]);
 
-        function switchTheme(theme) {
-          currentTheme.value = theme;
+        const allPredictions = ref([
+          { code: 'BBCA', signal: 'BUY', signalClass: 'success', confidence: 87, result: 'Win', resultClass: 'success', profit: '+3.5%', profitClass: 'profit-positive', date: 'Jun 04' },
+          { code: 'TLKM', signal: 'SELL', signalClass: 'danger', confidence: 76, result: 'Win', resultClass: 'success', profit: '+2.1%', profitClass: 'profit-positive', date: 'Jun 03' },
+          { code: 'ASII', signal: 'BUY', signalClass: 'success', confidence: 82, result: 'Win', resultClass: 'success', profit: '+2.8%', profitClass: 'profit-positive', date: 'Jun 03' },
+          { code: 'GOTO', signal: 'BUY', signalClass: 'success', confidence: 68, result: 'Loss', resultClass: 'danger', profit: '-1.4%', profitClass: 'profit-negative', date: 'Jun 02' },
+          { code: 'ADRO', signal: 'HOLD', signalClass: 'warning', confidence: 55, result: 'Pending', resultClass: 'warning', profit: '+0.2%', profitClass: 'profit-positive', date: 'Jun 02' },
+          { code: 'BBRI', signal: 'BUY', signalClass: 'success', confidence: 79, result: 'Win', resultClass: 'success', profit: '+1.9%', profitClass: 'profit-positive', date: 'Jun 01' },
+          { code: 'ICBP', signal: 'HOLD', signalClass: 'warning', confidence: 63, result: 'Pending', resultClass: 'warning', profit: '+0.5%', profitClass: 'profit-positive', date: 'May 31' },
+          { code: 'UNVR', signal: 'SELL', signalClass: 'danger', confidence: 71, result: 'Win', resultClass: 'success', profit: '+1.8%', profitClass: 'profit-positive', date: 'May 30' },
+        ]);
+
+        const dayTradingSignals = ref([
+          { code: 'BBCA', signal: 'ENTER', signalClass: 'success', confidence: 87, price: 'Rp 9,850', entry: 'Rp 9,800', exit: 'Rp 10,200' },
+          { code: 'ASII', signal: 'ENTER', signalClass: 'success', confidence: 82, price: 'Rp 5,600', entry: 'Rp 5,550', exit: 'Rp 5,900' },
+          { code: 'ADRO', signal: 'WAIT', signalClass: 'warning', confidence: 64, price: 'Rp 2,890', entry: 'Rp 2,850', exit: 'Rp 3,050' },
+          { code: 'BBRI', signal: 'ENTER', signalClass: 'success', confidence: 79, price: 'Rp 4,420', entry: 'Rp 4,380', exit: 'Rp 4,650' },
+          { code: 'TLKM', signal: 'WAIT', signalClass: 'warning', confidence: 58, price: 'Rp 3,210', entry: 'Rp 3,150', exit: 'Rp 3,400' },
+          { code: 'GOTO', signal: 'ENTER', signalClass: 'success', confidence: 71, price: 'Rp 1,850', entry: 'Rp 1,820', exit: 'Rp 1,980' },
+          { code: 'UNVR', signal: 'WAIT', signalClass: 'warning', confidence: 52, price: 'Rp 2,950', entry: 'Rp 2,900', exit: 'Rp 3,100' },
+          { code: 'ICBP', signal: 'ENTER', signalClass: 'success', confidence: 76, price: 'Rp 10,400', entry: 'Rp 10,300', exit: 'Rp 10,900' },
+        ]);
+
+        const dayTradingCandidates = ref([
+          { stock: 'BBCA', signal: 'ENTER', signalClass: 'success', conf: 87, entry: '9,800', tp: '10,200', cl: '9,650', volRatio: '2.3x', foreignFlow: '+1.2B', action: 'Buy' },
+          { stock: 'ASII', signal: 'ENTER', signalClass: 'success', conf: 82, entry: '5,550', tp: '5,900', cl: '5,450', volRatio: '1.8x', foreignFlow: '+0.8B', action: 'Buy' },
+          { stock: 'BBRI', signal: 'ENTER', signalClass: 'success', conf: 79, entry: '4,380', tp: '4,650', cl: '4,300', volRatio: '1.5x', foreignFlow: '+0.6B', action: 'Buy' },
+          { stock: 'ICBP', signal: 'ENTER', signalClass: 'success', conf: 76, entry: '10,300', tp: '10,900', cl: '10,100', volRatio: '2.1x', foreignFlow: '+0.4B', action: 'Buy' },
+          { stock: 'BBNI', signal: 'ENTER', signalClass: 'success', conf: 74, entry: '5,100', tp: '5,400', cl: '5,000', volRatio: '1.6x', foreignFlow: '+0.5B', action: 'Buy' },
+          { stock: 'GOTO', signal: 'ENTER', signalClass: 'success', conf: 71, entry: '1,820', tp: '1,980', cl: '1,750', volRatio: '1.4x', foreignFlow: '+0.3B', action: 'Buy' },
+          { stock: 'ADRO', signal: 'WAIT', signalClass: 'warning', conf: 64, entry: '2,850', tp: '3,050', cl: '2,780', volRatio: '0.9x', foreignFlow: '-0.1B', action: 'Watch' },
+          { stock: 'INDF', signal: 'WAIT', signalClass: 'warning', conf: 61, entry: '6,800', tp: '7,200', cl: '6,650', volRatio: '0.8x', foreignFlow: '+0.1B', action: 'Watch' },
+          { stock: 'TLKM', signal: 'WAIT', signalClass: 'warning', conf: 58, entry: '3,150', tp: '3,400', cl: '3,080', volRatio: '0.7x', foreignFlow: '-0.2B', action: 'Watch' },
+          { stock: 'UNVR', signal: 'WAIT', signalClass: 'warning', conf: 52, entry: '2,900', tp: '3,100', cl: '2,850', volRatio: '0.6x', foreignFlow: '-0.1B', action: 'Watch' },
+        ]);
+
+        const dayTradingHistory = ref([
+          { date: 'Jun 04', stock: 'BBCA', entry: '9,750', exit: '10,100', profit: '+3.6%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
+          { date: 'Jun 03', stock: 'ASII', entry: '5,500', exit: '5,800', profit: '+5.5%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
+          { date: 'Jun 03', stock: 'BBRI', entry: '4,400', exit: '4,500', profit: '+2.3%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
+          { date: 'Jun 02', stock: 'GOTO', entry: '1,900', exit: '1,860', profit: '-2.1%', profitClass: 'profit-negative', result: 'Loss', resultClass: 'danger' },
+          { date: 'Jun 02', stock: 'ADRO', entry: '2,900', exit: '2,950', profit: '+1.7%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
+          { date: 'Jun 01', stock: 'TLKM', entry: '3,200', exit: '3,150', profit: '-1.6%', profitClass: 'profit-negative', result: 'Loss', resultClass: 'danger' },
+          { date: 'Jun 01', stock: 'ICBP', entry: '10,250', exit: '10,500', profit: '+2.4%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
+          { date: 'May 31', stock: 'UNVR', entry: '3,000', exit: '2,950', profit: '-1.7%', profitClass: 'profit-negative', result: 'Pending', resultClass: 'warning' },
+        ]);
+
+        const ltAccumulation = ref([
+          { code: 'ICBP', phase: 'Active Accum', signalClass: 'accent', confidence: 91, entryZone: '10,200 \u2013 10,600', accumDays: 24, rsStatus: 'Strong' },
+          { code: 'TLKM', phase: 'Active Accum', signalClass: 'accent', confidence: 85, entryZone: '3,600 \u2013 3,900', accumDays: 18, rsStatus: 'Strong' },
+          { code: 'ASII', phase: 'Early Accum', signalClass: 'accent', confidence: 78, entryZone: '5,400 \u2013 5,700', accumDays: 8, rsStatus: 'Improving' },
+          { code: 'BBRI', phase: 'Accum Watch', signalClass: 'warning', confidence: 73, entryZone: '4,200 \u2013 4,500', accumDays: 12, rsStatus: 'Neutral' },
+          { code: 'UNVR', phase: 'Accum Watch', signalClass: 'warning', confidence: 68, entryZone: '2,800 \u2013 3,100', accumDays: 6, rsStatus: 'Neutral' },
+          { code: 'BBCA', phase: 'Distribution', signalClass: 'danger', confidence: 55, entryZone: 'N/A', accumDays: 0, rsStatus: 'Weak' },
+          { code: 'ADRO', phase: 'Accum Watch', signalClass: 'warning', confidence: 62, entryZone: '2,750 \u2013 2,950', accumDays: 5, rsStatus: 'Improving' },
+          { code: 'BBNI', phase: 'Early Accum', signalClass: 'accent', confidence: 71, entryZone: '4,900 \u2013 5,200', accumDays: 10, rsStatus: 'Improving' },
+        ]);
+
+        const ltPortfolio = ref([
+          { stock: 'ICBP', entryDate: 'May 12', avgPrice: '10,250', currentPrice: '10,400', profitPct: '+1.5%', profitClass: 'profit-positive', position: '1,000', status: 'Holding', statusClass: 'accent' },
+          { stock: 'TLKM', entryDate: 'May 18', avgPrice: '3,650', currentPrice: '3,210', profitPct: '-12.1%', profitClass: 'profit-negative', position: '2,500', status: 'Holding', statusClass: 'warning' },
+          { stock: 'ASII', entryDate: 'May 25', avgPrice: '5,500', currentPrice: '5,600', profitPct: '+1.8%', profitClass: 'profit-positive', position: '1,500', status: 'Holding', statusClass: 'accent' },
+          { stock: 'BBRI', entryDate: 'Jun 01', avgPrice: '4,300', currentPrice: '4,420', profitPct: '+2.8%', profitClass: 'profit-positive', position: '2,000', status: 'Holding', statusClass: 'accent' },
+          { stock: 'INDF', entryDate: 'May 05', avgPrice: '6,950', currentPrice: '6,800', profitPct: '-2.2%', profitClass: 'profit-negative', position: '800', status: 'Holding', statusClass: 'warning' },
+        ]);
+
+        const ltWatchlist = ref([
+          { code: 'BBCA', name: 'Bank Central Asia', chg: 3.5, volume: '142.1M', sector: 'Financials' },
+          { code: 'ASII', name: 'Astra International', chg: 2.8, volume: '98.7M', sector: 'Consumer Cycl.' },
+          { code: 'TLKM', name: 'Telkom Indonesia', chg: -2.1, volume: '76.4M', sector: 'Technology' },
+          { code: 'ADRO', name: 'Adaro Energy', chg: 1.4, volume: '52.3M', sector: 'Energy' },
+          { code: 'ICBP', name: 'Indofood CBP', chg: 0.2, volume: '28.1M', sector: 'Consumer Cycl.' },
+          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: 1.9, volume: '218.3M', sector: 'Financials' },
+          { code: 'UNVR', name: 'Unilever Indonesia', chg: -0.8, volume: '22.6M', sector: 'Consumer Cycl.' },
+          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: -3.2, volume: '187.6M', sector: 'Technology' },
+        ]);
+
+        const analysisQuery = ref('');
+        const analysisSector = ref('All');
+        const analysisSectors = ['All', 'Financials', 'Technology', 'Energy', 'Consumer Cycl.', 'Healthcare'];
+
+        const analysisStocks = ref([
+          { code: 'BBCA', name: 'Bank Central Asia', chg: 3.5, sector: 'Financials', price: 'Rp 9,850', score: 87 },
+          { code: 'ASII', name: 'Astra International', chg: 2.8, sector: 'Consumer Cycl.', price: 'Rp 5,600', score: 82 },
+          { code: 'TLKM', name: 'Telkom Indonesia', chg: -2.1, sector: 'Technology', price: 'Rp 3,210', score: 64 },
+          { code: 'ADRO', name: 'Adaro Energy', chg: 1.4, sector: 'Energy', price: 'Rp 2,890', score: 71 },
+          { code: 'ICBP', name: 'Indofood CBP', chg: 0.2, sector: 'Consumer Cycl.', price: 'Rp 10,400', score: 78 },
+          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: 1.9, sector: 'Financials', price: 'Rp 4,420', score: 79 },
+          { code: 'UNVR', name: 'Unilever Indonesia', chg: -0.8, sector: 'Consumer Cycl.', price: 'Rp 2,950', score: 52 },
+          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: -3.2, sector: 'Technology', price: 'Rp 1,850', score: 42 },
+          { code: 'BBNI', name: 'Bank Negara Indonesia', chg: 1.1, sector: 'Financials', price: 'Rp 5,200', score: 74 },
+          { code: 'INDF', name: 'Indofood Sukses Makmur', chg: -0.5, sector: 'Consumer Cycl.', price: 'Rp 6,800', score: 61 },
+        ]);
+
+        const filteredAnalysis = computed(() => {
+          let items = analysisStocks.value;
+          if (analysisSector.value !== 'All') {
+            items = items.filter(s => s.sector === analysisSector.value);
+          }
+          if (analysisQuery.value) {
+            const q = analysisQuery.value.toLowerCase();
+            items = items.filter(s => s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
+          }
+          return items;
+        });
+
+        const selectedStock = ref({
+          code: 'BBCA',
+          name: 'Bank Central Asia',
+          price: 'Rp 9,850',
+          chg: 1.2,
+          rsi: '62.4',
+          rsiLabel: 'Neutral-Bullish',
+          macd: '+28.5',
+          ma20: 'Rp 9,720',
+          ma50: 'Rp 9,450',
+          bbUpper: 'Rp 10,120',
+          bbLower: 'Rp 9,380',
+          r2: 'Rp 10,400',
+          r1: 'Rp 10,100',
+          pivot: 'Rp 9,850',
+          s1: 'Rp 9,600',
+          s2: 'Rp 9,400',
+          volume: '142.1M',
+          score: 87,
+          confidence: 82,
+          recommendation: 'BUY',
+          signalClass: 'success',
+          analysis: 'BBCA shows strong bullish momentum with RSI at 62.4 indicating room for further upside. MACD positive crossover confirmed. Price above both MA20 and MA50 suggesting sustained uptrend. Volume increasing with strong foreign inflow. Accumulation phase detected with institutional buying pressure. Recommended entry at Rp 9,800 with TP at Rp 10,200 and CL at Rp 9,650.',
+        });
+
+        function selectStock(item) {
+          const detailMap = {
+            BBCA: { rsi: '62.4', rsiLabel: 'Neutral-Bullish', macd: '+28.5', ma20: 'Rp 9,720', ma50: 'Rp 9,450', bbUpper: 'Rp 10,120', bbLower: 'Rp 9,380', r2: 'Rp 10,400', r1: 'Rp 10,100', pivot: 'Rp 9,850', s1: 'Rp 9,600', s2: 'Rp 9,400', volume: '142.1M', score: 87, confidence: 82, recommendation: 'BUY', signalClass: 'success', analysis: 'BBCA shows strong bullish momentum with RSI at 62.4 indicating room for further upside. MACD positive crossover confirmed. Price above both MA20 and MA50 suggesting sustained uptrend. Volume increasing with strong foreign inflow.' },
+            ASII: { rsi: '58.2', rsiLabel: 'Neutral', macd: '+12.3', ma20: 'Rp 5,520', ma50: 'Rp 5,380', bbUpper: 'Rp 5,850', bbLower: 'Rp 5,300', r2: 'Rp 5,950', r1: 'Rp 5,780', pivot: 'Rp 5,600', s1: 'Rp 5,420', s2: 'Rp 5,250', volume: '98.7M', score: 82, confidence: 78, recommendation: 'BUY', signalClass: 'success', analysis: 'ASII recovering from consolidation with improving volume. RSI neutral leaving room for upside. MACD showing early positive crossover. Accumulation pattern forming above MA50.' },
+            TLKM: { rsi: '38.5', rsiLabel: 'Bearish', macd: '-15.2', ma20: 'Rp 3,350', ma50: 'Rp 3,450', bbUpper: 'Rp 3,600', bbLower: 'Rp 3,100', r2: 'Rp 3,400', r1: 'Rp 3,300', pivot: 'Rp 3,210', s1: 'Rp 3,120', s2: 'Rp 3,030', volume: '76.4M', score: 64, confidence: 58, recommendation: 'WAIT', signalClass: 'warning', analysis: 'TLKM in short-term downtrend. RSI below 40 indicating bearish momentum. Price below both MA20 and MA50. Waiting for reversal confirmation before entry.' },
+            ADRO: { rsi: '55.6', rsiLabel: 'Neutral', macd: '+5.8', ma20: 'Rp 2,820', ma50: 'Rp 2,760', bbUpper: 'Rp 3,050', bbLower: 'Rp 2,650', r2: 'Rp 3,050', r1: 'Rp 2,950', pivot: 'Rp 2,890', s1: 'Rp 2,800', s2: 'Rp 2,720', volume: '52.3M', score: 71, confidence: 68, recommendation: 'HOLD', signalClass: 'warning', analysis: 'ADRO showing consolidation near support levels. RSI neutral with no clear direction. Volume declining suggesting lack of catalyst. Wait for breakout above Rp 2,950.' },
+          };
+          const def = detailMap[item.code] || { rsi: '50.0', rsiLabel: 'Neutral', macd: '0.0', ma20: item.price, ma50: item.price, bbUpper: '-', bbLower: '-', r2: '-', r1: '-', pivot: '-', s1: '-', s2: '-', volume: '-', score: item.score, confidence: Math.round(item.score * 0.9), recommendation: 'HOLD', signalClass: 'warning', analysis: 'Analysis data not available for this stock.' };
+          selectedStock.value = { ...item, ...def };
+          currentTab.value = 'detail';
         }
 
-        function switchTab(tab) {
-          activeTab.value = tab;
+        const comparisonStocks = ref([
+          { code: 'BBCA', price: '9,850', chg: '+1.2%', rsi: '62.4', macd: '+28.5', volume: '142.1M', score: '87', rec: 'BUY' },
+          { code: 'BBRI', price: '4,420', chg: '+1.9%', rsi: '55.8', macd: '+12.1', volume: '218.3M', score: '79', rec: 'HOLD' },
+          { code: 'ASII', price: '5,600', chg: '+2.8%', rsi: '58.2', macd: '+8.4', volume: '98.7M', score: '82', rec: 'BUY' },
+        ]);
+
+        const comparisonRows = computed(() => [
+          { label: 'Price', getValue: s => s.price },
+          { label: 'Change %', getValue: s => s.chg, getClass: s => s.chg.startsWith('+') ? 'profit-positive' : 'profit-negative' },
+          { label: 'RSI (14)', getValue: s => s.rsi },
+          { label: 'MACD', getValue: s => s.macd, getClass: s => s.macd.startsWith('+') ? 'profit-positive' : 'profit-negative' },
+          { label: 'Volume', getValue: s => s.volume },
+          { label: 'AI Score', getValue: s => s.score, getClass: s => parseInt(s.score) >= 80 ? 'profit-positive' : parseInt(s.score) >= 60 ? '' : 'profit-negative' },
+          { label: 'Recommendation', getValue: s => s.rec, getClass: s => s.rec === 'BUY' ? 'profit-positive' : s.rec === 'SELL' ? 'profit-negative' : '' },
+        ]);
+
+        const comparisonAddCode = ref('');
+        const comparisonAvailable = computed(() => {
+          const used = new Set(comparisonStocks.value.map(s => s.code));
+          return allStocks.filter(s => !used.has(s.code)).map(s => s.code);
+        });
+
+        function addComparison() {
+          if (!comparisonAddCode.value) return;
+          const stock = allStocks.find(s => s.code === comparisonAddCode.value);
+          if (!stock) return;
+          const details = {
+            BBCA: { price: '9,850', chg: '+1.2%', rsi: '62.4', macd: '+28.5', volume: '142.1M', score: '87', rec: 'BUY' },
+            ASII: { price: '5,600', chg: '+2.8%', rsi: '58.2', macd: '+8.4', volume: '98.7M', score: '82', rec: 'BUY' },
+            BBRI: { price: '4,420', chg: '+1.9%', rsi: '55.8', macd: '+12.1', volume: '218.3M', score: '79', rec: 'HOLD' },
+            TLKM: { price: '3,210', chg: '-2.1%', rsi: '38.5', macd: '-15.2', volume: '76.4M', score: '64', rec: 'WAIT' },
+            ADRO: { price: '2,890', chg: '+1.4%', rsi: '55.6', macd: '+5.8', volume: '52.3M', score: '71', rec: 'HOLD' },
+            ICBP: { price: '10,400', chg: '+0.2%', rsi: '51.2', macd: '+3.5', volume: '28.1M', score: '78', rec: 'HOLD' },
+            UNVR: { price: '2,950', chg: '-0.8%', rsi: '42.1', macd: '-8.2', volume: '22.6M', score: '52', rec: 'SELL' },
+            GOTO: { price: '1,850', chg: '-3.2%', rsi: '32.8', macd: '-22.4', volume: '187.6M', score: '42', rec: 'WAIT' },
+            BBNI: { price: '5,200', chg: '+1.1%', rsi: '54.3', macd: '+6.7', volume: '45.2M', score: '74', rec: 'HOLD' },
+            INDF: { price: '6,800', chg: '-0.5%', rsi: '48.9', macd: '-2.1', volume: '18.5M', score: '61', rec: 'HOLD' },
+          };
+          const d = details[stock.code] || { price: '-', chg: '0%', rsi: '50', macd: '0', volume: '-', score: '50', rec: 'HOLD' };
+          comparisonStocks.value.push({ code: stock.code, ...d });
+          comparisonAddCode.value = '';
+        }
+
+        const settingsLanguage = ref('en');
+        const settingsRiskTolerance = ref('medium');
+        const settingsTargetProfit = ref('5');
+        const settingsEmailNotif = ref(true);
+        const settingsPushNotif = ref(true);
+
+        const settingsAlerts = ref([
+          { stock: 'BBCA', type: 'Price Alert', condition: 'Above 10,000', status: 'Active' },
+          { stock: 'ASII', type: 'RSI Alert', condition: 'RSI < 30', status: 'Active' },
+          { stock: 'TLKM', type: 'Volume Alert', condition: 'Volume > 2x avg', status: 'Active' },
+          { stock: 'ICBP', type: 'Price Alert', condition: 'Below 9,800', status: 'Inactive' },
+        ]);
+
+        const newAlertStock = ref('');
+        const newAlertType = ref('Price Alert');
+        const newAlertCondition = ref('');
+
+        function addAlert() {
+          if (!newAlertStock.value || !newAlertCondition.value) return;
+          settingsAlerts.value.push({
+            stock: newAlertStock.value,
+            type: newAlertType.value,
+            condition: newAlertCondition.value,
+            status: 'Active'
+          });
+          newAlertStock.value = '';
+          newAlertType.value = 'Price Alert';
+          newAlertCondition.value = '';
+        }
+
+        function removeAlert(alert) {
+          const idx = settingsAlerts.value.indexOf(alert);
+          if (idx > -1) settingsAlerts.value.splice(idx, 1);
+        }
+
+        function switchView(view) {
+          currentView.value = view;
+          const firstTabs = {
+            dashboard: 'overview',
+            daytrading: 'signals',
+            longterm: 'accumulation',
+            analysis: 'search',
+            settings: 'general',
+          };
+          currentTab.value = firstTabs[view] || 'overview';
           if (window.innerWidth <= 768) sidebarOpen.value = false;
+        }
+
+        function switchTheme(theme) {
+          currentTheme.value = theme;
         }
 
         function toggleSidebar() {
@@ -443,6 +1191,14 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           if (searchQuery.value) searchOpen.value = true;
         }
 
+        function mockScan() {
+          alert('Scan initiated... Found 8 active signals.');
+        }
+
+        function mockSave() {
+          alert('Settings saved successfully!');
+        }
+
         watch(currentTheme, (val) => {
           localStorage.setItem('dashboard-theme', val);
           document.documentElement.setAttribute('data-theme', val);
@@ -454,20 +1210,31 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
             currentTheme.value = saved;
           }
           document.documentElement.setAttribute('data-theme', currentTheme.value);
-
           const d = new Date();
           dateStr.value = d.toLocaleDateString('en-ID', { month: 'short', day: 'numeric', year: 'numeric' });
-
           document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') searchOpen.value = false;
           });
         });
 
         return {
-          currentTheme, activeTab, searchQuery, sidebarOpen, searchOpen, dateStr,
-          themes, navItems, tabItems, watchlist, allStocks, filteredStocks,
-          market, aiPerf, movers, bpjsSignals, longTermSignals, sectors, predictions,
-          switchTheme, switchTab, toggleSidebar, closeSearch, onSearchInput,
+          currentTheme, currentView, currentTab, searchQuery, sidebarOpen, searchOpen, dateStr,
+          themes, navItems, headerTitle,
+          dashboardTabs, daytradingTabs, longtermTabs, analysisTabs, settingsTabs,
+          watchlist, allStocks, filteredStocks,
+          market, aiPerf, aiPerfDetails, movers,
+          allGainers, allLosers, allVolume,
+          bpjsSignals, longTermSignals, sectors, predictions, allPredictions,
+          dayTradingSignals, dayTradingCandidates, dayTradingHistory,
+          ltAccumulation, ltPortfolio, ltWatchlist,
+          analysisQuery, analysisSector, analysisSectors, analysisStocks, filteredAnalysis,
+          selectedStock, selectStock,
+          comparisonStocks, comparisonRows, comparisonAddCode, comparisonAvailable, addComparison,
+          settingsLanguage, settingsRiskTolerance, settingsTargetProfit,
+          settingsEmailNotif, settingsPushNotif,
+          settingsAlerts, newAlertStock, newAlertType, newAlertCondition, addAlert, removeAlert,
+          switchView, switchTheme, toggleSidebar, closeSearch, onSearchInput,
+          mockScan, mockSave,
         };
       }
     }).mount('#app');

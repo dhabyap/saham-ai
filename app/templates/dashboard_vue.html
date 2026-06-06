@@ -496,13 +496,13 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
             </div>
           </div>
         </div>
-        <div v-else-if="currentView === 'analysis'">
+        <div v-else-if="currentView === 'analysis'" style="width:100%">
           <div class="tab-pane" :class="{ active: currentTab === 'search' }">
             <div class="section">
               <div class="section-title">&#128269; Search Stocks</div>
-              <div class="card" style="margin-bottom:20px">
-                <div style="position:relative;max-width:600px">
-                  <input type="text" class="form-control" v-model="analysisQuery" placeholder="Search by stock code or name..." style="padding-left:36px;font-size:15px" />
+              <div class="card" style="margin-bottom:20px;width:100%">
+                <div style="position:relative">
+                  <input type="text" class="form-control" v-model="analysisQuery" placeholder="Search by stock code or name..." style="padding-left:36px;font-size:15px;width:100%" />
                   <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px">&#128269;</span>
                 </div>
                 <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">

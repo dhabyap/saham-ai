@@ -368,3 +368,231 @@ async def long_term_candidates():
             "last_updated": __import__("datetime").datetime.now().isoformat(),
         },
     }
+
+
+@router.get("/market-reports")
+async def get_market_reports(limit: int = Query(500, description="Max reports to return", le=1000)):
+    """Get parsed market reports from @creativetrader."""
+    import json, os
+    reports_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "market_reports.json")
+    if not os.path.exists(reports_file):
+        return {"status": "ok", "data": [], "message": "No reports yet. Run market_report_scraper.py first."}
+    with open(reports_file) as f:
+        all_reports = json.load(f)
+    return {"status": "ok", "data": all_reports[:limit], "total": len(all_reports)}
+
+
+@router.get("/market-report-analysis")
+async def get_market_report_analysis():
+    """AI analysis + backtest of market reports from @creativetrader."""
+    import json, os
+    from collections import Counter, defaultdict
+    from datetime import datetime, timezone
+
+    base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    reports_file = os.path.join(base, "market_reports.json")
+    if not os.path.exists(reports_file):
+        return {"status": "ok", "analysis": None, "message": "No reports yet."}
+    with open(reports_file) as f:
+        reports = json.load(f)
+
+    # ── Basic Stats ──
+    dates = sorted(set(r["date"] for r in reports))
+    ihsg_vals = [r["ihsg_change"] for r in reports if r["ihsg_change"] is not None]
+    avg_ihsg = round(sum(ihsg_vals) / len(ihsg_vals), 1) if ihsg_vals else 0
+    red_days = sum(1 for v in ihsg_vals if v < 0)
+    green_days = sum(1 for v in ihsg_vals if v > 0)
+
+    # ── Foreign Buy Aggregation ──
+    foreign_total = defaultdict(float)
+    foreign_freq = Counter()
+    foreign_by_month = defaultdict(lambda: defaultdict(float))
+
+    for r in reports:
+        m = r["date"][:7]
+        for fb in r.get("foreign_buy", []):
+            foreign_total[fb["stock"]] += fb["value"]
+            foreign_freq[fb["stock"]] += 1
+            foreign_by_month[m][fb["stock"]] += fb["value"]
+
+    top_foreign = [
+        {"stock": s, "total": round(v, 2), "freq": foreign_freq[s]}
+        for s, v in sorted(foreign_total.items(), key=lambda x: -x[1])[:15]
+    ]
+
+    monthly_flow = []
+    for m in sorted(foreign_by_month.keys()):
+        total_t = sum(foreign_by_month[m].values())
+        top5 = sorted(foreign_by_month[m].items(), key=lambda x: -x[1])[:5]
+        rpt_count = sum(1 for r in reports if r["date"].startswith(m))
+        monthly_flow.append({
+            "month": m, "total": round(total_t, 2),
+            "reports": rpt_count,
+            "top": [{"stock": s, "value": round(v, 2)} for s, v in top5]
+        })
+
+    # ── IHSG Trend ──
+    periods = [
+        {"label": "Mei–Jun 2026", "start": "2026-05-01", "end": "2026-06-30"},
+        {"label": "April 2026", "start": "2026-04-01", "end": "2026-04-30"},
+        {"label": "Maret 2026", "start": "2026-03-01", "end": "2026-03-31"},
+    ]
+    ihsg_trend = []
+    for p in periods:
+        vals = [r["ihsg_change"] for r in reports if p["start"] <= r["date"] <= p["end"] and r["ihsg_change"] is not None]
+        if vals:
+            avg = sum(vals) / len(vals)
+            ihsg_trend.append({
+                "label": p["label"],
+                "avg": round(avg, 1),
+                "red": sum(1 for v in vals if v < 0),
+                "total": len(vals)
+            })
+
+    # ── Backtest ──
+    by_date = defaultdict(list)
+    for r in reports:
+        by_date[r["date"]].append(r)
+    sorted_dates = sorted(by_date.keys())
+
+    # V1: Foreign buy → gainer in 3 days
+    win_v1 = 0
+    loss_v1 = 0
+    best_stocks = Counter()
+    best_total = Counter()
+    same_day_signal = Counter()
+
+    for i, d in enumerate(sorted_dates):
+        day_reports = by_date[d]
+        full = next((r for r in day_reports if r["type"] == "full"), day_reports[0])
+        foreign = full.get("foreign_buy", [])
+        if not foreign:
+            continue
+        future_dates = sorted_dates[i+1:i+4]
+        if len(future_dates) < 2:
+            continue
+        future_gainers = set()
+        future_losers = set()
+        for fd in future_dates:
+            for fr in by_date[fd]:
+                for g in fr.get("gainers", []):
+                    future_gainers.add(g["stock"])
+                for g in fr.get("losers", []):
+                    future_losers.add(g["stock"])
+        for f in foreign[:3]:
+            s = f["stock"]
+            best_total[s] += 1
+            if s in future_gainers:
+                win_v1 += 1
+                best_stocks[s] += 1
+            else:
+                loss_v1 += 1
+
+    # Same-day signal: foreign buy + gainer same day
+    for d in sorted_dates:
+        for r in by_date[d]:
+            fb_stocks = set(f["stock"] for f in r.get("foreign_buy", []))
+            gainer_stocks = set(g["stock"] for g in r.get("gainers", []))
+            for s in fb_stocks & gainer_stocks:
+                same_day_signal[s] += 1
+
+    # V2: Sesi1 gainer → sesi2 gainer (intraday)
+    win_v2 = 0
+    loss_v2 = 0
+    for d in sorted_dates:
+        dr = by_date[d]
+        s1 = next((r for r in dr if r["type"] == "session1"), None)
+        full = next((r for r in dr if r["type"] == "full"), None)
+        if not s1 or not full:
+            continue
+        s1_gainers = set(s["stock"] for s in s1.get("gainers", []))
+        eod_gainers = set(s["stock"] for s in full.get("gainers", []))
+        eod_losers = set(s["stock"] for s in full.get("losers", []))
+        for stock in s1_gainers:
+            if stock in eod_gainers:
+                win_v2 += 1
+            else:
+                loss_v2 += 1
+
+    # V3: Weekly consistency
+    weeks = defaultdict(list)
+    for r in reports:
+        d_obj = datetime.strptime(r["date"], "%Y-%m-%d")
+        wk = d_obj.strftime("%Y-W%W")
+        weeks[wk].append(r)
+    week_list = sorted(weeks.keys())
+    cons_win = cons_loss = 0
+    for i, wk in enumerate(week_list[:-1]):
+        next_wk = week_list[i+1]
+        next_gainers = set()
+        fb_this = Counter()
+        for r in weeks[wk]:
+            for fb in r.get("foreign_buy", []):
+                fb_this[fb["stock"]] += 1
+        for r in weeks[next_wk]:
+            for g in r.get("gainers", []):
+                next_gainers.add(g["stock"])
+        for stock, count in fb_this.items():
+            if count >= 2:
+                if stock in next_gainers:
+                    cons_win += 1
+                else:
+                    cons_loss += 1
+
+    # Best picks
+    top_picks = []
+    for s in best_stocks:
+        t = best_total[s]
+        top_picks.append({"stock": s, "wins": best_stocks[s], "total": t})
+    top_picks.sort(key=lambda x: -x["wins"])
+
+    same_day_list = [{"stock": s, "count": c} for s, c in same_day_signal.most_common(8)]
+
+    # ── Recent Foreign Buy (last 7 days) ──
+    last_week = [d for d in sorted_dates if d >= "2026-06-01"]
+    recent_foreign_raw = defaultdict(float)
+    recent_freq = Counter()
+    for d in last_week:
+        for r in by_date[d]:
+            for fb in r.get("foreign_buy", []):
+                recent_foreign_raw[fb["stock"]] += fb["value"]
+                recent_freq[fb["stock"]] += 1
+    recent_hot = [
+        {"stock": s, "total": round(v, 2), "freq": recent_freq[s],
+         "same_day": same_day_signal.get(s, 0)}
+        for s, v in sorted(recent_foreign_raw.items(), key=lambda x: -x[1])[:8]
+    ]
+
+    # ── IHSG Outlook ──
+    latest5 = ihsg_vals[:5]
+    latest_avg = round(sum(latest5) / len(latest5), 1) if latest5 else 0
+    if latest_avg < -2:
+        outlook = "bearish"
+    elif latest_avg < 0:
+        outlook = "koreksi"
+    else:
+        outlook = "stabil"
+
+    return {
+        "status": "ok",
+        "analysis": {
+            "period": {"start": dates[0], "end": dates[-1], "days": len(dates), "total_reports": len(reports)},
+            "ihsg_summary": {"avg": avg_ihsg, "red_days": red_days, "green_days": green_days, "total": len(ihsg_vals)},
+            "top_foreign": top_foreign,
+            "monthly_flow": monthly_flow,
+            "ihsg_trend": ihsg_trend,
+            "backtest": {
+                "v1": {"label": "Beli Top 3 Foreign Buy → Gainer 3 hari", "trades": win_v1 + loss_v1, "wins": win_v1, "losses": loss_v1, "win_rate": round(win_v1 / max(win_v1 + loss_v1, 1) * 100)},
+                "v2": {"label": "Beli Top Gainer Sesi1 → jual akhir sesi", "trades": win_v2 + loss_v2, "wins": win_v2, "losses": loss_v2, "win_rate": round(win_v2 / max(win_v2 + loss_v2, 1) * 100)},
+                "v3": {"label": "Saham ≥2 foreign buy/minggu → gainer minggu depan", "trades": cons_win + cons_loss, "wins": cons_win, "losses": cons_loss, "win_rate": round(cons_win / max(cons_win + cons_loss, 1) * 100)},
+            },
+            "same_day_signals": same_day_list,
+            "top_picks": top_picks[:5],
+            "recent_hot": recent_hot,
+            "ihsg_outlook": {
+                "latest": [round(v, 1) for v in latest5],
+                "avg": latest_avg,
+                "status": outlook,
+            }
+        }
+    }

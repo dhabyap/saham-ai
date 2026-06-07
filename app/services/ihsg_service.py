@@ -1,15 +1,14 @@
 import pandas as pd
 import numpy as np
-import requests
 import time
 from datetime import datetime, timedelta
 from typing import Optional
 
+from app.constants import USER_AGENT
+from app.http_client import get_http_client
 
-_session = requests.Session()
-_session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-})
+
+_session = get_http_client()
 
 
 class IHSGService:
@@ -108,7 +107,6 @@ class IHSGService:
         }
 
     def get_historical_ihsg(self, days: int = 365) -> list[dict]:
-        period_map = {365: "1y", 730: "2y", 1825: "5y"}
         if days <= 365:
             period = "1y"
         elif days <= 730:

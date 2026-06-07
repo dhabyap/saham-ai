@@ -4,25 +4,12 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
+from app.constants import SECTOR_MAP
 from app.services.stock_service import fetch_stock_data, calculate_indicators
 from app.services.relative_strength import calculate_relative_strength
 from app.services.market_service import get_sector_flow, get_sector_performance
 from app.database.foreign_flow_models import get_accumulation_status, get_foreign_flow
 
-
-SECTOR_MAP = {
-    "BBCA": "Financials", "BBRI": "Financials", "BMRI": "Financials", "BBNI": "Financials",
-    "TLKM": "Telecommunication", "EXCL": "Telecommunication", "TOWR": "Telecommunication",
-    "ASII": "Automotive", "UNVR": "Consumer Goods", "HMSP": "Consumer Goods",
-    "GGRM": "Consumer Goods", "INDF": "Consumer Goods", "ICBP": "Consumer Goods",
-    "KLBF": "Healthcare", "CPIN": "Consumer Goods",
-    "ADRO": "Energy", "ITMG": "Energy", "PTBA": "Energy", "MEDC": "Energy",
-    "PGAS": "Energy",
-    "SMGR": "Infrastructure", "INTP": "Infrastructure", "JSMR": "Infrastructure",
-    "AKRA": "Energy",
-    "SMMA": "Financials",
-    "EXCL": "Telecommunication",
-}
 
 StrategyType = Literal["swing", "day_trade", "long_term"]
 RiskLevel = Literal["low", "moderate", "high"]

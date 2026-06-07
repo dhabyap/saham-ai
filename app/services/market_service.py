@@ -1,24 +1,15 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+from typing import Optional
+
+from app.constants import SECTOR_MAP, MARKET_FLOW_INFLOW, MARKET_FLOW_OUTFLOW, FEAR_GREED_STRONG, FEAR_GREED_MODERATE
 from app.services.stock_service import STOCK_LIST, fetch_stock_data
 
 
-def get_sector_performance():
-    sector_map = {
-        "BBCA": "Financials", "BBRI": "Financials", "BMRI": "Financials", "BBNI": "Financials",
-        "TLKM": "Telecommunication", "EXCL": "Telecommunication", "TOWR": "Telecommunication",
-        "ASII": "Automotive", "UNVR": "Consumer Goods", "HMSP": "Consumer Goods",
-        "GGRM": "Consumer Goods", "INDF": "Consumer Goods", "ICBP": "Consumer Goods",
-        "KLBF": "Healthcare", "CPIN": "Consumer Goods",
-        "ADRO": "Energy", "ITMG": "Energy", "PTBA": "Energy", "MEDC": "Energy",
-        "PGAS": "Energy",
-        "SMGR": "Infrastructure", "INTP": "Infrastructure", "JSMR": "Infrastructure",
-        "AKRA": "Energy",
-    }
-
+def get_sector_performance() -> dict:
     sector_data = {}
-    for code, sector in sector_map.items():
+    for code, sector in SECTOR_MAP.items():
         try:
             data = fetch_stock_data(code, period="1mo")
             if data:
@@ -40,7 +31,7 @@ def get_sector_performance():
                 "performance": perf,
                 "count": data["count"],
                 "status": "Positive" if perf > 0 else "Negative",
-                "flow": "INFLOW" if perf > 0.5 else ("OUTFLOW" if perf < -0.5 else "NEUTRAL"),
+                "flow": "INFLOW" if perf > MARKET_FLOW_INFLOW else ("OUTFLOW" if perf < MARKET_FLOW_OUTFLOW else "NEUTRAL"),
             }
 
     # Update global sector flow cache
@@ -49,7 +40,7 @@ def get_sector_performance():
 
     return result
 
-def get_sector_flow():
+def get_sector_flow() -> dict:
     """Get sector rotation flow summary for AI context"""
     if not SECTOR_FLOW:
         get_sector_performance()
@@ -65,7 +56,7 @@ def get_sector_flow():
     }
 
 
-def get_market_summary():
+def get_market_summary() -> dict:
     total = len(STOCK_LIST)
     up = 0
     down = 0
@@ -108,7 +99,7 @@ def get_market_summary():
     }
 
 
-def _calculate_fear_greed(up, down, avg_change, std_change):
+def _calculate_fear_greed(up: int, down: int, avg_change: float, std_change: float) -> dict:
     total = up + down
     if total == 0:
         return {"index": 50, "label": "Neutral"}
@@ -118,9 +109,9 @@ def _calculate_fear_greed(up, down, avg_change, std_change):
     score = advance_ratio * 100
 
     if avg_change > 0:
-        score += min(15, abs(avg_change) * 2)
+        score += min(FEAR_GREED_MODERATE, abs(avg_change) * 2)
     else:
-        score -= min(15, abs(avg_change) * 2)
+        score -= min(FEAR_GREED_MODERATE, abs(avg_change) * 2)
 
     score = max(0, min(100, score))
 
@@ -138,7 +129,7 @@ def _calculate_fear_greed(up, down, avg_change, std_change):
     return {"index": round(score), "label": label}
 
 
-def get_market_sentiment():
+def get_market_sentiment() -> dict:
     summary = get_market_summary()
     fg = summary["fear_greed"]
 

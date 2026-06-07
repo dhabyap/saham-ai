@@ -1,8 +1,15 @@
 import pandas as pd
 import numpy as np
-import requests
 import time
 from datetime import datetime, timedelta
+from typing import Optional
+
+from app.constants import (
+    USER_AGENT, HEADERS, RSI_PERIOD, MACD_FAST, MACD_SLOW, MACD_SIGNAL,
+    MA_SHORT, MA_LONG, VOLUME_SPIKE_THRESHOLD, SUPPORT_RESISTANCE_PROXIMITY,
+    RSI_OVERBOUGHT, RSI_OVERSOLD, OPENING_RANGE_MINUTES,
+)
+from app.http_client import get_http_client
 
 
 STOCK_LIST = {
@@ -34,24 +41,21 @@ STOCK_LIST = {
 }
 
 
-def get_stock_code(code):
+def get_stock_code(code: str) -> str:
     code = code.upper().strip()
     if not code.endswith(".JK"):
         code = f"{code}.JK"
     return code
 
 
-_session = requests.Session()
-_session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-})
+_session = get_http_client()
 
 PERIOD_MAP = {
     "1d": "1d", "5d": "5d", "1mo": "1mo", "3mo": "3mo",
     "6mo": "6mo", "1y": "1y", "2y": "2y", "5y": "5y", "max": "max",
 }
 
-def fetch_stock_data(code, period="3mo", interval="1d", max_retries=3):
+def fetch_stock_data(code: str, period: str = "3mo", interval: str = "1d", max_retries: int = 3) -> Optional[dict]:
     period = PERIOD_MAP.get(period, "3mo")
     code = get_stock_code(code).upper()
 
@@ -95,34 +99,34 @@ def fetch_stock_data(code, period="3mo", interval="1d", max_retries=3):
     return None
 
 
-def calculate_indicators(df):
+def calculate_indicators(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
     if df is None or df.empty:
         return None
 
     df = df.copy()
 
     # MA20 & MA50
-    df["MA20"] = df["Close"].rolling(window=20).mean()
-    df["MA50"] = df["Close"].rolling(window=50).mean()
+    df["MA20"] = df["Close"].rolling(window=MA_SHORT).mean()
+    df["MA50"] = df["Close"].rolling(window=MA_LONG).mean()
 
     # RSI
     delta = df["Close"].diff()
     gain = delta.where(delta > 0, 0.0)
     loss = (-delta.where(delta < 0, 0.0))
-    avg_gain = gain.rolling(window=14).mean()
-    avg_loss = loss.rolling(window=14).mean()
+    avg_gain = gain.rolling(window=RSI_PERIOD).mean()
+    avg_loss = loss.rolling(window=RSI_PERIOD).mean()
     rs = avg_gain / avg_loss.replace(0, np.nan)
     df["RSI"] = 100 - (100 / (1 + rs))
 
     # MACD
-    ema12 = df["Close"].ewm(span=12, adjust=False).mean()
-    ema26 = df["Close"].ewm(span=26, adjust=False).mean()
+    ema12 = df["Close"].ewm(span=MACD_FAST, adjust=False).mean()
+    ema26 = df["Close"].ewm(span=MACD_SLOW, adjust=False).mean()
     df["MACD"] = ema12 - ema26
-    df["MACD_Signal"] = df["MACD"].ewm(span=9, adjust=False).mean()
+    df["MACD_Signal"] = df["MACD"].ewm(span=MACD_SIGNAL, adjust=False).mean()
     df["MACD_Hist"] = df["MACD"] - df["MACD_Signal"]
 
     # Volume MA
-    df["Volume_MA"] = df["Volume"].rolling(window=20).mean()
+    df["Volume_MA"] = df["Volume"].rolling(window=MA_SHORT).mean()
 
     # Support & Resistance sederhana
     df["Pivot"] = (df["High"] + df["Low"] + df["Close"]) / 3
@@ -132,7 +136,7 @@ def calculate_indicators(df):
     return df
 
 
-def get_latest_data(code, period="3mo"):
+def get_latest_data(code: str, period: str = "3mo") -> Optional[dict]:
     data = fetch_stock_data(code, period=period)
     if data is None:
         return None
@@ -183,19 +187,19 @@ def get_latest_data(code, period="3mo"):
         macd_status = "N/A"
 
     # Volume spike
-    volume_spike = bool(volume_ratio > 1.5)
+    volume_spike = bool(volume_ratio > VOLUME_SPIKE_THRESHOLD)
 
     # Support/Resistance break
     price = latest["Close"]
-    near_resistance = bool(abs(price - resistance) / price < 0.02) if resistance > 0 else False
-    near_support = bool(abs(price - support) / price < 0.02) if support > 0 else False
+    near_resistance = bool(abs(price - resistance) / price < SUPPORT_RESISTANCE_PROXIMITY) if resistance > 0 else False
+    near_support = bool(abs(price - support) / price < SUPPORT_RESISTANCE_PROXIMITY) if support > 0 else False
 
     # Overbought/Oversold
     rsi_val = latest["RSI"]
     if pd.notna(rsi_val):
-        if rsi_val > 70:
+        if rsi_val > RSI_OVERBOUGHT:
             rsi_status = "Overbought"
-        elif rsi_val < 30:
+        elif rsi_val < RSI_OVERSOLD:
             rsi_status = "Oversold"
         else:
             rsi_status = "Normal"
@@ -248,7 +252,7 @@ def get_latest_data(code, period="3mo"):
 VALID_INTERVALS = {"1m", "2m", "5m", "15m", "30m", "60m"}
 
 
-def fetch_intraday_data(code: str, interval: str = "5m", period: str = "2d", max_retries: int = 3):
+def fetch_intraday_data(code: str, interval: str = "5m", period: str = "2d", max_retries: int = 3) -> Optional[pd.DataFrame]:
     if interval not in VALID_INTERVALS:
         print(f"Invalid interval: {interval}. Using 5m.")
         interval = "5m"
@@ -307,7 +311,7 @@ def get_opening_range(df: pd.DataFrame, interval: str = "5m") -> dict:
         return {"error": "Market baru buka — data belum cukup"}
 
     interval_minutes = int(interval.replace("m", ""))
-    opening_rows = max(1, 30 // interval_minutes)
+    opening_rows = max(1, OPENING_RANGE_MINUTES // interval_minutes)
     opening_df = today_df.iloc[:opening_rows]
     if opening_df.empty:
         return {"error": "Opening range not available yet"}
@@ -348,7 +352,7 @@ def get_opening_range(df: pd.DataFrame, interval: str = "5m") -> dict:
     }
 
 
-def get_top_gainers(limit=10):
+def get_top_gainers(limit: int = 10) -> list:
     results = []
     for code in list(STOCK_LIST.keys())[:30]:
         try:
@@ -370,7 +374,7 @@ def get_top_gainers(limit=10):
     return results[:limit]
 
 
-def get_top_losers(limit=10):
+def get_top_losers(limit: int = 10) -> list:
     results = []
     for code in list(STOCK_LIST.keys())[:30]:
         try:
@@ -392,7 +396,7 @@ def get_top_losers(limit=10):
     return results[:limit]
 
 
-def get_top_volume(limit=10):
+def get_top_volume(limit: int = 10) -> list:
     results = []
     for code in list(STOCK_LIST.keys())[:30]:
         try:

@@ -4,32 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Stock Analyzer — Dashboard</title>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js">
-</script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;transition:background-color .3s ease,color .3s ease,box-shadow .3s ease,border-color .3s ease}:root,html[data-theme="neumorphism"]{--bg:#f0f4f8;--text:#6b7280;--text-secondary:#9ca3af;--accent:#7C3AED;--secondary:#06D9FF;--success:#10B981;--danger:#EF5350;--warning:#F59E0B;--muted:#9ca3af;--surface:#e8f0f7;--surface-2:#dce6f0;--radius:16px;--radius-sm:10px;--radius-lg:20px;--shadow:8px 8px 16px rgba(0,0,0,0.08),-8px -8px 16px rgba(255,255,255,0.5);--shadow-sm:4px 4px 8px rgba(0,0,0,0.06),-4px -4px 8px rgba(255,255,255,0.4);--shadow-lg:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6);--shadow-inset:inset 2px 2px 4px rgba(0,0,0,0.06),inset -2px -2px 4px rgba(255,255,255,0.4);--shadow-glow:0 8px 24px rgba(124,58,237,0.15);--accent-gradient:linear-gradient(135deg,#7C3AED,#06D9FF);--heading-font:inherit;--border-color:transparent;--transition:all .3s ease}html[data-theme="dark"]{--bg:#0a0a0a;--text:#e5e7eb;--text-secondary:#9ca3af;--accent:#7C3AED;--secondary:#06D9FF;--success:#10B981;--danger:#EF5350;--warning:#F59E0B;--muted:#6b7280;--surface:#111111;--surface-2:#1a1a1a;--radius:16px;--radius-sm:10px;--radius-lg:20px;--shadow:0 8px 32px rgba(0,0,0,0.5),0 0 0 1px rgba(124,58,237,0.08);--shadow-sm:0 4px 16px rgba(0,0,0,0.4),0 0 0 1px rgba(124,58,237,0.05);--shadow-lg:0 16px 48px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.1);--shadow-inset:inset 0 2px 4px rgba(0,0,0,0.3);--shadow-glow:0 8px 32px rgba(124,58,237,0.2),0 0 60px rgba(6,217,255,0.05);--accent-gradient:linear-gradient(135deg,#7C3AED,#06D9FF);--heading-font:inherit;--border-color:rgba(124,58,237,0.12);--transition:all .3s ease}html[data-theme="classy"]{--bg:#fafaf9;--text:#3f3f46;--text-secondary:#a1a1aa;--accent:#d97706;--secondary:#7c3aed;--success:#10B981;--danger:#EF5350;--warning:#F59E0B;--muted:#a1a1aa;--surface:#f5f5f0;--surface-2:#e8e8e0;--radius:12px;--radius-sm:8px;--radius-lg:16px;--shadow:0 1px 3px rgba(0,0,0,0.04),0 1px 2px rgba(0,0,0,0.02);--shadow-sm:0 1px 2px rgba(0,0,0,0.03);--shadow-lg:0 4px 12px rgba(0,0,0,0.05),0 2px 4px rgba(0,0,0,0.03);--shadow-inset:inset 0 1px 2px rgba(0,0,0,0.02);--shadow-glow:0 2px 8px rgba(217,119,6,0.08);--accent-gradient:linear-gradient(135deg,#d97706,#b45309);--heading-font:Georgia,'Times New Roman',serif;--border-color:#e7e5e4;--transition:all .3s ease}html{font-size:14px}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;display:flex;overflow:hidden}
-.sidebar{width:200px;background:var(--surface);box-shadow:4px 0 12px rgba(0,0,0,0.04);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;transition:var(--transition)}.sidebar.closed{width:0;overflow:hidden;box-shadow:none}.sidebar-inner{display:flex;flex-direction:column;height:100%;min-width:200px;padding:20px 12px}.sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 8px 20px;margin-bottom:20px;font-size:17px;font-weight:700;letter-spacing:-.3px;color:var(--text)}.sidebar-brand .logo{width:34px;height:34px;background:var(--accent-gradient);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(124,58,237,0.25)}.nav{list-style:none;display:flex;flex-direction:column;gap:4px;margin-bottom:24px}.nav li a{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-sm);color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;box-shadow:var(--shadow-sm)}.nav li a:hover{box-shadow:var(--shadow);color:var(--text);transform:translateY(-1px)}.nav li a.active{background:var(--surface);color:var(--accent);font-weight:600;box-shadow:var(--shadow-inset);border-left:3px solid var(--accent)}.nav li a .ico{width:20px;text-align:center;font-size:15px}.sidebar-watchlist{padding-top:20px;margin-top:auto}.sidebar-watchlist h4{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;padding:0 8px}.wl-item{display:flex;justify-content:space-between;align-items:center;padding:7px 8px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer}.wl-item:hover{box-shadow:var(--shadow-sm)}.wl-item .wl-code{font-weight:600;color:var(--text)}.wl-item .wl-chg{font-weight:600;font-size:12px}.wl-up{color:var(--success)}.wl-down{color:var(--danger)}
-.main{flex:1;margin-left:200px;display:flex;flex-direction:column;height:100vh;overflow:hidden;transition:var(--transition)}.sidebar.closed+.main{margin-left:0}
-.header{display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--surface);flex-shrink:0;min-height:64px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,0.04)}.header>*{position:relative;z-index:1}.hamburger{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:4px;line-height:1}.header-title{font-size:17px;font-weight:700;white-space:nowrap;color:var(--accent);letter-spacing:-.3px}.header-search{position:relative;flex:1;max-width:360px;margin:0 auto}.header-search input{width:100%;padding:9px 14px 9px 36px;border:none;border-radius:20px;background:var(--surface-2);color:var(--text);font-size:13px;outline:none;box-shadow:var(--shadow-inset)}.header-search input::placeholder{color:var(--muted)}.header-search input:focus{box-shadow:inset 3px 3px 6px rgba(0,0,0,0.08),inset -3px -3px 6px rgba(255,255,255,0.6)}.header-search .search-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}.header-user{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-sm);white-space:nowrap;box-shadow:var(--shadow-sm)}.header-user:hover{box-shadow:var(--shadow)}.header-user .avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-gradient);box-shadow:0 2px 8px rgba(124,58,237,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}.header-user .name{font-size:13px;color:var(--text);font-weight:500}.date-display{color:var(--muted);font-size:12px;white-space:nowrap}
-.tabs{display:flex;gap:0;padding:0 24px;background:var(--surface);flex-shrink:0;overflow-x:auto;box-shadow:0 2px 8px rgba(0,0,0,0.03)}.tabs::-webkit-scrollbar{height:2px}.tabs::-webkit-scrollbar-thumb{background:var(--muted);border-radius:4px}.tab-btn{background:none;border:none;color:var(--muted);padding:14px 24px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;position:relative}.tab-btn:hover{color:var(--text)}.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
-.content{flex:1;overflow-y:auto;padding:24px 24px 32px}.content::-webkit-scrollbar{width:6px}.content::-webkit-scrollbar-thumb{background:var(--muted);border-radius:4px}.tab-pane{display:none}.tab-pane.active{display:block}
-.section{margin-bottom:32px}.section-title{font-size:22px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:12px;position:relative;padding-bottom:12px;letter-spacing:-.3px;color:var(--text)}.section-title::after{content:'';position:absolute;bottom:0;left:0;width:44px;height:3px;background:var(--accent-gradient);border-radius:2px}.section-sub{font-size:13px;color:var(--muted);font-weight:400;margin-left:auto}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.section-head .section-title{margin-bottom:0;padding-bottom:0}.section-head .section-title::after{display:none}
-.grid-6{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.card{background:var(--surface);border:none;border-radius:var(--radius);padding:24px;cursor:default;box-shadow:var(--shadow)}.card:hover{transform:translateY(-2px);box-shadow:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6)}.card-accent{box-shadow:8px 8px 16px rgba(124,58,237,0.1),-8px -8px 16px rgba(255,255,255,0.5)}.card-accent:hover{box-shadow:12px 12px 24px rgba(124,58,237,0.15),-12px -12px 24px rgba(255,255,255,0.6)}.card-lift:hover{transform:translateY(-2px);box-shadow:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6)}.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}.card-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600}.card-value{font-size:32px;font-weight:800;line-height:1.2;display:flex;align-items:center;gap:8px;letter-spacing:-.5px;color:var(--text)}.card-value::before{content:'';width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;background:currentColor;opacity:.5}.card-value-sm{font-size:20px;font-weight:700;line-height:1.2}.card-sub{font-size:12px;color:var(--muted);margin-top:4px}.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;letter-spacing:.2px}.badge-success{background:rgba(16,185,129,0.12);color:var(--success);box-shadow:inset 1px 1px 2px rgba(16,185,129,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.badge-danger{background:rgba(239,83,80,0.12);color:var(--danger);box-shadow:inset 1px 1px 2px rgba(239,83,80,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.badge-warning{background:rgba(245,158,11,0.12);color:var(--warning);box-shadow:inset 1px 1px 2px rgba(245,158,11,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.badge-accent{background:rgba(124,58,237,0.12);color:var(--accent);box-shadow:inset 1px 1px 2px rgba(124,58,237,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.card-big{min-height:110px;display:flex;flex-direction:column;justify-content:space-between}
-.fgi-outer{width:100%;height:10px;background:var(--surface-2);border-radius:5px;margin-top:10px;overflow:hidden;position:relative;box-shadow:var(--shadow-inset)}.fgi-fill{height:100%;border-radius:5px;transition:width .6s ease,background .6s ease}.fgi-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px}
-.mover-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px;position:relative;padding-left:14px}.mover-item:last-child{border-bottom:none;padding-bottom:0}.mover-item:first-child{padding-top:0}.mover-item::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px}.mover-item.is-up::before{background:var(--success);box-shadow:0 0 6px rgba(16,185,129,0.3)}.mover-item.is-down::before{background:var(--danger);box-shadow:0 0 6px rgba(239,83,80,0.3)}.mover-item.is-vol::before{background:var(--accent);box-shadow:0 0 6px rgba(124,58,237,0.3)}.mover-name{display:flex;flex-direction:column}.mover-code{font-weight:600;font-size:14px;color:var(--text)}.mover-full{font-size:11px;color:var(--muted);margin-top:1px}.mover-val{font-weight:700;font-size:14px}.mover-trend{width:32px;height:20px;display:inline-flex;align-items:flex-end;gap:2px;margin-left:auto;margin-right:12px}.mover-trend span{width:4px;border-radius:2px}.mover-trend.is-up span{background:var(--success)}.mover-trend.is-up span:nth-child(1){height:6px}.mover-trend.is-up span:nth-child(2){height:12px}.mover-trend.is-up span:nth-child(3){height:18px}.mover-trend.is-down span{background:var(--danger)}.mover-trend.is-down span:nth-child(1){height:18px}.mover-trend.is-down span:nth-child(2){height:10px}.mover-trend.is-down span:nth-child(3){height:4px}.mover-trend.is-vol span{background:var(--accent)}.mover-trend.is-vol span:nth-child(1){height:8px}.mover-trend.is-vol span:nth-child(2){height:14px}.mover-trend.is-vol span:nth-child(3){height:10px}
-.candidate-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.candidate-card{background:var(--surface);border:none;border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;box-shadow:var(--shadow)}.candidate-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-gradient);opacity:0}.candidate-card:hover{transform:translateY(-2px);box-shadow:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6)}.candidate-card:hover::before{opacity:1}.candidate-card .cc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.candidate-card .cc-code{font-size:17px;font-weight:700;letter-spacing:-.3px}.candidate-card .cc-detail{font-size:12px;color:var(--muted);margin-bottom:3px}.candidate-card .cc-val{font-size:15px;font-weight:600}.view-all{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;background:var(--accent-gradient);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;box-shadow:0 4px 12px rgba(124,58,237,0.25)}.view-all:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,0.35)}
-.sector-item{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px}.sector-item:last-child{border-bottom:none;padding-bottom:0}.sector-item:first-child{padding-top:0}.sector-name{width:130px;font-weight:600;flex-shrink:0;font-size:13px;color:var(--text)}.sector-bar-wrap{flex:1;height:22px;background:var(--surface-2);border-radius:6px;overflow:hidden;position:relative;box-shadow:var(--shadow-inset)}.sector-bar-fill{height:100%;border-radius:6px;transition:width .6s ease}.sector-pct{width:56px;text-align:right;font-weight:700;flex-shrink:0;font-size:13px}.sector-flow{width:72px;text-align:right;flex-shrink:0;font-size:11px;font-weight:700}
-.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}thead th{padding:12px 14px;text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid rgba(0,0,0,0.04);white-space:nowrap}tbody td{padding:12px 14px;border-bottom:1px solid rgba(0,0,0,0.04);white-space:nowrap}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:rgba(0,0,0,0.02)}
-.profit-positive{color:var(--success);font-weight:700}.profit-negative{color:var(--danger);font-weight:700}
-.search-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px)}.search-overlay.open{display:block}.search-panel{position:absolute;top:64px;left:50%;transform:translateX(-50%);width:min(480px,90vw);background:var(--surface);border:none;border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:8px 0;max-height:380px;overflow-y:auto}.search-panel .sr-item{padding:10px 16px;cursor:pointer;display:flex;justify-content:space-between;font-size:13px;border-left:3px solid transparent}.search-panel .sr-item:hover{background:rgba(124,58,237,0.06);border-left-color:var(--accent)}
-@media(max-width:1200px){.grid-6{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(2,1fr)}.candidate-row{grid-template-columns:repeat(2,1fr)}}@media(max-width:768px){.sidebar{width:200px}.sidebar.closed{width:0}.sidebar-inner{min-width:200px}.main{margin-left:200px}.sidebar.closed+.main{margin-left:0}.hamburger{display:block}.header-search{max-width:200px}.grid-6{grid-template-columns:repeat(2,1fr)}.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr}.candidate-row{grid-template-columns:1fr}.sector-name{width:100px}.header-user .name{display:none}.content{padding:16px}.header{padding:0 16px}.tabs{padding:0 16px}.tab-btn{padding:12px 16px;font-size:12px}}@media(max-width:480px){.sidebar{width:100%;z-index:300}.sidebar.closed{width:0}.sidebar-inner{min-width:100%}.main{margin-left:0}.grid-6{grid-template-columns:1fr 1fr}.grid-4{grid-template-columns:1fr 1fr}.header-title{display:none}.header-search{max-width:140px}.card-value{font-size:26px}.content{padding:12px}}
-html[data-theme="dark"] .header{background:linear-gradient(135deg,#0d0d1a,#1a0a2e,#0a0a0a);border-bottom:1px solid rgba(124,58,237,0.15)}html[data-theme="dark"] .sidebar{border-right:1px solid rgba(124,58,237,0.1)}html[data-theme="dark"] .card{border:1px solid var(--border-color)}html[data-theme="dark"] .candidate-card::before{background:linear-gradient(90deg,#7C3AED,#06D9FF)}html[data-theme="dark"] .nav li a.active{border-left-color:#06D9FF}html[data-theme="dark"] .card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.15)}html[data-theme="dark"] .card-accent{box-shadow:0 8px 32px rgba(0,0,0,0.5),0 0 24px rgba(124,58,237,0.15)}html[data-theme="dark"] .card-accent:hover{box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 32px rgba(124,58,237,0.2)}html[data-theme="dark"] .candidate-card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.15)}html[data-theme="dark"] .view-all{box-shadow:0 4px 20px rgba(124,58,237,0.3)}html[data-theme="dark"] .badge{box-shadow:inset 0 1px 2px rgba(0,0,0,0.2);background:rgba(124,58,237,0.1)}html[data-theme="dark"] .badge-success{background:rgba(16,185,129,0.15)}html[data-theme="dark"] .badge-danger{background:rgba(239,83,80,0.15)}html[data-theme="dark"] .badge-warning{background:rgba(245,158,11,0.15)}html[data-theme="dark"] .badge-accent{background:rgba(124,58,237,0.2)}html[data-theme="dark"] .search-panel .sr-item:hover{background:rgba(124,58,237,0.1)}
-html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-weight:600;letter-spacing:0}html[data-theme="classy"] .section-title::after{background:var(--accent-gradient);height:2px;width:36px}html[data-theme="classy"] .card{border:1px solid var(--border-color)}html[data-theme="classy"] .card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.05),0 2px 4px rgba(0,0,0,0.03)}html[data-theme="classy"] .candidate-card{border:1px solid var(--border-color)}html[data-theme="classy"] .candidate-card:hover{transform:translateY(-1px)}html[data-theme="classy"] .candidate-card::before{background:var(--accent-gradient)}html[data-theme="classy"] .sidebar-brand .logo{background:var(--accent-gradient);box-shadow:none}html[data-theme="classy"] .nav li a{box-shadow:none;border:1px solid transparent}html[data-theme="classy"] .nav li a:hover{box-shadow:none;border-color:var(--border-color)}html[data-theme="classy"] .nav li a.active{box-shadow:none;border-left-color:var(--accent);background:rgba(217,119,6,0.04)}html[data-theme="classy"] .badge{box-shadow:none;border:1px solid currentColor;opacity:.8}html[data-theme="classy"] .view-all{background:var(--accent);box-shadow:none}html[data-theme="classy"] .view-all:hover{background:#b45309;box-shadow:none;transform:none}html[data-theme="classy"] .header{border-bottom:1px solid var(--border-color)}html[data-theme="classy"] .header-user{box-shadow:none;border:1px solid var(--border-color)}html[data-theme="classy"] .header-user:hover{box-shadow:none}html[data-theme="classy"] .sidebar{border-right:1px solid var(--border-color)}html[data-theme="classy"] .tabs{border-bottom:1px solid var(--border-color)}html[data-theme="classy"] .tab-btn.active{border-bottom-color:var(--accent)}html[data-theme="classy"] .mover-item{border-bottom-color:var(--border-color)}html[data-theme="classy"] .sector-item{border-bottom-color:var(--border-color)}html[data-theme="classy"] thead th{border-bottom-color:var(--border-color)}html[data-theme="classy"] tbody td{border-bottom-color:var(--border-color)}html[data-theme="classy"] .fgi-outer{box-shadow:none;border:1px solid var(--border-color)}html[data-theme="classy"] .sector-bar-wrap{box-shadow:none;border:1px solid var(--border-color)}html[data-theme="classy"] .header-search input{box-shadow:none;border:1px solid var(--border-color);background:var(--surface)}html[data-theme="classy"] .header-search input:focus{border-color:var(--accent)}html[data-theme="classy"] .sidebar-watchlist h4{letter-spacing:1.5px}html[data-theme="classy"] .wl-item:hover{box-shadow:none;background:rgba(0,0,0,0.02)}html[data-theme="classy"] .search-panel{box-shadow:0 4px 16px rgba(0,0,0,0.06);border:1px solid var(--border-color)}html[data-theme="classy"] .theme-btn.active{box-shadow:none;border:1px solid var(--accent);background:rgba(217,119,6,0.06)}
-.theme-switcher{display:flex;gap:4px;background:var(--surface-2);padding:3px;border-radius:20px;box-shadow:var(--shadow-inset);flex-shrink:0}.theme-btn{background:none;border:none;color:var(--muted);padding:5px 12px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;letter-spacing:.2px}.theme-btn:hover{color:var(--text)}.theme-btn.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow-sm)}
-
-.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.form-control{width:100%;padding:9px 14px;border:none;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text);font-size:13px;outline:none;box-shadow:var(--shadow-inset);font-family:inherit}.form-control:focus{box-shadow:inset 3px 3px 6px rgba(0,0,0,0.08),inset -3px -3px 6px rgba(255,255,255,0.6)}.form-control::placeholder{color:var(--muted)}select.form-control{cursor:pointer}label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}.btn-primary{background:var(--accent-gradient);color:#fff;box-shadow:0 4px 12px rgba(124,58,237,0.25)}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,0.35)}.btn-sm{padding:6px 14px;font-size:12px}.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{transform:translateY(-2px)}.btn-outline{background:none;border:1px solid var(--muted);color:var(--muted);cursor:pointer;font-family:inherit;padding:6px 14px;font-size:12px;border-radius:var(--radius-sm)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}.setting-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.04)}.setting-row:last-child{border-bottom:none}.alert-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:var(--radius-sm);margin-bottom:8px;box-shadow:var(--shadow-sm)}.alert-item:hover{box-shadow:var(--shadow)}.detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.detail-item{padding:12px;border-radius:var(--radius-sm);background:var(--surface-2);box-shadow:var(--shadow-inset)}.detail-label{font-size:11px;color:var(--muted);margin-bottom:2px;font-weight:600}.detail-value{font-size:16px;font-weight:700;color:var(--text)}.comp-card{padding:16px;border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow)}.comp-card h3{font-size:15px;margin-bottom:12px;color:var(--accent)}.comp-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px}.comp-row:last-child{border-bottom:none}.comp-label{color:var(--muted)}.comp-value{font-weight:600}.flex-center{display:flex;align-items:center;gap:8px}.w-full{width:100%}label input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent)}@media(max-width:768px){.grid-2{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}}
-</style>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="/static/dashboard.css">
 </head>
 <body>
   <div id="app">
@@ -107,6 +84,12 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
         <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">General</button>
         <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Account</button>
         <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">Alerts</button>
+      </div>
+      <div v-else-if="currentView === 'marketreports'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📈 IHSG Chart</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'reports' }" @click="switchMrTab('reports')">📋 Reports</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'stocks' }" @click="switchMrTab('stocks')">🏛️ Stock Tracker</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'analysis' }" @click="switchMrTab('analysis')">🤖 AI Analysis</button>
       </div>
       <div class="content">
         <div v-if="currentView === 'dashboard'">
@@ -223,7 +206,7 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
             </div>
             <div class="section">
               <div class="section-title">Sector Rotation</div>
-              <div class="card" style="padding:18px 22px">
+              <div class="card p-4">
                 <div v-for="s in sectors" :key="s.name" class="sector-item">
                   <span class="sector-name">{{ s.name }}</span>
                   <div class="sector-bar-wrap"><div class="sector-bar-fill" :style="{ width: s.width, background: s.barColor }"></div></div>
@@ -234,7 +217,7 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
             </div>
             <div class="section">
               <div class="section-title">Recent Predictions</div>
-              <div class="card" style="padding:0;overflow:hidden">
+              <div class="card card-table">
                 <div class="table-wrap">
                   <table>
                     <thead>
@@ -242,7 +225,7 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
                     </thead>
                     <tbody>
                       <tr v-for="row in predictions" :key="row.code + row.date">
-                        <td style="font-weight:600">{{ row.code }}</td>
+                        <td class="font-semibold">{{ row.code }}</td>
                         <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
                         <td>{{ row.confidence }}%</td>
                         <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
@@ -454,7 +437,7 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           <div class="tab-pane" :class="{ active: currentTab === 'portfolio' }">
             <div class="section">
               <div class="section-title">&#128188; Portfolio</div>
-              <div class="card" style="padding:0;overflow:hidden">
+              <div class="card card-table">
                 <div class="table-wrap">
                   <table>
                     <thead>
@@ -462,7 +445,7 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
                     </thead>
                     <tbody>
                       <tr v-for="row in ltPortfolio" :key="row.stock">
-                        <td style="font-weight:600">{{ row.stock }}</td>
+                        <td class="font-semibold">{{ row.stock }}</td>
                         <td>{{ row.entryDate }}</td>
                         <td>{{ row.avgPrice }}</td>
                         <td>{{ row.currentPrice }}</td>
@@ -597,6 +580,291 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
                   <option v-for="s in comparisonAvailable" :key="s" :value="s">{{ s }}</option>
                 </select>
                 <button class="btn btn-sm btn-primary" @click="addComparison" :disabled="!comparisonAddCode">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="currentView === 'marketreports'">
+          <!-- IHSG Chart tab -->
+          <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <div class="section" v-if="mrReports.length === 0">
+              <div class="card text-center p-4">
+                <div class="font-bold text-muted" style="font-size:18px;margin-bottom:8px">📊 Market Reports</div>
+                <div class="text-xs text-muted">Belum ada data market report. Jalankan scraper dulu.</div>
+              </div>
+            </div>
+            <template v-if="mrReports.length > 0">
+            <div class="section">
+              <div class="section-title">IHSG Performance</div>
+              <div class="card p-4">
+                <div class="chart-wrap"><canvas id="ihsgChart"></canvas></div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">Top Foreign Buy Frequency</div>
+              <div class="card p-4">
+                <div class="chart-wrap"><canvas id="foreignChart"></canvas></div>
+              </div>
+            </div>
+            </template>
+          </div>
+          <!-- Reports tab -->
+          <div class="tab-pane" :class="{ active: currentTab === 'reports' }">
+            <div class="section">
+              <div class="section-title">Market Report Cards</div>
+              <div class="stats-row">
+                <div class="card text-center p-3">
+                  <div class="font-bold text-accent" style="font-size:28px">{{ mrStats.totalReports }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total Reports</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold" style="font-size:28px" :style="{color: mrStats.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrStats.avgIHSG }}%</div>
+                  <div class="text-xs text-muted text-uppercase">Rata-rata IHSG</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-secondary" style="font-size:28px">{{ mrStats.foreignStocks }}</div>
+                  <div class="text-xs text-muted text-uppercase">Unik Top Foreign</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-danger" style="font-size:28px">{{ mrStats.redDays }}</div>
+                  <div class="text-xs text-muted text-uppercase">Hari Merah</div>
+                </div>
+              </div>
+              <!-- Net Foreign Accumulation -->
+              <div class="card p-4 mb-4">
+                <div class="font-semibold text-accent mb-3">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hindari yg lokal > asing)</span></div>
+                <div class="overflow-x-auto">
+                  <table class="table-net-foreign" style="width:100%">
+                    <thead><tr>
+                      <th class="text-left p-2 text-muted">Stock</th>
+                      <th class="text-right p-2 text-muted">🌍 Foreign</th>
+                      <th class="text-right p-2 text-muted">🏠 Local</th>
+                      <th class="text-right p-2 text-muted">Net</th>
+                      <th class="text-right p-2 text-muted">Last</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr v-for="s in mrNetForeign" :key="s.stock" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                        <td class="tf-stock p-1" style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
+                        <td class="tf-foreign p-1" style="color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
+                        <td class="tf-local p-1" style="color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
+                        <td class="tf-net p-1" :style="{color: s.net >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ s.net >= 0 ? '+' : '' }}{{ formatRp(Math.abs(s.net)) }}</td>
+                        <td class="tf-last p-1">{{ s.lastDate.slice(5) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="month-group">
+                <div v-for="m in mrMonths" :key="m.key" class="month-section">
+                  <div class="card month-header" @click="toggleMonth(m.key)">
+                    <div>
+                      <span class="month-label">{{ m.label }}</span>
+                      <span class="month-meta">{{ m.count }} report</span>
+                      <span class="month-meta">🌍{{ m.foreignSet.size }} saham</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span v-if="m.avgIHSG !== null" :style="{color: m.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight:700}">{{ m.avgIHSG >= 0 ? '+' : '' }}{{ m.avgIHSG.toFixed(1) }}%</span>
+                      <span class="text-xs text-muted">🔴{{ m.redDays }} 🟢{{ m.greenDays }}</span>
+                      <span class="text-muted" style="font-size:14px;transition:transform .2s" :style="{transform: mrExpandedMonths[m.key] ? 'rotate(180deg)' : 'rotate(0deg)'}">▼</span>
+                    </div>
+                  </div>
+                  <div v-if="mrExpandedMonths[m.key]" class="month-grid">
+                    <div v-for="r in m.reports" :key="r.date" class="mr-report-card">
+                      <div class="mr-date">
+                        {{ r.date }} <span v-if="r.ihsg_change != null" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change >= 0 ? '🟢' : '🔴' }}</span>
+                      </div>
+                      <div class="mr-ihsg" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change != null ? r.ihsg_change.toFixed(1) + '%' : 'N/A' }}</div>
+                      <div v-if="r.local_buy_amount" class="text-xs text-muted mb-2">Local Buy: {{ formatRp(r.local_buy_amount) }}</div>
+                      <template v-if="r.foreign_buy && r.foreign_buy.length">
+                        <div class="mr-section-title">🌍 Foreign Buy</div>
+                        <div v-for="s in r.foreign_buy" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold">{{ formatRp(s.value) }}</span>
+                        </div>
+                      </template>
+                      <template v-if="r.local_buy && r.local_buy.length">
+                        <div class="mr-section-title">🏠 Local Buy</div>
+                        <div v-for="s in r.local_buy" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-secondary">{{ s.stock }}</span><span class="font-semibold">{{ formatRp(s.value) }}</span>
+                        </div>
+                      </template>
+                      <template v-if="r.gainers && r.gainers.length">
+                        <div class="mr-section-title">📈 Gainers</div>
+                        <div v-for="s in r.gainers" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-success">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+                        </div>
+                      </template>
+                      <template v-if="r.losers && r.losers.length">
+                        <div class="mr-section-title">📉 Losers</div>
+                        <div v-for="s in r.losers" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-danger">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Stock Tracker tab -->
+          <div class="tab-pane" :class="{ active: currentTab === 'stocks' }">
+            <div class="section">
+              <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hanya yg net positif)</span></div>
+              <div class="card card-table">
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Stock</th><th>🌍 Foreign</th><th>🏠 Local</th><th>Net</th><th>Last</th></tr></thead>
+                    <tbody>
+                      <tr v-for="s in mrNetForeign.filter(x => x.net > 0)" :key="s.stock">
+                        <td class="font-semibold text-accent">{{ s.stock }}</td>
+                        <td class="text-success">{{ formatRp(s.foreignTotal) }}</td>
+                        <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>
+                        <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
+                        <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
+                      </tr>
+                      <tr v-if="!mrNetForeign.filter(x => x.net > 0).length"><td colspan="5" class="text-center text-muted">No data</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- AI Analysis tab -->
+          <div class="tab-pane" :class="{ active: currentTab === 'analysis' }">
+            <div class="section" v-if="mrLoadingAnalysis">
+              <div class="card" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading analysis...</div>
+            </div>
+            <div v-if="mrAnalysis">
+              <!-- Summary Row -->
+              <div class="section">
+                <div class="section-title">📊 Market Report Summary</div>
+                <div class="grid-4-card">
+                  <div class="card text-center p-3">
+                    <div class="font-bold text-accent" style="font-size:24px">{{ mrAnalysis.period.total_reports }}</div>
+                    <div class="text-xs text-muted text-uppercase">Total Reports</div>
+                    <div class="text-xs text-muted">{{ mrAnalysis.period.start }} → {{ mrAnalysis.period.end }}</div>
+                  </div>
+                  <div class="card text-center p-3">
+                    <div class="font-bold" style="font-size:24px" :style="{color: mrAnalysis.ihsg_summary.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrAnalysis.ihsg_summary.avg }}%</div>
+                    <div class="text-xs text-muted text-uppercase">Rata-rata IHSG</div>
+                    <div class="text-xs text-muted">🔴 {{ mrAnalysis.ihsg_summary.red_days }} / 🟢 {{ mrAnalysis.ihsg_summary.green_days }}</div>
+                  </div>
+                  <div class="card text-center p-3">
+                    <div class="font-bold text-secondary" style="font-size:24px">{{ mrAnalysis.period.days }}</div>
+                    <div class="text-xs text-muted text-uppercase">Trading Days</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Net Foreign Accumulation -->
+              <div class="section">
+                <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, bersih)</span></div>
+                <div class="card card-table">
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>Stock</th><th>🌍 Foreign</th><th>🏠 Local</th><th>Net</th><th>Last</th></tr></thead>
+                      <tbody>
+                        <tr v-for="s in mrNetForeign.filter(x => x.net > 0).slice(0,20)" :key="s.stock">
+                          <td class="font-semibold text-accent">{{ s.stock }}</td>
+                          <td class="font-semibold text-success">{{ formatRp(s.foreignTotal) }}</td>
+                          <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>
+                          <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
+                          <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Monthly Flow -->
+              <div class="section">
+                <div class="section-title">📊 Foreign Flow per Bulan</div>
+                <div v-for="m in mrAnalysis.monthly_flow" :key="m.month" class="card p-3 mb-2">
+                  <div class="flex items-center justify-between">
+                    <div><strong>{{ m.month }}</strong> <span class="text-xs text-muted">({{ m.reports }} report)</span></div>
+                    <div class="font-bold text-accent">{{ formatRp(m.total) }}</div>
+                  </div>
+                  <div class="text-xs text-muted mt-1">
+                    {{ m.top.map(t => t.stock + ' ' + formatRp(t.value)).join(' · ') }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- IHSG Trend -->
+              <div class="section">
+                <div class="section-title">🔄 IHSG Trend</div>
+                <div class="grid-3-card">
+                  <div v-for="p in mrAnalysis.ihsg_trend" :key="p.label" class="card text-center p-3">
+                    <div class="text-xs text-muted">{{ p.label }}</div>
+                    <div class="font-bold" style="font-size:22px" :style="{color: p.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ p.avg }}%</div>
+                    <div class="text-xs text-muted">merah {{ p.red }}/{{ p.total }} hari</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Backtest Results -->
+              <div class="section">
+                <div class="section-title">⚡ Backtest Results</div>
+                <div class="grid-3-card">
+                  <div v-for="bt in mrAnalysis.backtest" :key="bt.label" class="card p-3">
+                    <div class="text-xs text-muted mb-2">{{ bt.label }}</div>
+                    <div class="flex items-center justify-between">
+                      <span v-if="bt.win_rate >= 50" class="font-bold text-success" style="font-size:28px">{{ bt.win_rate }}%</span>
+                      <span v-else class="font-bold text-danger" style="font-size:28px">{{ bt.win_rate }}%</span>
+                      <span class="text-xs text-muted">{{ bt.wins }}/{{ bt.trades }} win</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Same-Day Signals -->
+              <div class="section" v-if="mrAnalysis.same_day_signals && mrAnalysis.same_day_signals.length">
+                <div class="section-title">🔥 Same-Day Signal (Foreign Buy → langsung Gainer)</div>
+                <div class="card p-3">
+                  <div v-for="s in mrAnalysis.same_day_signals" :key="s.stock" class="flex justify-between font-semibold text-sm p-1" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                    <span class="text-accent">{{ s.stock }}</span>
+                    <span class="text-success">{{ s.count }}x</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hot Picks -->
+              <div class="section">
+                <div class="section-title">🎯 Hot Pick (Foreign Buy Terbaru)</div>
+                <div class="card card-table">
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>Stock</th><th>7d Total</th><th>Freq</th><th>Same-Day</th></tr></thead>
+                      <tbody>
+                        <tr v-for="s in mrAnalysis.recent_hot" :key="s.stock">
+                          <td class="font-semibold text-accent">{{ s.stock }}</td>
+                          <td>{{ formatRp(s.total) }}</td>
+                          <td>{{ s.freq }}x</td>
+                          <td class="text-success">{{ s.same_day > 0 ? s.same_day + 'x 🔥' : '-' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- IHSG Outlook -->
+              <div class="section">
+                <div class="section-title">📊 IHSG Outlook</div>
+                <div class="card p-4">
+                  <div class="ihsg-outlook">
+                    <div>
+                      <span class="ihsg-outlook-label">5 report terakhir: </span>
+                      <span v-for="(v, i) in mrAnalysis.ihsg_outlook.latest" :key="i" class="ihsg-outlook-value" :style="{color: v >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ v }}%</span>
+                    </div>
+                    <div>
+                      <span v-if="mrAnalysis.ihsg_outlook.status === 'bearish'" class="ihsg-status-bearish">⚠️ Bearish</span>
+                      <span v-else-if="mrAnalysis.ihsg_outlook.status === 'koreksi'" class="ihsg-status-koreksi">⚡ Koreksi</span>
+                      <span v-else class="ihsg-status-stabil">✅ Stabil</span>
+                    </div>
+                  </div>
+                  <div class="text-xs text-muted">Disclaimer: Backtest berdasarkan data @creativetrader. Bukan saran investasi.</div>
+                </div>
               </div>
             </div>
           </div>
@@ -745,499 +1013,6 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
       </div>
     </div>
   </div>
-  <script>
-    const { createApp, ref, computed, onMounted, watch } = Vue;
-
-    createApp({
-      setup() {
-        const currentTheme = ref('neumorphism');
-        const currentView = ref('dashboard');
-        const currentTab = ref('overview');
-        const searchQuery = ref('');
-        const sidebarOpen = ref(true);
-        const searchOpen = ref(false);
-        const dateStr = ref('');
-
-        const themes = [
-          { id: 'neumorphism', label: 'Light' },
-          { id: 'dark', label: 'Dark' },
-          { id: 'classy', label: 'Classy' },
-        ];
-
-        const navItems = [
-          { view: 'dashboard',  icon: '&#9751;', label: 'Dashboard' },
-          { view: 'daytrading', icon: '&#8644;', label: 'Day Trading' },
-          { view: 'longterm',   icon: '&#9670;', label: 'Long Term' },
-          { view: 'analysis',   icon: '&#9776;', label: 'Analysis' },
-          { view: 'settings',   icon: '&#9881;', label: 'Settings' },
-        ];
-
-        const headerTitle = computed(() => {
-          const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', settings: 'Settings' };
-          return map[currentView.value] || 'Dashboard';
-        });
-
-        const dashboardTabs = [
-          { id: 'overview', label: 'Overview' },
-          { id: 'aiperf', label: 'AI Performance' },
-          { id: 'movers', label: 'Market Movers' },
-          { id: 'sectors', label: 'Sectors' },
-          { id: 'preds', label: 'Predictions' },
-        ];
-        const daytradingTabs = [
-          { id: 'signals', label: 'Signals' },
-          { id: 'candidates', label: 'Candidates' },
-          { id: 'history', label: 'History' },
-        ];
-        const longtermTabs = [
-          { id: 'accumulation', label: 'Accumulation' },
-          { id: 'portfolio', label: 'Portfolio' },
-          { id: 'watchlist', label: 'Watchlist' },
-        ];
-        const analysisTabs = [
-          { id: 'search', label: 'Search' },
-          { id: 'detail', label: 'Detail' },
-          { id: 'comparison', label: 'Comparison' },
-        ];
-        const settingsTabs = [
-          { id: 'general', label: 'General' },
-          { id: 'account', label: 'Account' },
-          { id: 'alerts', label: 'Alerts' },
-        ];
-
-        const watchlist = ref([
-          { code: 'BBCA', chg: 3.5 },
-          { code: 'ASII', chg: 2.8 },
-          { code: 'TLKM', chg: -2.1 },
-          { code: 'ADRO', chg: 1.4 },
-          { code: 'ICBP', chg: 0.2 },
-          { code: 'BBRI', chg: 1.9 },
-          { code: 'UNVR', chg: -0.8 },
-          { code: 'GOTO', chg: -3.2 },
-        ]);
-
-        const allStocks = [
-          { code: 'BBCA', name: 'Bank Central Asia', chg: 3.5 },
-          { code: 'ASII', name: 'Astra International', chg: 2.8 },
-          { code: 'TLKM', name: 'Telkom Indonesia', chg: -2.1 },
-          { code: 'ADRO', name: 'Adaro Energy', chg: 1.4 },
-          { code: 'ICBP', name: 'Indofood CBP', chg: 0.2 },
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: 1.9 },
-          { code: 'UNVR', name: 'Unilever Indonesia', chg: -0.8 },
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: -3.2 },
-          { code: 'BBNI', name: 'Bank Negara Indonesia', chg: 1.1 },
-          { code: 'INDF', name: 'Indofood Sukses Makmur', chg: -0.5 },
-        ];
-
-        const filteredStocks = computed(() => {
-          const q = searchQuery.value.toLowerCase();
-          if (!q) return allStocks;
-          return allStocks.filter(s =>
-            s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
-          );
-        });
-
-        const market = ref({
-          fgi: { value: 62, label: 'Greed' },
-          advancing: { count: 285, change: 185, pct: '52%' },
-          declining: { count: 263, change: 263, pct: '48%' },
-          avgChange: '+0.38%',
-          totalVolume: '12.8B',
-          volumeChange: '+8.2% vs prev session',
-          status: 'Open',
-          hours: '09:00 \u2013 15:00 WIB',
-        });
-
-        const aiPerf = ref({
-          accuracy: '72.5%',
-          accuracyChange: '+2.3% vs prev week',
-          winRate: '65.3%',
-          winRateChange: '+1.1% vs prev week',
-          avgProfit: '+1.8%',
-          totalPredictions: '127',
-        });
-
-        const aiPerfDetails = ref([
-          { metric: 'Accuracy (30d)', value: '71.2%', trend: '+1.8%', trendClass: 'profit-positive', desc: 'Overall prediction accuracy over 30 days' },
-          { metric: 'Win Rate (30d)', value: '64.7%', trend: '+0.9%', trendClass: 'profit-positive', desc: 'Percentage of profitable trades' },
-          { metric: 'Avg Hold Time', value: '2.4 days', trend: '-0.3d', trendClass: 'profit-positive', desc: 'Average position holding period' },
-          { metric: 'Max Drawdown', value: '-4.2%', trend: '-1.1%', trendClass: 'profit-positive', desc: 'Maximum portfolio drawdown' },
-          { metric: 'Sharpe Ratio', value: '1.84', trend: '+0.12', trendClass: 'profit-positive', desc: 'Risk-adjusted return metric' },
-          { metric: 'Profit Factor', value: '2.31', trend: '+0.18', trendClass: 'profit-positive', desc: 'Gross profit / gross loss' },
-          { metric: 'Best Trade', value: 'BBCA +8.2%', trend: '-', trendClass: '', desc: 'Highest profit single trade' },
-          { metric: 'Worst Trade', value: 'GOTO -4.1%', trend: '-', trendClass: '', desc: 'Highest loss single trade' },
-        ]);
-
-        const movers = ref({
-          gainers: [
-            { code: 'BBCA', name: 'Bank Central Asia', chg: '+3.5%' },
-            { code: 'ASII', name: 'Astra International', chg: '+2.8%' },
-            { code: 'ADRO', name: 'Adaro Energy', chg: '+2.1%' },
-          ],
-          losers: [
-            { code: 'TLKM', name: 'Telkom Indonesia', chg: '-2.1%' },
-            { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: '-3.2%' },
-            { code: 'UNVR', name: 'Unilever Indonesia', chg: '-0.8%' },
-          ],
-          volume: [
-            { code: 'BBRI', name: 'Bank Rakyat Indonesia', vol: '218.3M' },
-            { code: 'GOTO', name: 'GoTo Gojek Tokopedia', vol: '187.6M' },
-            { code: 'BBCA', name: 'Bank Central Asia', vol: '142.1M' },
-          ],
-        });
-
-        const allGainers = ref([
-          { code: 'BBCA', name: 'Bank Central Asia', chg: '+3.5%' },
-          { code: 'ASII', name: 'Astra International', chg: '+2.8%' },
-          { code: 'ADRO', name: 'Adaro Energy', chg: '+2.1%' },
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: '+1.9%' },
-          { code: 'ICBP', name: 'Indofood CBP', chg: '+1.2%' },
-          { code: 'BBNI', name: 'Bank Negara Indonesia', chg: '+1.1%' },
-        ]);
-
-        const allLosers = ref([
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: '-3.2%' },
-          { code: 'TLKM', name: 'Telkom Indonesia', chg: '-2.1%' },
-          { code: 'UNVR', name: 'Unilever Indonesia', chg: '-0.8%' },
-          { code: 'INDF', name: 'Indofood Sukses Makmur', chg: '-0.5%' },
-          { code: 'SMGR', name: 'Semen Indonesia', chg: '-0.3%' },
-        ]);
-
-        const allVolume = ref([
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', vol: '218.3M' },
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', vol: '187.6M' },
-          { code: 'BBCA', name: 'Bank Central Asia', vol: '142.1M' },
-          { code: 'ASII', name: 'Astra International', vol: '98.7M' },
-          { code: 'TLKM', name: 'Telkom Indonesia', vol: '76.4M' },
-        ]);
-
-        const bpjsSignals = ref([
-          { code: 'BBCA', signal: 'ENTER', signalClass: 'success', confidence: 87, price: 'Rp 9,850' },
-          { code: 'ASII', signal: 'ENTER', signalClass: 'success', confidence: 82, price: 'Rp 5,600' },
-          { code: 'ADRO', signal: 'WAIT', signalClass: 'warning', confidence: 64, price: 'Rp 2,890' },
-          { code: 'BBRI', signal: 'ENTER', signalClass: 'success', confidence: 79, price: 'Rp 4,420' },
-        ]);
-
-        const longTermSignals = ref([
-          { code: 'ICBP', signal: 'Active Accum', signalClass: 'accent', confidence: 91, entryZone: 'Rp 10,200 \u2013 10,600' },
-          { code: 'UNVR', signal: 'Accum Watch', signalClass: 'warning', confidence: 73, entryZone: 'Rp 2,800 \u2013 3,100' },
-          { code: 'TLKM', signal: 'Active Accum', signalClass: 'accent', confidence: 85, entryZone: 'Rp 3,600 \u2013 3,900' },
-          { code: 'GOTO', signal: 'Avoid', signalClass: 'danger', confidence: 42, entryZone: 'N/A' },
-        ]);
-
-        const sectors = ref([
-          { name: 'Technology', width: '76%', barColor: 'var(--success)', textColor: 'var(--success)', change: '+2.31%', flow: 'Inflow', flowClass: 'success' },
-          { name: 'Financials', width: '62%', barColor: 'var(--success)', textColor: 'var(--success)', change: '+1.87%', flow: 'Inflow', flowClass: 'success' },
-          { name: 'Energy', width: '48%', barColor: 'var(--accent)', textColor: 'var(--accent)', change: '+0.95%', flow: 'Neutral', flowClass: 'accent' },
-          { name: 'Consumer Cycl.', width: '28%', barColor: 'var(--warning)', textColor: 'var(--warning)', change: '-0.42%', flow: 'Neutral', flowClass: 'warning' },
-          { name: 'Healthcare', width: '18%', barColor: 'var(--danger)', textColor: 'var(--danger)', change: '-1.23%', flow: 'Outflow', flowClass: 'danger' },
-          { name: 'Infrastructure', width: '12%', barColor: 'var(--danger)', textColor: 'var(--danger)', change: '-2.05%', flow: 'Outflow', flowClass: 'danger' },
-        ]);
-
-        const predictions = ref([
-          { code: 'BBCA', signal: 'BUY', signalClass: 'success', confidence: 87, result: 'Win', resultClass: 'success', profit: '+3.5%', profitClass: 'profit-positive', date: 'Jun 04' },
-          { code: 'TLKM', signal: 'SELL', signalClass: 'danger', confidence: 76, result: 'Win', resultClass: 'success', profit: '+2.1%', profitClass: 'profit-positive', date: 'Jun 03' },
-          { code: 'ASII', signal: 'BUY', signalClass: 'success', confidence: 82, result: 'Win', resultClass: 'success', profit: '+2.8%', profitClass: 'profit-positive', date: 'Jun 03' },
-          { code: 'GOTO', signal: 'BUY', signalClass: 'success', confidence: 68, result: 'Loss', resultClass: 'danger', profit: '-1.4%', profitClass: 'profit-negative', date: 'Jun 02' },
-          { code: 'ADRO', signal: 'HOLD', signalClass: 'warning', confidence: 55, result: 'Pending', resultClass: 'warning', profit: '+0.2%', profitClass: 'profit-positive', date: 'Jun 02' },
-        ]);
-
-        const allPredictions = ref([
-          { code: 'BBCA', signal: 'BUY', signalClass: 'success', confidence: 87, result: 'Win', resultClass: 'success', profit: '+3.5%', profitClass: 'profit-positive', date: 'Jun 04' },
-          { code: 'TLKM', signal: 'SELL', signalClass: 'danger', confidence: 76, result: 'Win', resultClass: 'success', profit: '+2.1%', profitClass: 'profit-positive', date: 'Jun 03' },
-          { code: 'ASII', signal: 'BUY', signalClass: 'success', confidence: 82, result: 'Win', resultClass: 'success', profit: '+2.8%', profitClass: 'profit-positive', date: 'Jun 03' },
-          { code: 'GOTO', signal: 'BUY', signalClass: 'success', confidence: 68, result: 'Loss', resultClass: 'danger', profit: '-1.4%', profitClass: 'profit-negative', date: 'Jun 02' },
-          { code: 'ADRO', signal: 'HOLD', signalClass: 'warning', confidence: 55, result: 'Pending', resultClass: 'warning', profit: '+0.2%', profitClass: 'profit-positive', date: 'Jun 02' },
-          { code: 'BBRI', signal: 'BUY', signalClass: 'success', confidence: 79, result: 'Win', resultClass: 'success', profit: '+1.9%', profitClass: 'profit-positive', date: 'Jun 01' },
-          { code: 'ICBP', signal: 'HOLD', signalClass: 'warning', confidence: 63, result: 'Pending', resultClass: 'warning', profit: '+0.5%', profitClass: 'profit-positive', date: 'May 31' },
-          { code: 'UNVR', signal: 'SELL', signalClass: 'danger', confidence: 71, result: 'Win', resultClass: 'success', profit: '+1.8%', profitClass: 'profit-positive', date: 'May 30' },
-        ]);
-
-        const dayTradingSignals = ref([
-          { code: 'BBCA', signal: 'ENTER', signalClass: 'success', confidence: 87, price: 'Rp 9,850', entry: 'Rp 9,800', exit: 'Rp 10,200' },
-          { code: 'ASII', signal: 'ENTER', signalClass: 'success', confidence: 82, price: 'Rp 5,600', entry: 'Rp 5,550', exit: 'Rp 5,900' },
-          { code: 'ADRO', signal: 'WAIT', signalClass: 'warning', confidence: 64, price: 'Rp 2,890', entry: 'Rp 2,850', exit: 'Rp 3,050' },
-          { code: 'BBRI', signal: 'ENTER', signalClass: 'success', confidence: 79, price: 'Rp 4,420', entry: 'Rp 4,380', exit: 'Rp 4,650' },
-          { code: 'TLKM', signal: 'WAIT', signalClass: 'warning', confidence: 58, price: 'Rp 3,210', entry: 'Rp 3,150', exit: 'Rp 3,400' },
-          { code: 'GOTO', signal: 'ENTER', signalClass: 'success', confidence: 71, price: 'Rp 1,850', entry: 'Rp 1,820', exit: 'Rp 1,980' },
-          { code: 'UNVR', signal: 'WAIT', signalClass: 'warning', confidence: 52, price: 'Rp 2,950', entry: 'Rp 2,900', exit: 'Rp 3,100' },
-          { code: 'ICBP', signal: 'ENTER', signalClass: 'success', confidence: 76, price: 'Rp 10,400', entry: 'Rp 10,300', exit: 'Rp 10,900' },
-        ]);
-
-        const dayTradingCandidates = ref([
-          { stock: 'BBCA', signal: 'ENTER', signalClass: 'success', conf: 87, entry: '9,800', tp: '10,200', cl: '9,650', volRatio: '2.3x', foreignFlow: '+1.2B', action: 'Buy' },
-          { stock: 'ASII', signal: 'ENTER', signalClass: 'success', conf: 82, entry: '5,550', tp: '5,900', cl: '5,450', volRatio: '1.8x', foreignFlow: '+0.8B', action: 'Buy' },
-          { stock: 'BBRI', signal: 'ENTER', signalClass: 'success', conf: 79, entry: '4,380', tp: '4,650', cl: '4,300', volRatio: '1.5x', foreignFlow: '+0.6B', action: 'Buy' },
-          { stock: 'ICBP', signal: 'ENTER', signalClass: 'success', conf: 76, entry: '10,300', tp: '10,900', cl: '10,100', volRatio: '2.1x', foreignFlow: '+0.4B', action: 'Buy' },
-          { stock: 'BBNI', signal: 'ENTER', signalClass: 'success', conf: 74, entry: '5,100', tp: '5,400', cl: '5,000', volRatio: '1.6x', foreignFlow: '+0.5B', action: 'Buy' },
-          { stock: 'GOTO', signal: 'ENTER', signalClass: 'success', conf: 71, entry: '1,820', tp: '1,980', cl: '1,750', volRatio: '1.4x', foreignFlow: '+0.3B', action: 'Buy' },
-          { stock: 'ADRO', signal: 'WAIT', signalClass: 'warning', conf: 64, entry: '2,850', tp: '3,050', cl: '2,780', volRatio: '0.9x', foreignFlow: '-0.1B', action: 'Watch' },
-          { stock: 'INDF', signal: 'WAIT', signalClass: 'warning', conf: 61, entry: '6,800', tp: '7,200', cl: '6,650', volRatio: '0.8x', foreignFlow: '+0.1B', action: 'Watch' },
-          { stock: 'TLKM', signal: 'WAIT', signalClass: 'warning', conf: 58, entry: '3,150', tp: '3,400', cl: '3,080', volRatio: '0.7x', foreignFlow: '-0.2B', action: 'Watch' },
-          { stock: 'UNVR', signal: 'WAIT', signalClass: 'warning', conf: 52, entry: '2,900', tp: '3,100', cl: '2,850', volRatio: '0.6x', foreignFlow: '-0.1B', action: 'Watch' },
-        ]);
-
-        const dayTradingHistory = ref([
-          { date: 'Jun 04', stock: 'BBCA', entry: '9,750', exit: '10,100', profit: '+3.6%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'Jun 03', stock: 'ASII', entry: '5,500', exit: '5,800', profit: '+5.5%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'Jun 03', stock: 'BBRI', entry: '4,400', exit: '4,500', profit: '+2.3%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'Jun 02', stock: 'GOTO', entry: '1,900', exit: '1,860', profit: '-2.1%', profitClass: 'profit-negative', result: 'Loss', resultClass: 'danger' },
-          { date: 'Jun 02', stock: 'ADRO', entry: '2,900', exit: '2,950', profit: '+1.7%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'Jun 01', stock: 'TLKM', entry: '3,200', exit: '3,150', profit: '-1.6%', profitClass: 'profit-negative', result: 'Loss', resultClass: 'danger' },
-          { date: 'Jun 01', stock: 'ICBP', entry: '10,250', exit: '10,500', profit: '+2.4%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'May 31', stock: 'UNVR', entry: '3,000', exit: '2,950', profit: '-1.7%', profitClass: 'profit-negative', result: 'Pending', resultClass: 'warning' },
-        ]);
-
-        const ltAccumulation = ref([
-          { code: 'ICBP', phase: 'Active Accum', signalClass: 'accent', confidence: 91, entryZone: '10,200 \u2013 10,600', accumDays: 24, rsStatus: 'Strong' },
-          { code: 'TLKM', phase: 'Active Accum', signalClass: 'accent', confidence: 85, entryZone: '3,600 \u2013 3,900', accumDays: 18, rsStatus: 'Strong' },
-          { code: 'ASII', phase: 'Early Accum', signalClass: 'accent', confidence: 78, entryZone: '5,400 \u2013 5,700', accumDays: 8, rsStatus: 'Improving' },
-          { code: 'BBRI', phase: 'Accum Watch', signalClass: 'warning', confidence: 73, entryZone: '4,200 \u2013 4,500', accumDays: 12, rsStatus: 'Neutral' },
-          { code: 'UNVR', phase: 'Accum Watch', signalClass: 'warning', confidence: 68, entryZone: '2,800 \u2013 3,100', accumDays: 6, rsStatus: 'Neutral' },
-          { code: 'BBCA', phase: 'Distribution', signalClass: 'danger', confidence: 55, entryZone: 'N/A', accumDays: 0, rsStatus: 'Weak' },
-          { code: 'ADRO', phase: 'Accum Watch', signalClass: 'warning', confidence: 62, entryZone: '2,750 \u2013 2,950', accumDays: 5, rsStatus: 'Improving' },
-          { code: 'BBNI', phase: 'Early Accum', signalClass: 'accent', confidence: 71, entryZone: '4,900 \u2013 5,200', accumDays: 10, rsStatus: 'Improving' },
-        ]);
-
-        const ltPortfolio = ref([
-          { stock: 'ICBP', entryDate: 'May 12', avgPrice: '10,250', currentPrice: '10,400', profitPct: '+1.5%', profitClass: 'profit-positive', position: '1,000', status: 'Holding', statusClass: 'accent' },
-          { stock: 'TLKM', entryDate: 'May 18', avgPrice: '3,650', currentPrice: '3,210', profitPct: '-12.1%', profitClass: 'profit-negative', position: '2,500', status: 'Holding', statusClass: 'warning' },
-          { stock: 'ASII', entryDate: 'May 25', avgPrice: '5,500', currentPrice: '5,600', profitPct: '+1.8%', profitClass: 'profit-positive', position: '1,500', status: 'Holding', statusClass: 'accent' },
-          { stock: 'BBRI', entryDate: 'Jun 01', avgPrice: '4,300', currentPrice: '4,420', profitPct: '+2.8%', profitClass: 'profit-positive', position: '2,000', status: 'Holding', statusClass: 'accent' },
-          { stock: 'INDF', entryDate: 'May 05', avgPrice: '6,950', currentPrice: '6,800', profitPct: '-2.2%', profitClass: 'profit-negative', position: '800', status: 'Holding', statusClass: 'warning' },
-        ]);
-
-        const ltWatchlist = ref([
-          { code: 'BBCA', name: 'Bank Central Asia', chg: 3.5, volume: '142.1M', sector: 'Financials' },
-          { code: 'ASII', name: 'Astra International', chg: 2.8, volume: '98.7M', sector: 'Consumer Cycl.' },
-          { code: 'TLKM', name: 'Telkom Indonesia', chg: -2.1, volume: '76.4M', sector: 'Technology' },
-          { code: 'ADRO', name: 'Adaro Energy', chg: 1.4, volume: '52.3M', sector: 'Energy' },
-          { code: 'ICBP', name: 'Indofood CBP', chg: 0.2, volume: '28.1M', sector: 'Consumer Cycl.' },
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: 1.9, volume: '218.3M', sector: 'Financials' },
-          { code: 'UNVR', name: 'Unilever Indonesia', chg: -0.8, volume: '22.6M', sector: 'Consumer Cycl.' },
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: -3.2, volume: '187.6M', sector: 'Technology' },
-        ]);
-
-        const analysisQuery = ref('');
-        const analysisSector = ref('All');
-        const analysisSectors = ['All', 'Financials', 'Technology', 'Energy', 'Consumer Cycl.', 'Healthcare'];
-
-        const analysisStocks = ref([
-          { code: 'BBCA', name: 'Bank Central Asia', chg: 3.5, sector: 'Financials', price: 'Rp 9,850', score: 87 },
-          { code: 'ASII', name: 'Astra International', chg: 2.8, sector: 'Consumer Cycl.', price: 'Rp 5,600', score: 82 },
-          { code: 'TLKM', name: 'Telkom Indonesia', chg: -2.1, sector: 'Technology', price: 'Rp 3,210', score: 64 },
-          { code: 'ADRO', name: 'Adaro Energy', chg: 1.4, sector: 'Energy', price: 'Rp 2,890', score: 71 },
-          { code: 'ICBP', name: 'Indofood CBP', chg: 0.2, sector: 'Consumer Cycl.', price: 'Rp 10,400', score: 78 },
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: 1.9, sector: 'Financials', price: 'Rp 4,420', score: 79 },
-          { code: 'UNVR', name: 'Unilever Indonesia', chg: -0.8, sector: 'Consumer Cycl.', price: 'Rp 2,950', score: 52 },
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: -3.2, sector: 'Technology', price: 'Rp 1,850', score: 42 },
-          { code: 'BBNI', name: 'Bank Negara Indonesia', chg: 1.1, sector: 'Financials', price: 'Rp 5,200', score: 74 },
-          { code: 'INDF', name: 'Indofood Sukses Makmur', chg: -0.5, sector: 'Consumer Cycl.', price: 'Rp 6,800', score: 61 },
-        ]);
-
-        const filteredAnalysis = computed(() => {
-          let items = analysisStocks.value;
-          if (analysisSector.value !== 'All') {
-            items = items.filter(s => s.sector === analysisSector.value);
-          }
-          if (analysisQuery.value) {
-            const q = analysisQuery.value.toLowerCase();
-            items = items.filter(s => s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
-          }
-          return items;
-        });
-
-        const selectedStock = ref({
-          code: 'BBCA',
-          name: 'Bank Central Asia',
-          price: 'Rp 9,850',
-          chg: 1.2,
-          rsi: '62.4',
-          rsiLabel: 'Neutral-Bullish',
-          macd: '+28.5',
-          ma20: 'Rp 9,720',
-          ma50: 'Rp 9,450',
-          bbUpper: 'Rp 10,120',
-          bbLower: 'Rp 9,380',
-          r2: 'Rp 10,400',
-          r1: 'Rp 10,100',
-          pivot: 'Rp 9,850',
-          s1: 'Rp 9,600',
-          s2: 'Rp 9,400',
-          volume: '142.1M',
-          score: 87,
-          confidence: 82,
-          recommendation: 'BUY',
-          signalClass: 'success',
-          analysis: 'BBCA shows strong bullish momentum with RSI at 62.4 indicating room for further upside. MACD positive crossover confirmed. Price above both MA20 and MA50 suggesting sustained uptrend. Volume increasing with strong foreign inflow. Accumulation phase detected with institutional buying pressure. Recommended entry at Rp 9,800 with TP at Rp 10,200 and CL at Rp 9,650.',
-        });
-
-        function selectStock(item) {
-          const detailMap = {
-            BBCA: { rsi: '62.4', rsiLabel: 'Neutral-Bullish', macd: '+28.5', ma20: 'Rp 9,720', ma50: 'Rp 9,450', bbUpper: 'Rp 10,120', bbLower: 'Rp 9,380', r2: 'Rp 10,400', r1: 'Rp 10,100', pivot: 'Rp 9,850', s1: 'Rp 9,600', s2: 'Rp 9,400', volume: '142.1M', score: 87, confidence: 82, recommendation: 'BUY', signalClass: 'success', analysis: 'BBCA shows strong bullish momentum with RSI at 62.4 indicating room for further upside. MACD positive crossover confirmed. Price above both MA20 and MA50 suggesting sustained uptrend. Volume increasing with strong foreign inflow.' },
-            ASII: { rsi: '58.2', rsiLabel: 'Neutral', macd: '+12.3', ma20: 'Rp 5,520', ma50: 'Rp 5,380', bbUpper: 'Rp 5,850', bbLower: 'Rp 5,300', r2: 'Rp 5,950', r1: 'Rp 5,780', pivot: 'Rp 5,600', s1: 'Rp 5,420', s2: 'Rp 5,250', volume: '98.7M', score: 82, confidence: 78, recommendation: 'BUY', signalClass: 'success', analysis: 'ASII recovering from consolidation with improving volume. RSI neutral leaving room for upside. MACD showing early positive crossover. Accumulation pattern forming above MA50.' },
-            TLKM: { rsi: '38.5', rsiLabel: 'Bearish', macd: '-15.2', ma20: 'Rp 3,350', ma50: 'Rp 3,450', bbUpper: 'Rp 3,600', bbLower: 'Rp 3,100', r2: 'Rp 3,400', r1: 'Rp 3,300', pivot: 'Rp 3,210', s1: 'Rp 3,120', s2: 'Rp 3,030', volume: '76.4M', score: 64, confidence: 58, recommendation: 'WAIT', signalClass: 'warning', analysis: 'TLKM in short-term downtrend. RSI below 40 indicating bearish momentum. Price below both MA20 and MA50. Waiting for reversal confirmation before entry.' },
-            ADRO: { rsi: '55.6', rsiLabel: 'Neutral', macd: '+5.8', ma20: 'Rp 2,820', ma50: 'Rp 2,760', bbUpper: 'Rp 3,050', bbLower: 'Rp 2,650', r2: 'Rp 3,050', r1: 'Rp 2,950', pivot: 'Rp 2,890', s1: 'Rp 2,800', s2: 'Rp 2,720', volume: '52.3M', score: 71, confidence: 68, recommendation: 'HOLD', signalClass: 'warning', analysis: 'ADRO showing consolidation near support levels. RSI neutral with no clear direction. Volume declining suggesting lack of catalyst. Wait for breakout above Rp 2,950.' },
-          };
-          const def = detailMap[item.code] || { rsi: '50.0', rsiLabel: 'Neutral', macd: '0.0', ma20: item.price, ma50: item.price, bbUpper: '-', bbLower: '-', r2: '-', r1: '-', pivot: '-', s1: '-', s2: '-', volume: '-', score: item.score, confidence: Math.round(item.score * 0.9), recommendation: 'HOLD', signalClass: 'warning', analysis: 'Analysis data not available for this stock.' };
-          selectedStock.value = { ...item, ...def };
-          currentTab.value = 'detail';
-        }
-
-        const comparisonStocks = ref([
-          { code: 'BBCA', price: '9,850', chg: '+1.2%', rsi: '62.4', macd: '+28.5', volume: '142.1M', score: '87', rec: 'BUY' },
-          { code: 'BBRI', price: '4,420', chg: '+1.9%', rsi: '55.8', macd: '+12.1', volume: '218.3M', score: '79', rec: 'HOLD' },
-          { code: 'ASII', price: '5,600', chg: '+2.8%', rsi: '58.2', macd: '+8.4', volume: '98.7M', score: '82', rec: 'BUY' },
-        ]);
-
-        const comparisonRows = computed(() => [
-          { label: 'Price', getValue: s => s.price },
-          { label: 'Change %', getValue: s => s.chg, getClass: s => s.chg.startsWith('+') ? 'profit-positive' : 'profit-negative' },
-          { label: 'RSI (14)', getValue: s => s.rsi },
-          { label: 'MACD', getValue: s => s.macd, getClass: s => s.macd.startsWith('+') ? 'profit-positive' : 'profit-negative' },
-          { label: 'Volume', getValue: s => s.volume },
-          { label: 'AI Score', getValue: s => s.score, getClass: s => parseInt(s.score) >= 80 ? 'profit-positive' : parseInt(s.score) >= 60 ? '' : 'profit-negative' },
-          { label: 'Recommendation', getValue: s => s.rec, getClass: s => s.rec === 'BUY' ? 'profit-positive' : s.rec === 'SELL' ? 'profit-negative' : '' },
-        ]);
-
-        const comparisonAddCode = ref('');
-        const comparisonAvailable = computed(() => {
-          const used = new Set(comparisonStocks.value.map(s => s.code));
-          return allStocks.filter(s => !used.has(s.code)).map(s => s.code);
-        });
-
-        function addComparison() {
-          if (!comparisonAddCode.value) return;
-          const stock = allStocks.find(s => s.code === comparisonAddCode.value);
-          if (!stock) return;
-          const details = {
-            BBCA: { price: '9,850', chg: '+1.2%', rsi: '62.4', macd: '+28.5', volume: '142.1M', score: '87', rec: 'BUY' },
-            ASII: { price: '5,600', chg: '+2.8%', rsi: '58.2', macd: '+8.4', volume: '98.7M', score: '82', rec: 'BUY' },
-            BBRI: { price: '4,420', chg: '+1.9%', rsi: '55.8', macd: '+12.1', volume: '218.3M', score: '79', rec: 'HOLD' },
-            TLKM: { price: '3,210', chg: '-2.1%', rsi: '38.5', macd: '-15.2', volume: '76.4M', score: '64', rec: 'WAIT' },
-            ADRO: { price: '2,890', chg: '+1.4%', rsi: '55.6', macd: '+5.8', volume: '52.3M', score: '71', rec: 'HOLD' },
-            ICBP: { price: '10,400', chg: '+0.2%', rsi: '51.2', macd: '+3.5', volume: '28.1M', score: '78', rec: 'HOLD' },
-            UNVR: { price: '2,950', chg: '-0.8%', rsi: '42.1', macd: '-8.2', volume: '22.6M', score: '52', rec: 'SELL' },
-            GOTO: { price: '1,850', chg: '-3.2%', rsi: '32.8', macd: '-22.4', volume: '187.6M', score: '42', rec: 'WAIT' },
-            BBNI: { price: '5,200', chg: '+1.1%', rsi: '54.3', macd: '+6.7', volume: '45.2M', score: '74', rec: 'HOLD' },
-            INDF: { price: '6,800', chg: '-0.5%', rsi: '48.9', macd: '-2.1', volume: '18.5M', score: '61', rec: 'HOLD' },
-          };
-          const d = details[stock.code] || { price: '-', chg: '0%', rsi: '50', macd: '0', volume: '-', score: '50', rec: 'HOLD' };
-          comparisonStocks.value.push({ code: stock.code, ...d });
-          comparisonAddCode.value = '';
-        }
-
-        const settingsLanguage = ref('en');
-        const settingsRiskTolerance = ref('medium');
-        const settingsTargetProfit = ref('5');
-        const settingsEmailNotif = ref(true);
-        const settingsPushNotif = ref(true);
-
-        const settingsAlerts = ref([
-          { stock: 'BBCA', type: 'Price Alert', condition: 'Above 10,000', status: 'Active' },
-          { stock: 'ASII', type: 'RSI Alert', condition: 'RSI < 30', status: 'Active' },
-          { stock: 'TLKM', type: 'Volume Alert', condition: 'Volume > 2x avg', status: 'Active' },
-          { stock: 'ICBP', type: 'Price Alert', condition: 'Below 9,800', status: 'Inactive' },
-        ]);
-
-        const newAlertStock = ref('');
-        const newAlertType = ref('Price Alert');
-        const newAlertCondition = ref('');
-
-        function addAlert() {
-          if (!newAlertStock.value || !newAlertCondition.value) return;
-          settingsAlerts.value.push({
-            stock: newAlertStock.value,
-            type: newAlertType.value,
-            condition: newAlertCondition.value,
-            status: 'Active'
-          });
-          newAlertStock.value = '';
-          newAlertType.value = 'Price Alert';
-          newAlertCondition.value = '';
-        }
-
-        function removeAlert(alert) {
-          const idx = settingsAlerts.value.indexOf(alert);
-          if (idx > -1) settingsAlerts.value.splice(idx, 1);
-        }
-
-        function switchView(view) {
-          currentView.value = view;
-          const firstTabs = {
-            dashboard: 'overview',
-            daytrading: 'signals',
-            longterm: 'accumulation',
-            analysis: 'search',
-            settings: 'general',
-          };
-          currentTab.value = firstTabs[view] || 'overview';
-          if (window.innerWidth <= 768) sidebarOpen.value = false;
-        }
-
-        function switchTheme(theme) {
-          currentTheme.value = theme;
-        }
-
-        function toggleSidebar() {
-          sidebarOpen.value = !sidebarOpen.value;
-        }
-
-        function closeSearch(e) {
-          if (e.target === e.currentTarget) searchOpen.value = false;
-        }
-
-        function onSearchInput() {
-          if (searchQuery.value) searchOpen.value = true;
-        }
-
-        function mockScan() {
-          alert('Scan initiated... Found 8 active signals.');
-        }
-
-        function mockSave() {
-          alert('Settings saved successfully!');
-        }
-
-        watch(currentTheme, (val) => {
-          localStorage.setItem('dashboard-theme', val);
-          document.documentElement.setAttribute('data-theme', val);
-        });
-
-        onMounted(() => {
-          const saved = localStorage.getItem('dashboard-theme');
-          if (saved) {
-            currentTheme.value = saved;
-          }
-          document.documentElement.setAttribute('data-theme', currentTheme.value);
-          const d = new Date();
-          dateStr.value = d.toLocaleDateString('en-ID', { month: 'short', day: 'numeric', year: 'numeric' });
-          document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') searchOpen.value = false;
-          });
-        });
-
-        return {
-          currentTheme, currentView, currentTab, searchQuery, sidebarOpen, searchOpen, dateStr,
-          themes, navItems, headerTitle,
-          dashboardTabs, daytradingTabs, longtermTabs, analysisTabs, settingsTabs,
-          watchlist, allStocks, filteredStocks,
-          market, aiPerf, aiPerfDetails, movers,
-          allGainers, allLosers, allVolume,
-          bpjsSignals, longTermSignals, sectors, predictions, allPredictions,
-          dayTradingSignals, dayTradingCandidates, dayTradingHistory,
-          ltAccumulation, ltPortfolio, ltWatchlist,
-          analysisQuery, analysisSector, analysisSectors, analysisStocks, filteredAnalysis,
-          selectedStock, selectStock,
-          comparisonStocks, comparisonRows, comparisonAddCode, comparisonAvailable, addComparison,
-          settingsLanguage, settingsRiskTolerance, settingsTargetProfit,
-          settingsEmailNotif, settingsPushNotif,
-          settingsAlerts, newAlertStock, newAlertType, newAlertCondition, addAlert, removeAlert,
-          switchView, switchTheme, toggleSidebar, closeSearch, onSearchInput,
-          mockScan, mockSave,
-        };
-      }
-    }).mount('#app');
-  </script>
+  <script src="/static/dashboard.js"></script>
 </body>
 </html>

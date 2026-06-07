@@ -2,8 +2,9 @@ import re
 from datetime import datetime
 from typing import Optional
 import pandas as pd
-import requests
 
+from app.constants import HEADERS
+from app.http_client import get_http_client
 from app.database.foreign_flow_models import (
     save_foreign_flow,
     update_accumulation,
@@ -11,10 +12,7 @@ from app.database.foreign_flow_models import (
 from app.services.stock_service import STOCK_LIST, fetch_stock_data
 
 
-_session = requests.Session()
-_session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-})
+_session = get_http_client()
 
 
 def fetch_foreign_flow_rti(stock_code: str) -> Optional[dict]:
@@ -33,8 +31,8 @@ def fetch_foreign_flow_rti(stock_code: str) -> Optional[dict]:
                 continue
             html = r.text
 
-            foreign_buy = _extract_number(html, r"(?:foreign.?buy|foreign.?beli|beli.?asing)[:\s]*Rp?\.?\s*([\d.,]+)")
-            foreign_sell = _extract_number(html, r"(?:foreign.?sell|foreign.?jual|jual.?asing)[:\s]*Rp?\.?\s*([\d.,]+)")
+            foreign_buy = _extract_number(html, r"(?:foreign.?buy|foreign.?beli|beli.?asing)[:\\s]*Rp?\\.?\\s*([\\d.,]+)")
+            foreign_sell = _extract_number(html, r"(?:foreign.?sell|foreign.?jual|jual.?asing)[:\\s]*Rp?\\.?\\s*([\\d.,]+)")
 
             if foreign_buy is not None and foreign_sell is not None:
                 foreign_net = foreign_buy - foreign_sell
@@ -53,8 +51,8 @@ def fetch_foreign_flow_rti(stock_code: str) -> Optional[dict]:
         r = _session.get("https://www.idx.co.id/", timeout=15)
         if r.status_code == 200:
             html = r.text
-            foreign_buy = _extract_number(html, r"(?:foreign.?buy|beli.?asing)[:\s]*Rp?\.?\s*([\d.,]+)")
-            foreign_sell = _extract_number(html, r"(?:foreign.?sell|jual.?asing)[:\s]*Rp?\.?\s*([\d.,]+)")
+            foreign_buy = _extract_number(html, r"(?:foreign.?buy|beli.?asing)[:\\s]*Rp?\\.?\\s*([\\d.,]+)")
+            foreign_sell = _extract_number(html, r"(?:foreign.?sell|jual.?asing)[:\\s]*Rp?\\.?\\s*([\\d.,]+)")
             if foreign_buy is not None and foreign_sell is not None:
                 foreign_net = foreign_buy - foreign_sell
                 return {
@@ -159,7 +157,7 @@ def fetch_and_save_foreign_flow(stock_code: str) -> bool:
     return True
 
 
-def sync_all_foreign_flow(stock_codes: list = None) -> dict:
+def sync_all_foreign_flow(stock_codes: Optional[list] = None) -> dict:
     if stock_codes is None:
         stock_codes = list(STOCK_LIST.keys())
 

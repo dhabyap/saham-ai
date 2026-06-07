@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from app.database.database import get_db, DB_TYPE
+from app.database.database import get_db
+import sqlite3
 
 
 def _mysql_sql():
@@ -56,7 +57,7 @@ def _sqlite_sql():
             foreign_sell_volume INTEGER DEFAULT 0,
             last_price REAL DEFAULT 0,
             source TEXT DEFAULT "rti",
-            created_at TEXT DEFAULT (datetime("now", "localtime")),
+            created_at TEXT DEFAULT "",
             UNIQUE(stock_code, trade_date)
         );
 
@@ -71,27 +72,43 @@ def _sqlite_sql():
             avg_net_20d REAL DEFAULT 0,
             status TEXT DEFAULT "neutral",
             strength TEXT DEFAULT "weak",
-            created_at TEXT DEFAULT (datetime("now", "localtime")),
+            created_at TEXT DEFAULT "",
             UNIQUE(stock_code, trade_date)
         );
     """
 
 
 def init_foreign_flow_db():
+    """Create tables, auto-detect SQLite vs MySQL from actual connection."""
     with get_db() as conn:
-        sql = _mysql_sql() if DB_TYPE == "mysql" else _sqlite_sql()
+        is_sqlite = isinstance(conn, sqlite3.Connection)
+        sql = _sqlite_sql() if is_sqlite else _mysql_sql()
         conn.executescript(sql)
 
 
+_TABLE_INITED = False
+
+
+def _ensure_tables():
+    """Lazy init tables once."""
+    global _TABLE_INITED
+    if not _TABLE_INITED:
+        init_foreign_flow_db()
+        _TABLE_INITED = True
+
+
+
 def save_foreign_flow(data: list[dict]):
+    _ensure_tables()
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with get_db() as conn:
         for row in data:
             conn.execute(
                 """INSERT OR REPLACE INTO foreign_flow
                    (stock_code, trade_date, foreign_buy, foreign_sell, foreign_net,
                     domestic_buy, domestic_sell, total_volume, foreign_buy_volume,
-                    foreign_sell_volume, last_price, source)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    foreign_sell_volume, last_price, source, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     row.get("stock_code", "").upper(),
                     row.get("trade_date", ""),
@@ -105,11 +122,13 @@ def save_foreign_flow(data: list[dict]):
                     row.get("foreign_sell_volume", 0),
                     row.get("last_price", 0),
                     row.get("source", "rti"),
+                    now,
                 ),
             )
 
 
 def get_foreign_flow(stock_code: str, days: int = 30) -> list[dict]:
+    _ensure_tables()
     with get_db() as conn:
         cur = conn.execute(
             """SELECT * FROM foreign_flow
@@ -122,6 +141,7 @@ def get_foreign_flow(stock_code: str, days: int = 30) -> list[dict]:
 
 
 def get_accumulation_status(stock_code: str) -> Optional[dict]:
+    _ensure_tables()
     with get_db() as conn:
         cur = conn.execute(
             """SELECT * FROM foreign_accumulation
@@ -135,6 +155,7 @@ def get_accumulation_status(stock_code: str) -> Optional[dict]:
 
 
 def get_all_accumulation_status() -> list[dict]:
+    _ensure_tables()
     with get_db() as conn:
         cur = conn.execute(
             """SELECT fa.* FROM foreign_accumulation fa
@@ -150,6 +171,8 @@ def get_all_accumulation_status() -> list[dict]:
 
 
 def update_accumulation(stock_code: str, trade_date: str):
+    _ensure_tables()
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with get_db() as conn:
         cur = conn.execute(
             """SELECT * FROM foreign_flow
@@ -203,8 +226,8 @@ def update_accumulation(stock_code: str, trade_date: str):
         conn.execute(
             """INSERT OR REPLACE INTO foreign_accumulation
                (stock_code, trade_date, cumulative_net, accumulation_days,
-                distribution_days, avg_net_5d, avg_net_20d, status, strength)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                distribution_days, avg_net_5d, avg_net_20d, status, strength, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 stock_code.upper(),
                 trade_date,
@@ -215,8 +238,7 @@ def update_accumulation(stock_code: str, trade_date: str):
                 avg_net_20d,
                 status,
                 strength,
+                now,
             ),
         )
 
-
-init_foreign_flow_db()

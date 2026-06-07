@@ -1,11 +1,12 @@
 import sys
 import os
+import logging
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse
 import threading
 
 from app.config import Config
@@ -14,6 +15,9 @@ from app.api.routes import router
 from app.api.learning_routes import router as learning_router
 from app.api.upload_routes import router as upload_router
 from app.scheduler.scheduler import start_scheduler
+from app.constants import STATIC_DIR, CHARTS_DIR, TEMPLATES_DIR, DATABASE_DIR
+
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
@@ -23,9 +27,9 @@ app = FastAPI(
 )
 
 # Mount static files
-os.makedirs("app/static", exist_ok=True)
-os.makedirs("app/static/charts", exist_ok=True)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+os.makedirs(STATIC_DIR, exist_ok=True)
+os.makedirs(CHARTS_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Include API routes
 app.include_router(router)
@@ -34,32 +38,32 @@ app.include_router(upload_router)
 
 
 @app.on_event("startup")
-async def startup():
+async def startup() -> None:
     init_db()
-    print("✓ Database initialized")
+    logger.info("✓ Database initialized")
 
     from app.database import foreign_flow_models
-    print("✓ Foreign flow database initialized")
+    logger.info("✓ Foreign flow database initialized")
 
     # Seed knowledge base
     try:
         from app.ai.knowledge_base import seed_knowledge_base
         seed_knowledge_base()
-        print("✓ Knowledge base seeded")
+        logger.info("✓ Knowledge base seeded")
     except Exception as e:
-        print(f"⚠ Knowledge base seed: {e}")
+        logger.warning("⚠ Knowledge base seed: %s", e)
 
     # Seed default prompts
     try:
         _seed_default_prompts()
     except Exception as e:
-        print(f"⚠ Prompt seed: {e}")
+        logger.warning("⚠ Prompt seed: %s", e)
 
     # Seed default strategies
     try:
         _seed_default_strategies()
     except Exception as e:
-        print(f"⚠ Strategy seed: {e}")
+        logger.warning("⚠ Strategy seed: %s", e)
 
     # Start scheduler
     start_scheduler()
@@ -68,7 +72,7 @@ async def startup():
     _start_telegram_bot()
 
 
-def _start_telegram_bot():
+def _start_telegram_bot() -> None:
     try:
         from app.telegram.bot import TelegramBot
 
@@ -76,29 +80,29 @@ def _start_telegram_bot():
         if bot.token:
             thread = threading.Thread(target=bot.run, daemon=True)
             thread.start()
-            print("✓ Telegram Bot thread started")
+            logger.info("✓ Telegram Bot thread started")
         else:
-            print("⚠ Telegram Bot disabled (no token)")
+            logger.warning("⚠ Telegram Bot disabled (no token)")
     except Exception as e:
-        print(f"⚠ Telegram Bot error: {e}")
+        logger.warning("⚠ Telegram Bot error: %s", e)
 
 
 @app.get("/")
-async def root():
+async def root() -> FileResponse:
     """Vue 3 dashboard SPA"""
-    return FileResponse("app/templates/dashboard_vue.html")
+    return FileResponse(os.path.join(TEMPLATES_DIR, "dashboard_vue.html"))
 
 
 @app.get("/dashboard")
-async def dashboard_vue():
+async def dashboard_vue() -> FileResponse:
     """Vue 3 dashboard with 3 themes"""
-    return FileResponse("app/templates/dashboard_vue.html")
+    return FileResponse(os.path.join(TEMPLATES_DIR, "dashboard_vue.html"))
 
 
 @app.get("/market-reports")
-async def market_reports_page():
+async def market_reports_page() -> FileResponse:
     """Market reports page - serves SPA with market view active"""
-    return FileResponse("app/templates/dashboard_vue.html")
+    return FileResponse(os.path.join(TEMPLATES_DIR, "dashboard_vue.html"))
 
 
 @app.get("/api-docs")

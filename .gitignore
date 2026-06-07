@@ -23,14 +23,19 @@ ENV/
 *.sqlite3
 app/database/*.db
 *.session
+
+# Generated charts
 app/static/charts/
+!app/static/charts/.gitkeep
 
 # Logs and temporary files
 *.log
+logs/
+!logs/.gitkeep
 tmp/
 temp/
 .tmp-*/
-_test_*.py
+nul
 
 # OS and editor noise
 .DS_Store
@@ -38,7 +43,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.stackdump
-nul
 
 # Upload folders
 uploads/
@@ -47,4 +51,13 @@ uploads/
 # Generated / export files
 telegram_session_string.txt
 market_reports.json
+market_reports_*.json
 backtest_results*.json
+
+# Local config — not portable
+config/settings.json
+
+# Standalone analysis/backtest scripts — kept for reference but not in VCS
+backtest_bpjs.py
+market_report_analysis.py
+market_report_scraper.py

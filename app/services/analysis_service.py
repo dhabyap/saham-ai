@@ -6,12 +6,12 @@ from app.config import Config
 
 
 class AnalysisService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.ai = AIAnalyzer()
         self.learning = LearningEngine()
 
-    def analyze_stock(self, code, use_ai=True, strategy=None, risk_level=None,
-                       user_id=None):
+    def analyze_stock(self, code: str, use_ai: bool = True, strategy: str = None, risk_level: str = None,
+                       user_id: str = None) -> dict:
         data = get_latest_data(code)
         if data is None:
             return {"error": f"Tidak dapat mengambil data untuk {code}"}
@@ -80,21 +80,3 @@ class AnalysisService:
             result["dataframe"] = df
 
         return result
-
-    def _rule_based_recommendation(self, data):
-        recommendation, confidence, reason, _ = self.learning.get_scored_recommendation(
-            data, Config.DEFAULT_STRATEGY, Config.DEFAULT_RISK_LEVEL,
-        )
-        return recommendation, confidence, reason
-
-    def _calculate_confidence(self, data):
-        _, confidence, _, _ = self.learning.get_scored_recommendation(
-            data, Config.DEFAULT_STRATEGY, Config.DEFAULT_RISK_LEVEL,
-        )
-        return min(99, max(1, confidence))
-
-    def _generate_reason(self, data):
-        _, _, reason, _ = self.learning.get_scored_recommendation(
-            data, Config.DEFAULT_STRATEGY, Config.DEFAULT_RISK_LEVEL,
-        )
-        return reason

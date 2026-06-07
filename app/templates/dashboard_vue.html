@@ -4,18 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Stock Analyzer — Dashboard</title>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js">
-</script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;transition:background-color .3s ease,color .3s ease,box-shadow .3s ease,border-color .3s ease}:root,html[data-theme="neumorphism"]{--bg:#f0f4f8;--text:#6b7280;--text-secondary:#9ca3af;--accent:#7C3AED;--secondary:#06D9FF;--success:#10B981;--danger:#EF5350;--warning:#F59E0B;--muted:#9ca3af;--surface:#e8f0f7;--surface-2:#dce6f0;--radius:16px;--radius-sm:10px;--radius-lg:20px;--shadow:8px 8px 16px rgba(0,0,0,0.08),-8px -8px 16px rgba(255,255,255,0.5);--shadow-sm:4px 4px 8px rgba(0,0,0,0.06),-4px -4px 8px rgba(255,255,255,0.4);--shadow-lg:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6);--shadow-inset:inset 2px 2px 4px rgba(0,0,0,0.06),inset -2px -2px 4px rgba(255,255,255,0.4);--shadow-glow:0 8px 24px rgba(124,58,237,0.15);--accent-gradient:linear-gradient(135deg,#7C3AED,#06D9FF);--heading-font:inherit;--border-color:transparent;--transition:all .3s ease}html[data-theme="dark"]{--bg:#0a0a0a;--text:#e5e7eb;--text-secondary:#9ca3af;--accent:#7C3AED;--secondary:#06D9FF;--success:#10B981;--danger:#EF5350;--warning:#F59E0B;--muted:#6b7280;--surface:#111111;--surface-2:#1a1a1a;--radius:16px;--radius-sm:10px;--radius-lg:20px;--shadow:0 8px 32px rgba(0,0,0,0.5),0 0 0 1px rgba(124,58,237,0.08);--shadow-sm:0 4px 16px rgba(0,0,0,0.4),0 0 0 1px rgba(124,58,237,0.05);--shadow-lg:0 16px 48px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.1);--shadow-inset:inset 0 2px 4px rgba(0,0,0,0.3);--shadow-glow:0 8px 32px rgba(124,58,237,0.2),0 0 60px rgba(6,217,255,0.05);--accent-gradient:linear-gradient(135deg,#7C3AED,#06D9FF);--heading-font:inherit;--border-color:rgba(124,58,237,0.12);--transition:all .3s ease}html[data-theme="classy"]{--bg:#fafaf9;--text:#3f3f46;--text-secondary:#a1a1aa;--accent:#d97706;--secondary:#7c3aed;--success:#10B981;--danger:#EF5350;--warning:#F59E0B;--muted:#a1a1aa;--surface:#f5f5f0;--surface-2:#e8e8e0;--radius:12px;--radius-sm:8px;--radius-lg:16px;--shadow:0 1px 3px rgba(0,0,0,0.04),0 1px 2px rgba(0,0,0,0.02);--shadow-sm:0 1px 2px rgba(0,0,0,0.03);--shadow-lg:0 4px 12px rgba(0,0,0,0.05),0 2px 4px rgba(0,0,0,0.03);--shadow-inset:inset 0 1px 2px rgba(0,0,0,0.02);--shadow-glow:0 2px 8px rgba(217,119,6,0.08);--accent-gradient:linear-gradient(135deg,#d97706,#b45309);--heading-font:Georgia,'Times New Roman',serif;--border-color:#e7e5e4;--transition:all .3s ease}html{font-size:14px}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;display:flex;overflow:hidden}
-.sidebar{width:200px;background:var(--surface);box-shadow:4px 0 12px rgba(0,0,0,0.04);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;transition:var(--transition)}.sidebar.closed{width:0;overflow:hidden;box-shadow:none}.sidebar-inner{display:flex;flex-direction:column;height:100%;min-width:200px;padding:20px 12px}.sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 8px 20px;margin-bottom:20px;font-size:17px;font-weight:700;letter-spacing:-.3px;color:var(--text)}.sidebar-brand .logo{width:34px;height:34px;background:var(--accent-gradient);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(124,58,237,0.25)}.nav{list-style:none;display:flex;flex-direction:column;gap:4px;margin-bottom:24px}.nav li a{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-sm);color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;box-shadow:var(--shadow-sm)}.nav li a:hover{box-shadow:var(--shadow);color:var(--text);transform:translateY(-1px)}.nav li a.active{background:var(--surface);color:var(--accent);font-weight:600;box-shadow:var(--shadow-inset);border-left:3px solid var(--accent)}.nav li a .ico{width:20px;text-align:center;font-size:15px}.sidebar-watchlist{padding-top:20px;margin-top:auto}.sidebar-watchlist h4{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;padding:0 8px}.wl-item{display:flex;justify-content:space-between;align-items:center;padding:7px 8px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer}.wl-item:hover{box-shadow:var(--shadow-sm)}.wl-item .wl-code{font-weight:600;color:var(--text)}.wl-item .wl-chg{font-weight:600;font-size:12px}.wl-up{color:var(--success)}.wl-down{color:var(--danger)}
-.main{flex:1;margin-left:200px;display:flex;flex-direction:column;height:100vh;overflow:hidden;transition:var(--transition)}.sidebar.closed+.main{margin-left:0}
-.header{display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--surface);flex-shrink:0;min-height:64px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,0.04)}.header>*{position:relative;z-index:1}.hamburger{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:4px;line-height:1}.header-title{font-size:17px;font-weight:700;white-space:nowrap;color:var(--accent);letter-spacing:-.3px}.header-search{position:relative;flex:1;max-width:360px;margin:0 auto}.header-search input{width:100%;padding:9px 14px 9px 36px;border:none;border-radius:20px;background:var(--surface-2);color:var(--text);font-size:13px;outline:none;box-shadow:var(--shadow-inset)}.header-search input::placeholder{color:var(--muted)}.header-search input:focus{box-shadow:inset 3px 3px 6px rgba(0,0,0,0.08),inset -3px -3px 6px rgba(255,255,255,0.6)}.header-search .search-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}.header-user{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-sm);white-space:nowrap;box-shadow:var(--shadow-sm)}.header-user:hover{box-shadow:var(--shadow)}.header-user .avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-gradient);box-shadow:0 2px 8px rgba(124,58,237,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}.header-user .name{font-size:13px;color:var(--text);font-weight:500}.date-display{color:var(--muted);font-size:12px;white-space:nowrap}
-.tabs{display:flex;gap:0;padding:0 24px;background:var(--surface);flex-shrink:0;overflow-x:auto;box-shadow:0 2px 8px rgba(0,0,0,0.03)}.tabs::-webkit-scrollbar{height:2px}.tabs::-webkit-scrollbar-thumb{background:var(--muted);border-radius:4px}.tab-btn{background:none;border:none;color:var(--muted);padding:14px 24px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;position:relative}.tab-btn:hover{color:var(--text)}.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
-.content{flex:1;overflow-y:auto;padding:24px 24px 32px}.content::-webkit-scrollbar{width:6px}.content::-webkit-scrollbar-thumb{background:var(--muted);border-radius:4px}.tab-pane{display:none}.tab-pane.active{display:block}
-.section{margin-bottom:32px}.section-title{font-size:22px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:12px;position:relative;padding-bottom:12px;letter-spacing:-.3px;color:var(--text)}.section-title::after{content:'';position:absolute;bottom:0;left:0;width:44px;height:3px;background:var(--accent-gradient);border-radius:2px}.section-sub{font-size:13px;color:var(--muted);font-weight:400;margin-left:auto}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.section-head .section-title{margin-bottom:0;padding-bottom:0}.section-head .section-title::after{display:none}
+html,body{height:100%;margin:0}body{background:var(--bg)}#app{display:flex;width:100%;min-height:100vh}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;transition:background-color .3s ease,color .3s ease,box-shadow .3s ease,border-color .3s ease}:root,html[data-theme="neumorphism"]{--bg:#f0f4f8;--text:#6b7280;--text-secondary:#9ca3af;--accent:#7C3AED;--secondary:#06D9FF;--success:#10B981;--danger:#EF5350;--warning:#F59E0B;--muted:#9ca3af;--surface:#e8f0f7;--surface-2:#dce6f0;--radius:16px;--radius-sm:10px;--radius-lg:20px;--shadow:8px 8px 16px rgba(0,0,0,0.08),-8px -8px 16px rgba(255,255,255,0.5);--shadow-sm:4px 4px 8px rgba(0,0,0,0.06),-4px -4px 8px rgba(255,255,255,0.4);--shadow-lg:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6);--shadow-inset:inset 2px 2px 4px rgba(0,0,0,0.06),inset -2px -2px 4px rgba(255,255,255,0.4);--shadow-glow:0 8px 24px rgba(124,58,237,0.15);--accent-gradient:linear-gradient(135deg,#7C3AED,#06D9FF);--heading-font:inherit;--border-color:transparent;--transition:all .3s ease}html[data-theme="dark"]{--bg:#0a0a0a;--text:#e5e7eb;--text-secondary:#9ca3af;--accent:#7C3AED;--secondary:#06D9FF;--success:#10B981;--danger:#EF5350;--warning:#F59E0B;--muted:#6b7280;--surface:#111111;--surface-2:#1a1a1a;--radius:16px;--radius-sm:10px;--radius-lg:20px;--shadow:0 8px 32px rgba(0,0,0,0.5),0 0 0 1px rgba(124,58,237,0.08);--shadow-sm:0 4px 16px rgba(0,0,0,0.4),0 0 0 1px rgba(124,58,237,0.05);--shadow-lg:0 16px 48px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.1);--shadow-inset:inset 0 2px 4px rgba(0,0,0,0.3);--shadow-glow:0 8px 32px rgba(124,58,237,0.2),0 0 60px rgba(6,217,255,0.05);--accent-gradient:linear-gradient(135deg,#7C3AED,#06D9FF);--heading-font:inherit;--border-color:rgba(124,58,237,0.12);--transition:all .3s ease}html[data-theme="classy"]{--bg:#fafaf9;--text:#3f3f46;--text-secondary:#a1a1aa;--accent:#d97706;--secondary:#7c3aed;--success:#10B981;--danger:#EF5350;--warning:#F59E0B;--muted:#a1a1aa;--surface:#f5f5f0;--surface-2:#e8e8e0;--radius:12px;--radius-sm:8px;--radius-lg:16px;--shadow:0 1px 3px rgba(0,0,0,0.04),0 1px 2px rgba(0,0,0,0.02);--shadow-sm:0 1px 2px rgba(0,0,0,0.03);--shadow-lg:0 4px 12px rgba(0,0,0,0.05),0 2px 4px rgba(0,0,0,0.03);--shadow-inset:inset 0 1px 2px rgba(0,0,0,0.02);--shadow-glow:0 2px 8px rgba(217,119,6,0.08);--accent-gradient:linear-gradient(135deg,#d97706,#b45309);--heading-font:Georgia,'Times New Roman',serif;--border-color:#e7e5e4;--transition:all .3s ease}html{font-size:14px}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;display:flex;overflow:hidden}
+.sidebar{width:200px;background:var(--surface);box-shadow:4px 0 12px rgba(0,0,0,0.04);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;transition:var(--transition)}.sidebar.closed{width:0;overflow:hidden;box-shadow:none}.sidebar-inner{display:flex;flex-direction:column;flex:1;min-width:200px;padding:16px 10px}.sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 8px 20px;margin-bottom:20px;font-size:17px;font-weight:700;letter-spacing:-.3px;color:var(--text)}.sidebar-brand .logo{width:34px;height:34px;background:var(--accent-gradient);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(124,58,237,0.25)}.nav{list-style:none;display:flex;flex-direction:column;gap:4px;margin-bottom:24px}.nav li a{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-sm);color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;box-shadow:var(--shadow-sm)}.nav li a:hover{box-shadow:var(--shadow);color:var(--text);transform:translateY(-1px)}.nav li a.active{background:var(--surface);color:var(--accent);font-weight:600;box-shadow:var(--shadow-inset);border-left:3px solid var(--accent)}.nav li a .ico{width:20px;text-align:center;font-size:15px}.sidebar-watchlist{padding-top:20px;margin-top:auto}.sidebar-watchlist h4{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;padding:0 8px}.wl-item{display:flex;justify-content:space-between;align-items:center;padding:7px 8px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer}.wl-item:hover{box-shadow:var(--shadow-sm)}.wl-item .wl-code{font-weight:600;color:var(--text)}.wl-item .wl-chg{font-weight:600;font-size:12px}.wl-up{color:var(--success)}.wl-down{color:var(--danger)}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:100vh;overflow:hidden;transition:var(--transition)}
+.header{display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--surface);flex-shrink:0;min-height:56px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,0.04)}.header>*{position:relative;z-index:1}.hamburger{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:4px;line-height:1}.header-title{font-size:17px;font-weight:700;white-space:nowrap;color:var(--accent);letter-spacing:-.3px}.header-search{position:relative;flex:1;max-width:360px;margin:0 auto}.header-search input{width:100%;padding:9px 14px 9px 36px;border:none;border-radius:20px;background:var(--surface-2);color:var(--text);font-size:13px;outline:none;box-shadow:var(--shadow-inset)}.header-search input::placeholder{color:var(--muted)}.header-search input:focus{box-shadow:inset 3px 3px 6px rgba(0,0,0,0.08),inset -3px -3px 6px rgba(255,255,255,0.6)}.header-search .search-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}.header-user{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-sm);white-space:nowrap;box-shadow:var(--shadow-sm)}.header-user:hover{box-shadow:var(--shadow)}.header-user .avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-gradient);box-shadow:0 2px 8px rgba(124,58,237,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}.header-user .name{font-size:13px;color:var(--text);font-weight:500}.date-display{color:var(--muted);font-size:12px;white-space:nowrap}
+.tabs{display:flex;gap:0;padding:0 16px;background:var(--surface);flex-shrink:0;overflow-x:auto;box-shadow:0 2px 8px rgba(0,0,0,0.03)}.tabs::-webkit-scrollbar{height:2px}.tabs::-webkit-scrollbar-thumb{background:var(--muted);border-radius:4px}.tab-btn{background:none;border:none;color:var(--muted);padding:10px 16px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;position:relative}.tab-btn:hover{color:var(--text)}.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.content{flex:1;overflow-y:auto;padding:12px 16px 16px}.content::-webkit-scrollbar{width:6px}.content::-webkit-scrollbar-thumb{background:var(--muted);border-radius:4px}.tab-pane{display:none}.tab-pane.active{display:block}
+.section{margin-bottom:20px}.section-title{font-size:22px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:12px;position:relative;padding-bottom:12px;letter-spacing:-.3px;color:var(--text)}.section-title::after{content:'';position:absolute;bottom:0;left:0;width:44px;height:3px;background:var(--accent-gradient);border-radius:2px}.section-sub{font-size:13px;color:var(--muted);font-weight:400;margin-left:auto}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.section-head .section-title{margin-bottom:0;padding-bottom:0}.section-head .section-title::after{display:none}
 .grid-6{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.card{background:var(--surface);border:none;border-radius:var(--radius);padding:24px;cursor:default;box-shadow:var(--shadow)}.card:hover{transform:translateY(-2px);box-shadow:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6)}.card-accent{box-shadow:8px 8px 16px rgba(124,58,237,0.1),-8px -8px 16px rgba(255,255,255,0.5)}.card-accent:hover{box-shadow:12px 12px 24px rgba(124,58,237,0.15),-12px -12px 24px rgba(255,255,255,0.6)}.card-lift:hover{transform:translateY(-2px);box-shadow:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6)}.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}.card-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600}.card-value{font-size:32px;font-weight:800;line-height:1.2;display:flex;align-items:center;gap:8px;letter-spacing:-.5px;color:var(--text)}.card-value::before{content:'';width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;background:currentColor;opacity:.5}.card-value-sm{font-size:20px;font-weight:700;line-height:1.2}.card-sub{font-size:12px;color:var(--muted);margin-top:4px}.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;letter-spacing:.2px}.badge-success{background:rgba(16,185,129,0.12);color:var(--success);box-shadow:inset 1px 1px 2px rgba(16,185,129,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.badge-danger{background:rgba(239,83,80,0.12);color:var(--danger);box-shadow:inset 1px 1px 2px rgba(239,83,80,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.badge-warning{background:rgba(245,158,11,0.12);color:var(--warning);box-shadow:inset 1px 1px 2px rgba(245,158,11,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.badge-accent{background:rgba(124,58,237,0.12);color:var(--accent);box-shadow:inset 1px 1px 2px rgba(124,58,237,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.card-big{min-height:110px;display:flex;flex-direction:column;justify-content:space-between}
+.card{background:var(--surface);border:none;border-radius:var(--radius);padding:16px;cursor:default;box-shadow:var(--shadow)}.card:hover{transform:translateY(-2px);box-shadow:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6)}.card-accent{box-shadow:8px 8px 16px rgba(124,58,237,0.1),-8px -8px 16px rgba(255,255,255,0.5)}.card-accent:hover{box-shadow:12px 12px 24px rgba(124,58,237,0.15),-12px -12px 24px rgba(255,255,255,0.6)}.card-lift:hover{transform:translateY(-2px);box-shadow:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6)}.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}.card-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600}.card-value{font-size:32px;font-weight:800;line-height:1.2;display:flex;align-items:center;gap:8px;letter-spacing:-.5px;color:var(--text)}.card-value::before{content:'';width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;background:currentColor;opacity:.5}.card-value-sm{font-size:20px;font-weight:700;line-height:1.2}.card-sub{font-size:12px;color:var(--muted);margin-top:4px}.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;letter-spacing:.2px}.badge-success{background:rgba(16,185,129,0.12);color:var(--success);box-shadow:inset 1px 1px 2px rgba(16,185,129,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.badge-danger{background:rgba(239,83,80,0.12);color:var(--danger);box-shadow:inset 1px 1px 2px rgba(239,83,80,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.badge-warning{background:rgba(245,158,11,0.12);color:var(--warning);box-shadow:inset 1px 1px 2px rgba(245,158,11,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.badge-accent{background:rgba(124,58,237,0.12);color:var(--accent);box-shadow:inset 1px 1px 2px rgba(124,58,237,0.15),inset -1px -1px 2px rgba(255,255,255,0.3)}.card-big{min-height:110px;display:flex;flex-direction:column;justify-content:space-between}
 .fgi-outer{width:100%;height:10px;background:var(--surface-2);border-radius:5px;margin-top:10px;overflow:hidden;position:relative;box-shadow:var(--shadow-inset)}.fgi-fill{height:100%;border-radius:5px;transition:width .6s ease,background .6s ease}.fgi-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px}
 .mover-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px;position:relative;padding-left:14px}.mover-item:last-child{border-bottom:none;padding-bottom:0}.mover-item:first-child{padding-top:0}.mover-item::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px}.mover-item.is-up::before{background:var(--success);box-shadow:0 0 6px rgba(16,185,129,0.3)}.mover-item.is-down::before{background:var(--danger);box-shadow:0 0 6px rgba(239,83,80,0.3)}.mover-item.is-vol::before{background:var(--accent);box-shadow:0 0 6px rgba(124,58,237,0.3)}.mover-name{display:flex;flex-direction:column}.mover-code{font-weight:600;font-size:14px;color:var(--text)}.mover-full{font-size:11px;color:var(--muted);margin-top:1px}.mover-val{font-weight:700;font-size:14px}.mover-trend{width:32px;height:20px;display:inline-flex;align-items:flex-end;gap:2px;margin-left:auto;margin-right:12px}.mover-trend span{width:4px;border-radius:2px}.mover-trend.is-up span{background:var(--success)}.mover-trend.is-up span:nth-child(1){height:6px}.mover-trend.is-up span:nth-child(2){height:12px}.mover-trend.is-up span:nth-child(3){height:18px}.mover-trend.is-down span{background:var(--danger)}.mover-trend.is-down span:nth-child(1){height:18px}.mover-trend.is-down span:nth-child(2){height:10px}.mover-trend.is-down span:nth-child(3){height:4px}.mover-trend.is-vol span{background:var(--accent)}.mover-trend.is-vol span:nth-child(1){height:8px}.mover-trend.is-vol span:nth-child(2){height:14px}.mover-trend.is-vol span:nth-child(3){height:10px}
 .candidate-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.candidate-card{background:var(--surface);border:none;border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;box-shadow:var(--shadow)}.candidate-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-gradient);opacity:0}.candidate-card:hover{transform:translateY(-2px);box-shadow:12px 12px 24px rgba(0,0,0,0.1),-12px -12px 24px rgba(255,255,255,0.6)}.candidate-card:hover::before{opacity:1}.candidate-card .cc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.candidate-card .cc-code{font-size:17px;font-weight:700;letter-spacing:-.3px}.candidate-card .cc-detail{font-size:12px;color:var(--muted);margin-bottom:3px}.candidate-card .cc-val{font-size:15px;font-weight:600}.view-all{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;background:var(--accent-gradient);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;box-shadow:0 4px 12px rgba(124,58,237,0.25)}.view-all:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,0.35)}
@@ -23,7 +23,7 @@
 .table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}thead th{padding:12px 14px;text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid rgba(0,0,0,0.04);white-space:nowrap}tbody td{padding:12px 14px;border-bottom:1px solid rgba(0,0,0,0.04);white-space:nowrap}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:rgba(0,0,0,0.02)}
 .profit-positive{color:var(--success);font-weight:700}.profit-negative{color:var(--danger);font-weight:700}
 .search-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px)}.search-overlay.open{display:block}.search-panel{position:absolute;top:64px;left:50%;transform:translateX(-50%);width:min(480px,90vw);background:var(--surface);border:none;border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:8px 0;max-height:380px;overflow-y:auto}.search-panel .sr-item{padding:10px 16px;cursor:pointer;display:flex;justify-content:space-between;font-size:13px;border-left:3px solid transparent}.search-panel .sr-item:hover{background:rgba(124,58,237,0.06);border-left-color:var(--accent)}
-@media(max-width:1200px){.grid-6{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(2,1fr)}.candidate-row{grid-template-columns:repeat(2,1fr)}}@media(max-width:768px){.sidebar{width:200px}.sidebar.closed{width:0}.sidebar-inner{min-width:200px}.main{margin-left:200px}.sidebar.closed+.main{margin-left:0}.hamburger{display:block}.header-search{max-width:200px}.grid-6{grid-template-columns:repeat(2,1fr)}.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr}.candidate-row{grid-template-columns:1fr}.sector-name{width:100px}.header-user .name{display:none}.content{padding:16px}.header{padding:0 16px}.tabs{padding:0 16px}.tab-btn{padding:12px 16px;font-size:12px}}@media(max-width:480px){.sidebar{width:100%;z-index:300}.sidebar.closed{width:0}.sidebar-inner{min-width:100%}.main{margin-left:0}.grid-6{grid-template-columns:1fr 1fr}.grid-4{grid-template-columns:1fr 1fr}.header-title{display:none}.header-search{max-width:140px}.card-value{font-size:26px}.content{padding:12px}}
+@media(max-width:1200px){.grid-6{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(2,1fr)}.candidate-row{grid-template-columns:repeat(2,1fr)}}@media(max-width:768px){.sidebar{width:200px}.sidebar.closed{width:0}.sidebar-inner{min-width:200px}.hamburger{display:block}.header-search{max-width:200px}.grid-6{grid-template-columns:repeat(2,1fr)}.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr}.candidate-row{grid-template-columns:1fr}.sector-name{width:100px}.header-user .name{display:none}.content{padding:16px}.header{padding:0 16px}.tabs{padding:0 16px}.tab-btn{padding:12px 16px;font-size:12px}}@media(max-width:480px){.sidebar{position:fixed;top:0;left:0;bottom:0;width:100%;z-index:300}.sidebar.closed{width:0}.sidebar-inner{min-width:100%}.grid-6{grid-template-columns:1fr 1fr}.grid-4{grid-template-columns:1fr 1fr}.header-title{display:none}.header-search{max-width:140px}.card-value{font-size:26px}.content{padding:12px}}
 html[data-theme="dark"] .header{background:linear-gradient(135deg,#0d0d1a,#1a0a2e,#0a0a0a);border-bottom:1px solid rgba(124,58,237,0.15)}html[data-theme="dark"] .sidebar{border-right:1px solid rgba(124,58,237,0.1)}html[data-theme="dark"] .card{border:1px solid var(--border-color)}html[data-theme="dark"] .candidate-card::before{background:linear-gradient(90deg,#7C3AED,#06D9FF)}html[data-theme="dark"] .nav li a.active{border-left-color:#06D9FF}html[data-theme="dark"] .card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.15)}html[data-theme="dark"] .card-accent{box-shadow:0 8px 32px rgba(0,0,0,0.5),0 0 24px rgba(124,58,237,0.15)}html[data-theme="dark"] .card-accent:hover{box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 32px rgba(124,58,237,0.2)}html[data-theme="dark"] .candidate-card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.15)}html[data-theme="dark"] .view-all{box-shadow:0 4px 20px rgba(124,58,237,0.3)}html[data-theme="dark"] .badge{box-shadow:inset 0 1px 2px rgba(0,0,0,0.2);background:rgba(124,58,237,0.1)}html[data-theme="dark"] .badge-success{background:rgba(16,185,129,0.15)}html[data-theme="dark"] .badge-danger{background:rgba(239,83,80,0.15)}html[data-theme="dark"] .badge-warning{background:rgba(245,158,11,0.15)}html[data-theme="dark"] .badge-accent{background:rgba(124,58,237,0.2)}html[data-theme="dark"] .search-panel .sr-item:hover{background:rgba(124,58,237,0.1)}
 html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-weight:600;letter-spacing:0}html[data-theme="classy"] .section-title::after{background:var(--accent-gradient);height:2px;width:36px}html[data-theme="classy"] .card{border:1px solid var(--border-color)}html[data-theme="classy"] .card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.05),0 2px 4px rgba(0,0,0,0.03)}html[data-theme="classy"] .candidate-card{border:1px solid var(--border-color)}html[data-theme="classy"] .candidate-card:hover{transform:translateY(-1px)}html[data-theme="classy"] .candidate-card::before{background:var(--accent-gradient)}html[data-theme="classy"] .sidebar-brand .logo{background:var(--accent-gradient);box-shadow:none}html[data-theme="classy"] .nav li a{box-shadow:none;border:1px solid transparent}html[data-theme="classy"] .nav li a:hover{box-shadow:none;border-color:var(--border-color)}html[data-theme="classy"] .nav li a.active{box-shadow:none;border-left-color:var(--accent);background:rgba(217,119,6,0.04)}html[data-theme="classy"] .badge{box-shadow:none;border:1px solid currentColor;opacity:.8}html[data-theme="classy"] .view-all{background:var(--accent);box-shadow:none}html[data-theme="classy"] .view-all:hover{background:#b45309;box-shadow:none;transform:none}html[data-theme="classy"] .header{border-bottom:1px solid var(--border-color)}html[data-theme="classy"] .header-user{box-shadow:none;border:1px solid var(--border-color)}html[data-theme="classy"] .header-user:hover{box-shadow:none}html[data-theme="classy"] .sidebar{border-right:1px solid var(--border-color)}html[data-theme="classy"] .tabs{border-bottom:1px solid var(--border-color)}html[data-theme="classy"] .tab-btn.active{border-bottom-color:var(--accent)}html[data-theme="classy"] .mover-item{border-bottom-color:var(--border-color)}html[data-theme="classy"] .sector-item{border-bottom-color:var(--border-color)}html[data-theme="classy"] thead th{border-bottom-color:var(--border-color)}html[data-theme="classy"] tbody td{border-bottom-color:var(--border-color)}html[data-theme="classy"] .fgi-outer{box-shadow:none;border:1px solid var(--border-color)}html[data-theme="classy"] .sector-bar-wrap{box-shadow:none;border:1px solid var(--border-color)}html[data-theme="classy"] .header-search input{box-shadow:none;border:1px solid var(--border-color);background:var(--surface)}html[data-theme="classy"] .header-search input:focus{border-color:var(--accent)}html[data-theme="classy"] .sidebar-watchlist h4{letter-spacing:1.5px}html[data-theme="classy"] .wl-item:hover{box-shadow:none;background:rgba(0,0,0,0.02)}html[data-theme="classy"] .search-panel{box-shadow:0 4px 16px rgba(0,0,0,0.06);border:1px solid var(--border-color)}html[data-theme="classy"] .theme-btn.active{box-shadow:none;border:1px solid var(--accent);background:rgba(217,119,6,0.06)}
 .theme-switcher{display:flex;gap:4px;background:var(--surface-2);padding:3px;border-radius:20px;box-shadow:var(--shadow-inset);flex-shrink:0}.theme-btn{background:none;border:none;color:var(--muted);padding:5px 12px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;letter-spacing:.2px}.theme-btn:hover{color:var(--text)}.theme-btn.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow-sm)}
@@ -107,6 +107,12 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
         <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">General</button>
         <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Account</button>
         <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">Alerts</button>
+      </div>
+      <div v-else-if="currentView === 'marketreports'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📈 IHSG Chart</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'reports' }" @click="switchMrTab('reports')">📋 Reports</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'stocks' }" @click="switchMrTab('stocks')">🏛️ Stock Tracker</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'analysis' }" @click="switchMrTab('analysis')">🤖 AI Analysis</button>
       </div>
       <div class="content">
         <div v-if="currentView === 'dashboard'">
@@ -601,6 +607,283 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
             </div>
           </div>
         </div>
+        <div v-else-if="currentView === 'marketreports'">
+          <!-- IHSG Chart tab -->
+          <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <div class="section">
+              <div class="section-title">IHSG Performance</div>
+              <div class="card" style="padding:16px">
+                <div style="position:relative;height:280px"><canvas id="ihsgChart"></canvas></div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">Top Foreign Buy Frequency</div>
+              <div class="card" style="padding:16px">
+                <div style="position:relative;height:280px"><canvas id="foreignChart"></canvas></div>
+              </div>
+            </div>
+          </div>
+          <!-- Reports tab -->
+          <div class="tab-pane" :class="{ active: currentTab === 'reports' }">
+            <div class="section">
+              <div class="section-title">Market Report Cards</div>
+              <div class="stats-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px">
+                <div class="card" style="text-align:center;padding:16px">
+                  <div style="font-size:28px;font-weight:700;color:var(--accent)">{{ mrStats.totalReports }}</div>
+                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Total Reports</div>
+                </div>
+                <div class="card" style="text-align:center;padding:16px">
+                  <div style="font-size:28px;font-weight:700" :style="{color: mrStats.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrStats.avgIHSG }}%</div>
+                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Rata-rata IHSG</div>
+                </div>
+                <div class="card" style="text-align:center;padding:16px">
+                  <div style="font-size:28px;font-weight:700;color:var(--secondary)">{{ mrStats.foreignStocks }}</div>
+                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Unik Top Foreign</div>
+                </div>
+                <div class="card" style="text-align:center;padding:16px">
+                  <div style="font-size:28px;font-weight:700;color:var(--danger)">{{ mrStats.redDays }}</div>
+                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Hari Merah</div>
+                </div>
+              </div>
+              <!-- Net Foreign Accumulation -->
+              <div class="card" style="padding:16px;margin-bottom:20px">
+                <div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:12px">🌍 Net Foreign Accumulation <span style="font-size:11px;color:var(--muted);font-weight:400">(asing — lokal, hindari yg lokal > asing)</span></div>
+                <div style="overflow-x:auto">
+                  <table style="width:100%;border-collapse:collapse;font-size:12px">
+                    <thead><tr style="border-bottom:1px solid var(--border,#333)">
+                      <th style="text-align:left;padding:6px 8px;color:var(--muted)">Stock</th>
+                      <th style="text-align:right;padding:6px 8px;color:var(--muted)">🌍 Foreign</th>
+                      <th style="text-align:right;padding:6px 8px;color:var(--muted)">🏠 Local</th>
+                      <th style="text-align:right;padding:6px 8px;color:var(--muted)">Net</th>
+                      <th style="text-align:right;padding:6px 8px;color:var(--muted)">Last</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr v-for="s in mrNetForeign" :key="s.stock" style="border-bottom:1px solid var(--border,#222)">
+                        <td style="padding:5px 8px;font-weight:600;color:var(--accent)">{{ s.stock }}</td>
+                        <td style="padding:5px 8px;text-align:right;color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
+                        <td style="padding:5px 8px;text-align:right;color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
+                        <td style="padding:5px 8px;text-align:right;font-weight:700" :style="{color: s.net >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ s.net >= 0 ? '+' : '' }}{{ formatRp(Math.abs(s.net)) }}</td>
+                        <td style="padding:5px 8px;text-align:right;color:var(--muted);font-size:11px">{{ s.lastDate.slice(5) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="month-group">
+                <div v-for="m in mrMonths" :key="m.key" class="month-section" style="margin-bottom:12px">
+                  <div class="card month-header" style="padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" @click="toggleMonth(m.key)">
+                    <div>
+                      <span style="font-size:16px;font-weight:700">{{ m.label }}</span>
+                      <span style="font-size:12px;color:var(--muted);margin-left:8px">{{ m.count }} report</span>
+                      <span style="font-size:11px;color:var(--muted);margin-left:8px">🌍{{ m.foreignSet.size }} saham</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <span v-if="m.avgIHSG !== null" :style="{color: m.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight:700}">{{ m.avgIHSG >= 0 ? '+' : '' }}{{ m.avgIHSG.toFixed(1) }}%</span>
+                      <span style="font-size:11px;color:var(--muted)">🔴{{ m.redDays }} 🟢{{ m.greenDays }}</span>
+                      <span style="font-size:14px;color:var(--muted);transition:transform .2s" :style="{transform: mrExpandedMonths[m.key] ? 'rotate(180deg)' : 'rotate(0deg)'}">▼</span>
+                    </div>
+                  </div>
+                  <div v-if="mrExpandedMonths[m.key]" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-top:8px">
+                    <div v-for="r in m.reports" :key="r.date" class="card" style="padding:16px">
+                      <div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:8px">
+                        {{ r.date }} <span v-if="r.ihsg_change != null" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change >= 0 ? '🟢' : '🔴' }}</span>
+                      </div>
+                      <div style="font-size:18px;font-weight:700;margin:6px 0" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change != null ? r.ihsg_change.toFixed(1) + '%' : 'N/A' }}</div>
+                      <div v-if="r.local_buy_amount" style="font-size:11px;color:var(--muted);margin-bottom:8px">Local Buy: {{ formatRp(r.local_buy_amount) }}</div>
+                      <template v-if="r.foreign_buy && r.foreign_buy.length">
+                        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:10px;">🌍 Foreign Buy</div>
+                        <div v-for="s in r.foreign_buy" :key="s.stock" class="item" style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
+                          <span style="font-weight:600;color:var(--accent)">{{ s.stock }}</span><span class="val" style="font-weight:600">{{ formatRp(s.value) }}</span>
+                        </div>
+                      </template>
+                      <template v-if="r.local_buy && r.local_buy.length">
+                        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:10px;">🏠 Local Buy</div>
+                        <div v-for="s in r.local_buy" :key="s.stock" style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
+                          <span style="font-weight:600;color:var(--secondary)">{{ s.stock }}</span><span style="font-weight:600">{{ formatRp(s.value) }}</span>
+                        </div>
+                      </template>
+                      <template v-if="r.gainers && r.gainers.length">
+                        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:10px;">📈 Gainers</div>
+                        <div v-for="s in r.gainers" :key="s.stock" style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
+                          <span style="font-weight:600;color:var(--accent)">{{ s.stock }}</span><span style="font-weight:600;color:var(--success)">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+                        </div>
+                      </template>
+                      <template v-if="r.losers && r.losers.length">
+                        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:10px;">📉 Losers</div>
+                        <div v-for="s in r.losers" :key="s.stock" style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
+                          <span style="font-weight:600;color:var(--accent)">{{ s.stock }}</span><span style="font-weight:600;color:var(--danger)">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Stock Tracker tab -->
+          <div class="tab-pane" :class="{ active: currentTab === 'stocks' }">
+            <div class="section">
+              <div class="section-title">🌍 Net Foreign Accumulation <span style="font-size:11px;color:var(--muted);font-weight:400">(asing — lokal, hanya yg net positif)</span></div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Stock</th><th>🌍 Foreign</th><th>🏠 Local</th><th>Net</th><th>Last</th></tr></thead>
+                    <tbody>
+                      <tr v-for="s in mrNetForeign.filter(x => x.net > 0)" :key="s.stock">
+                        <td style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
+                        <td style="color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
+                        <td style="color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
+                        <td style="font-weight:700;color:var(--success)">+{{ formatRp(s.net) }}</td>
+                        <td style="color:var(--muted);font-size:11px">{{ s.lastDate.slice(5) }}</td>
+                      </tr>
+                      <tr v-if="!mrNetForeign.filter(x => x.net > 0).length"><td colspan="5" style="text-align:center;color:var(--muted)">No data</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- AI Analysis tab -->
+          <div class="tab-pane" :class="{ active: currentTab === 'analysis' }">
+            <div class="section" v-if="mrLoadingAnalysis">
+              <div class="card" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading analysis...</div>
+            </div>
+            <div v-if="mrAnalysis">
+              <!-- Summary Row -->
+              <div class="section">
+                <div class="section-title">📊 Market Report Summary</div>
+                <div class="stats-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+                  <div class="card" style="text-align:center;padding:14px">
+                    <div style="font-size:24px;font-weight:700;color:var(--accent)">{{ mrAnalysis.period.total_reports }}</div>
+                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Total Reports</div>
+                    <div style="font-size:10px;color:var(--muted)">{{ mrAnalysis.period.start }} → {{ mrAnalysis.period.end }}</div>
+                  </div>
+                  <div class="card" style="text-align:center;padding:14px">
+                    <div style="font-size:24px;font-weight:700" :style="{color: mrAnalysis.ihsg_summary.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrAnalysis.ihsg_summary.avg }}%</div>
+                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Rata-rata IHSG</div>
+                    <div style="font-size:10px;color:var(--muted)">🔴 {{ mrAnalysis.ihsg_summary.red_days }} / 🟢 {{ mrAnalysis.ihsg_summary.green_days }}</div>
+                  </div>
+                  <div class="card" style="text-align:center;padding:14px">
+                    <div style="font-size:24px;font-weight:700;color:var(--secondary)">{{ mrAnalysis.period.days }}</div>
+                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Trading Days</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Net Foreign Accumulation -->
+              <div class="section">
+                <div class="section-title">🌍 Net Foreign Accumulation <span style="font-size:11px;color:var(--muted);font-weight:400">(asing — lokal, bersih)</span></div>
+                <div class="card" style="padding:0;overflow:hidden">
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>Stock</th><th>🌍 Foreign</th><th>🏠 Local</th><th>Net</th><th>Last</th></tr></thead>
+                      <tbody>
+                        <tr v-for="s in mrNetForeign.filter(x => x.net > 0).slice(0,20)" :key="s.stock">
+                          <td style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
+                          <td style="font-weight:600;color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
+                          <td style="color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
+                          <td style="font-weight:700;color:var(--success)">+{{ formatRp(s.net) }}</td>
+                          <td style="color:var(--muted);font-size:11px">{{ s.lastDate.slice(5) }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Monthly Flow -->
+              <div class="section">
+                <div class="section-title">📊 Foreign Flow per Bulan</div>
+                <div class="card" v-for="m in mrAnalysis.monthly_flow" :key="m.month" style="padding:12px;margin-bottom:8px">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div><strong>{{ m.month }}</strong> <span style="color:var(--muted);font-size:11px">({{ m.reports }} report)</span></div>
+                    <div style="font-weight:700;color:var(--accent)">{{ formatRp(m.total) }}</div>
+                  </div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:4px">
+                    {{ m.top.map(t => t.stock + ' ' + formatRp(t.value)).join(' · ') }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- IHSG Trend -->
+              <div class="section">
+                <div class="section-title">🔄 IHSG Trend</div>
+                <div class="grid-3" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+                  <div v-for="p in mrAnalysis.ihsg_trend" :key="p.label" class="card" style="text-align:center;padding:14px">
+                    <div style="font-size:12px;color:var(--muted)">{{ p.label }}</div>
+                    <div style="font-size:22px;font-weight:700" :style="{color: p.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ p.avg }}%</div>
+                    <div style="font-size:10px;color:var(--muted)">merah {{ p.red }}/{{ p.total }} hari</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Backtest Results -->
+              <div class="section">
+                <div class="section-title">⚡ Backtest Results</div>
+                <div class="grid-3" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+                  <div v-for="bt in mrAnalysis.backtest" :key="bt.label" class="card" style="padding:14px">
+                    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">{{ bt.label }}</div>
+                    <div style="font-size:14px;display:flex;justify-content:space-between;align-items:center">
+                      <span v-if="bt.win_rate >= 50" style="font-size:28px;font-weight:800;color:var(--success)">{{ bt.win_rate }}%</span>
+                      <span v-else style="font-size:28px;font-weight:800;color:var(--danger)">{{ bt.win_rate }}%</span>
+                      <span style="font-size:11px;color:var(--muted)">{{ bt.wins }}/{{ bt.trades }} win</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Same-Day Signals -->
+              <div class="section" v-if="mrAnalysis.same_day_signals && mrAnalysis.same_day_signals.length">
+                <div class="section-title">🔥 Same-Day Signal (Foreign Buy → langsung Gainer)</div>
+                <div class="card" style="padding:12px">
+                  <div v-for="s in mrAnalysis.same_day_signals" :key="s.stock" style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">
+                    <span style="font-weight:600;color:var(--accent)">{{ s.stock }}</span>
+                    <span style="color:var(--success)">{{ s.count }}x</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hot Picks -->
+              <div class="section">
+                <div class="section-title">🎯 Hot Pick (Foreign Buy Terbaru)</div>
+                <div class="card" style="padding:0;overflow:hidden">
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>Stock</th><th>7d Total</th><th>Freq</th><th>Same-Day</th></tr></thead>
+                      <tbody>
+                        <tr v-for="s in mrAnalysis.recent_hot" :key="s.stock">
+                          <td style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
+                          <td>{{ formatRp(s.total) }}</td>
+                          <td>{{ s.freq }}x</td>
+                          <td style="color:var(--success)">{{ s.same_day > 0 ? s.same_day + 'x 🔥' : '-' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- IHSG Outlook -->
+              <div class="section">
+                <div class="section-title">📊 IHSG Outlook</div>
+                <div class="card" style="padding:16px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <div>
+                      <span style="font-size:13px;color:var(--muted)">5 report terakhir: </span>
+                      <span v-for="(v, i) in mrAnalysis.ihsg_outlook.latest" :key="i" :style="{color: v >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight:600, marginRight:'4px'}">{{ v }}%</span>
+                    </div>
+                    <div>
+                      <span v-if="mrAnalysis.ihsg_outlook.status === 'bearish'" style="font-size:18px;font-weight:700;color:var(--danger)">⚠️ Bearish</span>
+                      <span v-else-if="mrAnalysis.ihsg_outlook.status === 'koreksi'" style="font-size:18px;font-weight:700;color:var(--warning)">⚡ Koreksi</span>
+                      <span v-else style="font-size:18px;font-weight:700;color:var(--success)">✅ Stabil</span>
+                    </div>
+                  </div>
+                  <div style="font-size:11px;color:var(--muted)">Disclaimer: Backtest berdasarkan data @creativetrader. Bukan saran investasi.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div v-else-if="currentView === 'settings'">
           <div class="tab-pane" :class="{ active: currentTab === 'general' }">
             <div class="section">
@@ -757,6 +1040,59 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
         const sidebarOpen = ref(true);
         const searchOpen = ref(false);
         const dateStr = ref('');
+        const mrReports = ref([]);
+        const mrStats = ref({ totalReports: 0, avgIHSG: 0, foreignStocks: 0, redDays: 0 });
+        const mrForeignStocks = ref([]);
+        const mrLocalStocks = ref([]);
+        const mrAnalysis = ref(null);
+        const mrLoadingAnalysis = ref(false);
+        const mrExpandedMonths = ref({});
+        const mrNetForeign = computed(() => {
+          const map = {};
+          mrReports.value.forEach(r => {
+            (r.foreign_buy || []).forEach(s => {
+              if (!map[s.stock]) map[s.stock] = { stock: s.stock, foreignTotal: 0, localTotal: 0, lastDate: r.date };
+              map[s.stock].foreignTotal += s.value;
+              if (r.date > map[s.stock].lastDate) map[s.stock].lastDate = r.date;
+            });
+            (r.local_buy || []).forEach(s => {
+              if (!map[s.stock]) map[s.stock] = { stock: s.stock, foreignTotal: 0, localTotal: 0, lastDate: r.date };
+              map[s.stock].localTotal += s.value;
+              if (r.date > map[s.stock].lastDate) map[s.stock].lastDate = r.date;
+            });
+          });
+          return Object.values(map).map(s => ({
+            ...s,
+            net: s.foreignTotal - s.localTotal,
+          })).sort((a, b) => b.net - a.net);
+        });
+        const mrMonths = computed(() => {
+          const groups = {};
+          mrReports.value.forEach(r => {
+            const m = r.date.substring(0, 7);
+            if (!groups[m]) groups[m] = { key: m, label: '', reports: [] };
+            groups[m].reports.push(r);
+          });
+          const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+          return Object.keys(groups).sort().reverse().map(k => {
+            const g = groups[k];
+            const [y, mo] = k.split('-');
+            g.label = monthNames[parseInt(mo)-1] + ' ' + y;
+            const ihsg = g.reports.map(r => r.ihsg_change).filter(v => v !== null);
+            g.count = g.reports.length;
+            g.avgIHSG = ihsg.length ? ihsg.reduce((a,b) => a+b, 0) / ihsg.length : null;
+            g.redDays = ihsg.filter(v => v < 0).length;
+            g.greenDays = ihsg.filter(v => v >= 0).length;
+            g.foreignSet = new Set();
+            g.reports.forEach(r => (r.foreign_buy || []).forEach(s => g.foreignSet.add(s.stock)));
+            return g;
+          });
+        });
+        function toggleMonth(key) {
+          mrExpandedMonths.value[key] = !mrExpandedMonths.value[key];
+        }
+        let ihsgChartInstance = null;
+        let foreignChartInstance = null;
 
         const themes = [
           { id: 'neumorphism', label: 'Light' },
@@ -770,10 +1106,11 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           { view: 'longterm',   icon: '&#9670;', label: 'Long Term' },
           { view: 'analysis',   icon: '&#9776;', label: 'Analysis' },
           { view: 'settings',   icon: '&#9881;', label: 'Settings' },
+          { view: 'marketreports', icon: '📊', label: 'Market Reports' },
         ];
 
         const headerTitle = computed(() => {
-          const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', settings: 'Settings' };
+          const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', settings: 'Settings', marketreports: 'Market Reports' };
           return map[currentView.value] || 'Dashboard';
         });
 
@@ -1162,14 +1499,121 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           if (idx > -1) settingsAlerts.value.splice(idx, 1);
         }
 
+        function formatRp(val) {
+          if (val >= 1e12) return 'Rp' + (val/1e12).toFixed(2) + 'T';
+          if (val >= 1e9) return 'Rp' + (val/1e9).toFixed(1) + 'M';
+          if (val >= 1e6) return 'Rp' + (val/1e6).toFixed(1) + 'Jt';
+          return 'Rp' + val.toLocaleString('id');
+        }
+
+        function renderMrCharts(full) {
+          const sorted = [...full].reverse();
+          const labels = sorted.map(r => r.date);
+          const ihsgData = sorted.map(r => r.ihsg_change);
+          const colors = ihsgData.map(v => v >= 0 ? '#10B981' : '#EF5350');
+
+          if (ihsgChartInstance) ihsgChartInstance.destroy();
+          const ctx1 = document.getElementById('ihsgChart');
+          if (ctx1) {
+            ihsgChartInstance = new Chart(ctx1, {
+              type: 'bar',
+              data: { labels, datasets: [{ label: 'IHSG Change %', data: ihsgData, backgroundColor: colors, borderRadius: 4 }] },
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' }, ticks: { callback: v => v + '%' } }, x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } } } }
+            });
+          }
+
+          const fMap = {};
+          full.forEach(r => (r.foreign_buy || []).forEach(s => {
+            if (!fMap[s.stock]) fMap[s.stock] = { count: 0, total: 0 };
+            fMap[s.stock].count++;
+            fMap[s.stock].total += s.value;
+          }));
+          const fSorted = Object.entries(fMap).sort((a,b) => b[1].total - a[1].total).slice(0, 10);
+
+          if (foreignChartInstance) foreignChartInstance.destroy();
+          const ctx2 = document.getElementById('foreignChart');
+          if (ctx2) {
+            foreignChartInstance = new Chart(ctx2, {
+              type: 'bar',
+              data: { labels: fSorted.map(([k]) => k), datasets: [{ label: 'Foreign Buy (Rp)', data: fSorted.map(([,v]) => v.total), backgroundColor: '#7C3AED', borderRadius: 4 }] },
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' }, ticks: { callback: v => formatRp(v) } }, x: { grid: { display: false } } } }
+            });
+          }
+        }
+
+        function buildMrStockTable(dataKey, color) {
+          const map = {};
+          mrReports.value.forEach(r => (r[dataKey] || []).forEach(s => {
+            if (!map[s.stock]) map[s.stock] = { count: 0, total: 0, lastDate: r.date };
+            map[s.stock].count++;
+            map[s.stock].total += s.value;
+            if (r.date > map[s.stock].lastDate) map[s.stock].lastDate = r.date;
+          }));
+          return Object.entries(map).sort((a,b) => b[1].total - a[1].total).map(([k,v]) => ({ stock: k, ...v }));
+        }
+
+        async function loadMarketReports() {
+          try {
+            const res = await fetch('/api/market-reports?limit=500');
+            const json = await res.json();
+            const full = (json.data || []).filter(r => r.type === 'full');
+            mrReports.value = full;
+
+            // Auto-expand first month
+            if (full.length) {
+              const firstMonth = full[0].date.substring(0, 7);
+              mrExpandedMonths.value[firstMonth] = true;
+            }
+
+            // Stats
+            const ihsgVals = full.map(r => r.ihsg_change).filter(v => v !== null);
+            const avgIHSG = ihsgVals.length ? (ihsgVals.reduce((a,b) => a+b, 0) / ihsgVals.length) : 0;
+            const allForeignStocks = new Set();
+            (json.data || []).forEach(r => (r.foreign_buy || []).forEach(s => allForeignStocks.add(s.stock)));
+            const redDays = ihsgVals.filter(v => v < 0).length;
+            mrStats.value = { totalReports: json.total || full.length, avgIHSG: Math.round(avgIHSG * 10) / 10, foreignStocks: allForeignStocks.size, redDays };
+
+            // Stock tables
+            mrForeignStocks.value = buildMrStockTable('foreign_buy', '#7C3AED');
+            mrLocalStocks.value = buildMrStockTable('local_buy', '#06D9FF');
+
+            // Charts
+            setTimeout(() => renderMrCharts(full), 100);
+          } catch(e) {
+            console.error('Market report load failed:', e);
+          }
+        }
+
+        async function loadMrAnalysis() {
+          mrLoadingAnalysis.value = true;
+          try {
+            const res = await fetch('/api/market-report-analysis');
+            const json = await res.json();
+            if (json.status === 'ok' && json.analysis) {
+              mrAnalysis.value = json.analysis;
+            }
+          } catch(e) {
+            console.error('Analysis load failed:', e);
+          }
+          mrLoadingAnalysis.value = false;
+        }
+
+        function switchMrTab(tab) {
+          currentTab.value = tab;
+          if (tab === 'overview') setTimeout(() => renderMrCharts(mrReports.value), 100);
+          if (tab === 'analysis' && !mrAnalysis.value) loadMrAnalysis();
+        }
+
         function switchView(view) {
           currentView.value = view;
+          if (view === 'marketreports') loadMarketReports();
           const firstTabs = {
             dashboard: 'overview',
             daytrading: 'signals',
             longterm: 'accumulation',
             analysis: 'search',
             settings: 'general',
+            marketreports: 'overview',
           };
           currentTab.value = firstTabs[view] || 'overview';
           if (window.innerWidth <= 768) sidebarOpen.value = false;
@@ -1204,6 +1648,16 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           document.documentElement.setAttribute('data-theme', val);
         });
 
+        function getViewFromUrl() {
+          const path = window.location.pathname.replace(/\/$/, '');
+          const pathMap = { '/market-reports': 'marketreports', '/dashboard': 'dashboard', '/daytrading': 'daytrading', '/longterm': 'longterm', '/analysis': 'analysis', '/settings': 'settings' };
+          if (pathMap[path]) return pathMap[path];
+          const params = new URLSearchParams(window.location.search);
+          const view = params.get('view');
+          const validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'settings', 'marketreports'];
+          return validViews.includes(view) ? view : null;
+        }
+
         onMounted(() => {
           const saved = localStorage.getItem('dashboard-theme');
           if (saved) {
@@ -1215,6 +1669,11 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') searchOpen.value = false;
           });
+          const urlView = getViewFromUrl();
+          if (urlView) {
+            currentView.value = urlView;
+            if (urlView === 'marketreports') loadMarketReports();
+          }
         });
 
         return {
@@ -1235,6 +1694,11 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           settingsAlerts, newAlertStock, newAlertType, newAlertCondition, addAlert, removeAlert,
           switchView, switchTheme, toggleSidebar, closeSearch, onSearchInput,
           mockScan, mockSave,
+          mrReports, mrStats, mrForeignStocks, mrLocalStocks,
+          mrAnalysis, mrLoadingAnalysis,
+          mrMonths, mrExpandedMonths, toggleMonth,
+          mrNetForeign,
+          formatRp, loadMarketReports, loadMrAnalysis, switchMrTab,
         };
       }
     }).mount('#app');

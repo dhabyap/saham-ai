@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 import threading
 
 from app.config import Config
@@ -85,17 +85,8 @@ def _start_telegram_bot():
 
 @app.get("/")
 async def root():
-    return FileResponse("app/templates/dashboard.html")
-
-
-@app.get("/ai-settings")
-async def ai_settings():
-    return FileResponse("app/templates/ai_settings.html")
-
-
-@app.get("/ai-performance")
-async def ai_performance():
-    return FileResponse("app/templates/ai_performance.html")
+    """Vue 3 dashboard SPA"""
+    return FileResponse("app/templates/dashboard_vue.html")
 
 
 @app.get("/dashboard")
@@ -104,10 +95,10 @@ async def dashboard_vue():
     return FileResponse("app/templates/dashboard_vue.html")
 
 
-@app.get("/upload-analyzer")
-async def upload_analyzer():
-    """Daily Excel upload and analysis page"""
-    return FileResponse("app/templates/upload_analyzer.html")
+@app.get("/market-reports")
+async def market_reports_page():
+    """Market reports page - serves SPA with market view active"""
+    return FileResponse("app/templates/dashboard_vue.html")
 
 
 @app.get("/api-docs")

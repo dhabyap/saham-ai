@@ -25,6 +25,7 @@ from app.database import ai_crud
 from app.ai.learning_engine import LearningEngine
 from app.ai.strategies.bpjs_strategy import BPJSStrategy
 from app.ai.strategies.creative_trader_strategy import CreativeTraderStrategy
+from app.services.broker_service import save_and_analyze_broker_data, format_broker_help
 
 
 class TelegramBot:
@@ -60,6 +61,8 @@ class TelegramBot:
                 f"/bpjs - Kandidat BPJS hari ini\n"
                 f"/longterm BBCA - Long term akumulasi\n"
                 f"/longtermcandidates - Kandidat long term\n"
+                f"/broker BBCA - Input data broker asing\n"
+                f"/brokerhelp - Panduan input broker\n"
                 f"/feedback benar BBCA - Beri feedback\n"
                 f"/accuracy - Skor AI\n"
                 f"/performance - Performa AI\n"
@@ -97,6 +100,9 @@ class TelegramBot:
                 "/bpjs - Kandidat BPJS hari ini\n"
                 "/longterm BBCA - Long term akumulasi\n"
                 "/longtermcandidates - Kandidat long term\n\n"
+                "*Broker Tracking:*\n"
+                "/broker BBCA - Input data broker asing/domestik\n"
+                "/brokerhelp - Panduan format input broker\n\n"
                 "*AI & Feedback:*\n"
                 "/feedback benar BBCA - Kirim feedback\n"
                 "/accuracy - Akurasi prediksi AI\n"
@@ -692,6 +698,56 @@ class TelegramBot:
                 "❌ Error: /longtermcandidates tidak tersedia saat ini"
             )
 
+    async def broker_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /broker command - input broker transaction data."""
+        try:
+            text = update.message.text.strip()
+            parts = text.split(None, 1)
+
+            if len(parts) < 2:
+                await update.message.reply_text(
+                    "Format: /broker BBCA\\`\\`\\`\\ndata broker\\`\\`\\`\\n\\n"
+                    "Kirim /brokerhelp untuk panduan.",
+                    parse_mode="Markdown",
+                )
+                return
+
+            stock_code = parts[1].split()[0].upper()
+            raw_data = parts[1][len(stock_code):].strip()
+
+            if not raw_data:
+                await update.message.reply_text("Data broker kosong. Kirim /brokerhelp untuk panduan.")
+                return
+
+            # Remove stock code from the data
+            await update.message.reply_text(f"🔍 Memproses data broker {stock_code}...")
+
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(
+                None, lambda: save_and_analyze_broker_data(stock_code, raw_data)
+            )
+
+            if "error" in result:
+                await update.message.reply_text(f"❌ {result['error']}")
+                return
+
+            await update.message.reply_text(result["summary"], parse_mode="Markdown")
+
+        except Exception as e:
+            print(f"Error in broker_cmd: {e}")
+            await update.message.reply_text(
+                "❌ Error: /broker tidak tersedia saat ini. Kirim /brokerhelp untuk panduan."
+            )
+
+    async def brokerhelp_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /brokerhelp command."""
+        try:
+            help_text = format_broker_help()
+            await update.message.reply_text(help_text, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in brokerhelp: {e}")
+            await update.message.reply_text("❌ Error menampilkan bantuan. Coba lagi.")
+
     def _scan_buy_list(self):
         """Scan all stocks and return BUY candidates. Runs in thread."""
         all_codes = list(STOCK_LIST.keys())[:20]
@@ -752,6 +808,8 @@ class TelegramBot:
             BotCommand("daytradecandidates", "Kandidat BPJS (alias /bpjs)"),
             BotCommand("longterm", "Long term akumulasi (contoh: /longterm BBCA)"),
             BotCommand("longtermcandidates", "Kandidat long term"),
+            BotCommand("broker", "Input data broker asing (contoh: /broker BBCA)"),
+            BotCommand("brokerhelp", "Panduan input data broker"),
         ]
         await app.bot.set_my_commands(commands)
 
@@ -805,7 +863,14 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("daytradecandidates", self.daytrade_candidates_cmd))
         self.app.add_handler(CommandHandler("longterm", self.longterm_cmd))
         self.app.add_handler(CommandHandler("longtermcandidates", self.longtermcandidates_cmd))
+        self.app.add_handler(CommandHandler("broker", self.broker_cmd))
+        self.app.add_handler(CommandHandler("brokerhelp", self.brokerhelp_cmd))
         self.app.add_error_handler(self.error_handler)
 
         print("🤖 Telegram Bot started...")
         self.app.run_polling(allowed_updates=Update.ALL_TYPES)
+
+
+if __name__ == "__main__":
+    bot = TelegramBot()
+    bot.run()

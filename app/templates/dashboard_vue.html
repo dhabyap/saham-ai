@@ -206,7 +206,7 @@
             </div>
             <div class="section">
               <div class="section-title">Sector Rotation</div>
-              <div class="card" style="padding:18px 22px">
+              <div class="card p-4">
                 <div v-for="s in sectors" :key="s.name" class="sector-item">
                   <span class="sector-name">{{ s.name }}</span>
                   <div class="sector-bar-wrap"><div class="sector-bar-fill" :style="{ width: s.width, background: s.barColor }"></div></div>
@@ -217,7 +217,7 @@
             </div>
             <div class="section">
               <div class="section-title">Recent Predictions</div>
-              <div class="card" style="padding:0;overflow:hidden">
+              <div class="card card-table">
                 <div class="table-wrap">
                   <table>
                     <thead>
@@ -225,7 +225,7 @@
                     </thead>
                     <tbody>
                       <tr v-for="row in predictions" :key="row.code + row.date">
-                        <td style="font-weight:600">{{ row.code }}</td>
+                        <td class="font-semibold">{{ row.code }}</td>
                         <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
                         <td>{{ row.confidence }}%</td>
                         <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
@@ -437,7 +437,7 @@
           <div class="tab-pane" :class="{ active: currentTab === 'portfolio' }">
             <div class="section">
               <div class="section-title">&#128188; Portfolio</div>
-              <div class="card" style="padding:0;overflow:hidden">
+              <div class="card card-table">
                 <div class="table-wrap">
                   <table>
                     <thead>
@@ -445,7 +445,7 @@
                     </thead>
                     <tbody>
                       <tr v-for="row in ltPortfolio" :key="row.stock">
-                        <td style="font-weight:600">{{ row.stock }}</td>
+                        <td class="font-semibold">{{ row.stock }}</td>
                         <td>{{ row.entryDate }}</td>
                         <td>{{ row.avgPrice }}</td>
                         <td>{{ row.currentPrice }}</td>
@@ -587,108 +587,116 @@
         <div v-else-if="currentView === 'marketreports'">
           <!-- IHSG Chart tab -->
           <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <div class="section" v-if="mrReports.length === 0">
+              <div class="card text-center p-4">
+                <div class="font-bold text-muted" style="font-size:18px;margin-bottom:8px">📊 Market Reports</div>
+                <div class="text-xs text-muted">Belum ada data market report. Jalankan scraper dulu.</div>
+              </div>
+            </div>
+            <template v-if="mrReports.length > 0">
             <div class="section">
               <div class="section-title">IHSG Performance</div>
-              <div class="card" style="padding:16px">
-                <div style="position:relative;height:280px"><canvas id="ihsgChart"></canvas></div>
+              <div class="card p-4">
+                <div class="chart-wrap"><canvas id="ihsgChart"></canvas></div>
               </div>
             </div>
             <div class="section">
               <div class="section-title">Top Foreign Buy Frequency</div>
-              <div class="card" style="padding:16px">
-                <div style="position:relative;height:280px"><canvas id="foreignChart"></canvas></div>
+              <div class="card p-4">
+                <div class="chart-wrap"><canvas id="foreignChart"></canvas></div>
               </div>
             </div>
+            </template>
           </div>
           <!-- Reports tab -->
           <div class="tab-pane" :class="{ active: currentTab === 'reports' }">
             <div class="section">
               <div class="section-title">Market Report Cards</div>
-              <div class="stats-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px">
-                <div class="card" style="text-align:center;padding:16px">
-                  <div style="font-size:28px;font-weight:700;color:var(--accent)">{{ mrStats.totalReports }}</div>
-                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Total Reports</div>
+              <div class="stats-row">
+                <div class="card text-center p-3">
+                  <div class="font-bold text-accent" style="font-size:28px">{{ mrStats.totalReports }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total Reports</div>
                 </div>
-                <div class="card" style="text-align:center;padding:16px">
-                  <div style="font-size:28px;font-weight:700" :style="{color: mrStats.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrStats.avgIHSG }}%</div>
-                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Rata-rata IHSG</div>
+                <div class="card text-center p-3">
+                  <div class="font-bold" style="font-size:28px" :style="{color: mrStats.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrStats.avgIHSG }}%</div>
+                  <div class="text-xs text-muted text-uppercase">Rata-rata IHSG</div>
                 </div>
-                <div class="card" style="text-align:center;padding:16px">
-                  <div style="font-size:28px;font-weight:700;color:var(--secondary)">{{ mrStats.foreignStocks }}</div>
-                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Unik Top Foreign</div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-secondary" style="font-size:28px">{{ mrStats.foreignStocks }}</div>
+                  <div class="text-xs text-muted text-uppercase">Unik Top Foreign</div>
                 </div>
-                <div class="card" style="text-align:center;padding:16px">
-                  <div style="font-size:28px;font-weight:700;color:var(--danger)">{{ mrStats.redDays }}</div>
-                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Hari Merah</div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-danger" style="font-size:28px">{{ mrStats.redDays }}</div>
+                  <div class="text-xs text-muted text-uppercase">Hari Merah</div>
                 </div>
               </div>
               <!-- Net Foreign Accumulation -->
-              <div class="card" style="padding:16px;margin-bottom:20px">
-                <div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:12px">🌍 Net Foreign Accumulation <span style="font-size:11px;color:var(--muted);font-weight:400">(asing — lokal, hindari yg lokal > asing)</span></div>
-                <div style="overflow-x:auto">
-                  <table style="width:100%;border-collapse:collapse;font-size:12px">
-                    <thead><tr style="border-bottom:1px solid var(--border,#333)">
-                      <th style="text-align:left;padding:6px 8px;color:var(--muted)">Stock</th>
-                      <th style="text-align:right;padding:6px 8px;color:var(--muted)">🌍 Foreign</th>
-                      <th style="text-align:right;padding:6px 8px;color:var(--muted)">🏠 Local</th>
-                      <th style="text-align:right;padding:6px 8px;color:var(--muted)">Net</th>
-                      <th style="text-align:right;padding:6px 8px;color:var(--muted)">Last</th>
+              <div class="card p-4 mb-4">
+                <div class="font-semibold text-accent mb-3">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hindari yg lokal > asing)</span></div>
+                <div class="overflow-x-auto">
+                  <table class="table-net-foreign" style="width:100%">
+                    <thead><tr>
+                      <th class="text-left p-2 text-muted">Stock</th>
+                      <th class="text-right p-2 text-muted">🌍 Foreign</th>
+                      <th class="text-right p-2 text-muted">🏠 Local</th>
+                      <th class="text-right p-2 text-muted">Net</th>
+                      <th class="text-right p-2 text-muted">Last</th>
                     </tr></thead>
                     <tbody>
-                      <tr v-for="s in mrNetForeign" :key="s.stock" style="border-bottom:1px solid var(--border,#222)">
-                        <td style="padding:5px 8px;font-weight:600;color:var(--accent)">{{ s.stock }}</td>
-                        <td style="padding:5px 8px;text-align:right;color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
-                        <td style="padding:5px 8px;text-align:right;color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
-                        <td style="padding:5px 8px;text-align:right;font-weight:700" :style="{color: s.net >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ s.net >= 0 ? '+' : '' }}{{ formatRp(Math.abs(s.net)) }}</td>
-                        <td style="padding:5px 8px;text-align:right;color:var(--muted);font-size:11px">{{ s.lastDate.slice(5) }}</td>
+                      <tr v-for="s in mrNetForeign" :key="s.stock" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                        <td class="tf-stock p-1" style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
+                        <td class="tf-foreign p-1" style="color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
+                        <td class="tf-local p-1" style="color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
+                        <td class="tf-net p-1" :style="{color: s.net >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ s.net >= 0 ? '+' : '' }}{{ formatRp(Math.abs(s.net)) }}</td>
+                        <td class="tf-last p-1">{{ s.lastDate.slice(5) }}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
               <div class="month-group">
-                <div v-for="m in mrMonths" :key="m.key" class="month-section" style="margin-bottom:12px">
-                  <div class="card month-header" style="padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" @click="toggleMonth(m.key)">
+                <div v-for="m in mrMonths" :key="m.key" class="month-section">
+                  <div class="card month-header" @click="toggleMonth(m.key)">
                     <div>
-                      <span style="font-size:16px;font-weight:700">{{ m.label }}</span>
-                      <span style="font-size:12px;color:var(--muted);margin-left:8px">{{ m.count }} report</span>
-                      <span style="font-size:11px;color:var(--muted);margin-left:8px">🌍{{ m.foreignSet.size }} saham</span>
+                      <span class="month-label">{{ m.label }}</span>
+                      <span class="month-meta">{{ m.count }} report</span>
+                      <span class="month-meta">🌍{{ m.foreignSet.size }} saham</span>
                     </div>
-                    <div style="display:flex;align-items:center;gap:12px">
+                    <div class="flex items-center gap-3">
                       <span v-if="m.avgIHSG !== null" :style="{color: m.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight:700}">{{ m.avgIHSG >= 0 ? '+' : '' }}{{ m.avgIHSG.toFixed(1) }}%</span>
-                      <span style="font-size:11px;color:var(--muted)">🔴{{ m.redDays }} 🟢{{ m.greenDays }}</span>
-                      <span style="font-size:14px;color:var(--muted);transition:transform .2s" :style="{transform: mrExpandedMonths[m.key] ? 'rotate(180deg)' : 'rotate(0deg)'}">▼</span>
+                      <span class="text-xs text-muted">🔴{{ m.redDays }} 🟢{{ m.greenDays }}</span>
+                      <span class="text-muted" style="font-size:14px;transition:transform .2s" :style="{transform: mrExpandedMonths[m.key] ? 'rotate(180deg)' : 'rotate(0deg)'}">▼</span>
                     </div>
                   </div>
-                  <div v-if="mrExpandedMonths[m.key]" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-top:8px">
-                    <div v-for="r in m.reports" :key="r.date" class="card" style="padding:16px">
-                      <div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:8px">
+                  <div v-if="mrExpandedMonths[m.key]" class="month-grid">
+                    <div v-for="r in m.reports" :key="r.date" class="mr-report-card">
+                      <div class="mr-date">
                         {{ r.date }} <span v-if="r.ihsg_change != null" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change >= 0 ? '🟢' : '🔴' }}</span>
                       </div>
-                      <div style="font-size:18px;font-weight:700;margin:6px 0" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change != null ? r.ihsg_change.toFixed(1) + '%' : 'N/A' }}</div>
-                      <div v-if="r.local_buy_amount" style="font-size:11px;color:var(--muted);margin-bottom:8px">Local Buy: {{ formatRp(r.local_buy_amount) }}</div>
+                      <div class="mr-ihsg" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change != null ? r.ihsg_change.toFixed(1) + '%' : 'N/A' }}</div>
+                      <div v-if="r.local_buy_amount" class="text-xs text-muted mb-2">Local Buy: {{ formatRp(r.local_buy_amount) }}</div>
                       <template v-if="r.foreign_buy && r.foreign_buy.length">
-                        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:10px;">🌍 Foreign Buy</div>
-                        <div v-for="s in r.foreign_buy" :key="s.stock" class="item" style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
-                          <span style="font-weight:600;color:var(--accent)">{{ s.stock }}</span><span class="val" style="font-weight:600">{{ formatRp(s.value) }}</span>
+                        <div class="mr-section-title">🌍 Foreign Buy</div>
+                        <div v-for="s in r.foreign_buy" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold">{{ formatRp(s.value) }}</span>
                         </div>
                       </template>
                       <template v-if="r.local_buy && r.local_buy.length">
-                        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:10px;">🏠 Local Buy</div>
-                        <div v-for="s in r.local_buy" :key="s.stock" style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
-                          <span style="font-weight:600;color:var(--secondary)">{{ s.stock }}</span><span style="font-weight:600">{{ formatRp(s.value) }}</span>
+                        <div class="mr-section-title">🏠 Local Buy</div>
+                        <div v-for="s in r.local_buy" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-secondary">{{ s.stock }}</span><span class="font-semibold">{{ formatRp(s.value) }}</span>
                         </div>
                       </template>
                       <template v-if="r.gainers && r.gainers.length">
-                        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:10px;">📈 Gainers</div>
-                        <div v-for="s in r.gainers" :key="s.stock" style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
-                          <span style="font-weight:600;color:var(--accent)">{{ s.stock }}</span><span style="font-weight:600;color:var(--success)">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+                        <div class="mr-section-title">📈 Gainers</div>
+                        <div v-for="s in r.gainers" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-success">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
                         </div>
                       </template>
                       <template v-if="r.losers && r.losers.length">
-                        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:10px;">📉 Losers</div>
-                        <div v-for="s in r.losers" :key="s.stock" style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
-                          <span style="font-weight:600;color:var(--accent)">{{ s.stock }}</span><span style="font-weight:600;color:var(--danger)">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+                        <div class="mr-section-title">📉 Losers</div>
+                        <div v-for="s in r.losers" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-danger">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
                         </div>
                       </template>
                     </div>
@@ -700,20 +708,20 @@
           <!-- Stock Tracker tab -->
           <div class="tab-pane" :class="{ active: currentTab === 'stocks' }">
             <div class="section">
-              <div class="section-title">🌍 Net Foreign Accumulation <span style="font-size:11px;color:var(--muted);font-weight:400">(asing — lokal, hanya yg net positif)</span></div>
-              <div class="card" style="padding:0;overflow:hidden">
+              <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hanya yg net positif)</span></div>
+              <div class="card card-table">
                 <div class="table-wrap">
                   <table>
                     <thead><tr><th>Stock</th><th>🌍 Foreign</th><th>🏠 Local</th><th>Net</th><th>Last</th></tr></thead>
                     <tbody>
                       <tr v-for="s in mrNetForeign.filter(x => x.net > 0)" :key="s.stock">
-                        <td style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
-                        <td style="color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
-                        <td style="color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
-                        <td style="font-weight:700;color:var(--success)">+{{ formatRp(s.net) }}</td>
-                        <td style="color:var(--muted);font-size:11px">{{ s.lastDate.slice(5) }}</td>
+                        <td class="font-semibold text-accent">{{ s.stock }}</td>
+                        <td class="text-success">{{ formatRp(s.foreignTotal) }}</td>
+                        <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>
+                        <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
+                        <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
                       </tr>
-                      <tr v-if="!mrNetForeign.filter(x => x.net > 0).length"><td colspan="5" style="text-align:center;color:var(--muted)">No data</td></tr>
+                      <tr v-if="!mrNetForeign.filter(x => x.net > 0).length"><td colspan="5" class="text-center text-muted">No data</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -729,38 +737,38 @@
               <!-- Summary Row -->
               <div class="section">
                 <div class="section-title">📊 Market Report Summary</div>
-                <div class="stats-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
-                  <div class="card" style="text-align:center;padding:14px">
-                    <div style="font-size:24px;font-weight:700;color:var(--accent)">{{ mrAnalysis.period.total_reports }}</div>
-                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Total Reports</div>
-                    <div style="font-size:10px;color:var(--muted)">{{ mrAnalysis.period.start }} → {{ mrAnalysis.period.end }}</div>
+                <div class="grid-4-card">
+                  <div class="card text-center p-3">
+                    <div class="font-bold text-accent" style="font-size:24px">{{ mrAnalysis.period.total_reports }}</div>
+                    <div class="text-xs text-muted text-uppercase">Total Reports</div>
+                    <div class="text-xs text-muted">{{ mrAnalysis.period.start }} → {{ mrAnalysis.period.end }}</div>
                   </div>
-                  <div class="card" style="text-align:center;padding:14px">
-                    <div style="font-size:24px;font-weight:700" :style="{color: mrAnalysis.ihsg_summary.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrAnalysis.ihsg_summary.avg }}%</div>
-                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Rata-rata IHSG</div>
-                    <div style="font-size:10px;color:var(--muted)">🔴 {{ mrAnalysis.ihsg_summary.red_days }} / 🟢 {{ mrAnalysis.ihsg_summary.green_days }}</div>
+                  <div class="card text-center p-3">
+                    <div class="font-bold" style="font-size:24px" :style="{color: mrAnalysis.ihsg_summary.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrAnalysis.ihsg_summary.avg }}%</div>
+                    <div class="text-xs text-muted text-uppercase">Rata-rata IHSG</div>
+                    <div class="text-xs text-muted">🔴 {{ mrAnalysis.ihsg_summary.red_days }} / 🟢 {{ mrAnalysis.ihsg_summary.green_days }}</div>
                   </div>
-                  <div class="card" style="text-align:center;padding:14px">
-                    <div style="font-size:24px;font-weight:700;color:var(--secondary)">{{ mrAnalysis.period.days }}</div>
-                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Trading Days</div>
+                  <div class="card text-center p-3">
+                    <div class="font-bold text-secondary" style="font-size:24px">{{ mrAnalysis.period.days }}</div>
+                    <div class="text-xs text-muted text-uppercase">Trading Days</div>
                   </div>
                 </div>
               </div>
 
               <!-- Net Foreign Accumulation -->
               <div class="section">
-                <div class="section-title">🌍 Net Foreign Accumulation <span style="font-size:11px;color:var(--muted);font-weight:400">(asing — lokal, bersih)</span></div>
-                <div class="card" style="padding:0;overflow:hidden">
+                <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, bersih)</span></div>
+                <div class="card card-table">
                   <div class="table-wrap">
                     <table>
                       <thead><tr><th>Stock</th><th>🌍 Foreign</th><th>🏠 Local</th><th>Net</th><th>Last</th></tr></thead>
                       <tbody>
                         <tr v-for="s in mrNetForeign.filter(x => x.net > 0).slice(0,20)" :key="s.stock">
-                          <td style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
-                          <td style="font-weight:600;color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
-                          <td style="color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
-                          <td style="font-weight:700;color:var(--success)">+{{ formatRp(s.net) }}</td>
-                          <td style="color:var(--muted);font-size:11px">{{ s.lastDate.slice(5) }}</td>
+                          <td class="font-semibold text-accent">{{ s.stock }}</td>
+                          <td class="font-semibold text-success">{{ formatRp(s.foreignTotal) }}</td>
+                          <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>
+                          <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
+                          <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -771,12 +779,12 @@
               <!-- Monthly Flow -->
               <div class="section">
                 <div class="section-title">📊 Foreign Flow per Bulan</div>
-                <div class="card" v-for="m in mrAnalysis.monthly_flow" :key="m.month" style="padding:12px;margin-bottom:8px">
-                  <div style="display:flex;justify-content:space-between;align-items:center">
-                    <div><strong>{{ m.month }}</strong> <span style="color:var(--muted);font-size:11px">({{ m.reports }} report)</span></div>
-                    <div style="font-weight:700;color:var(--accent)">{{ formatRp(m.total) }}</div>
+                <div v-for="m in mrAnalysis.monthly_flow" :key="m.month" class="card p-3 mb-2">
+                  <div class="flex items-center justify-between">
+                    <div><strong>{{ m.month }}</strong> <span class="text-xs text-muted">({{ m.reports }} report)</span></div>
+                    <div class="font-bold text-accent">{{ formatRp(m.total) }}</div>
                   </div>
-                  <div style="font-size:11px;color:var(--muted);margin-top:4px">
+                  <div class="text-xs text-muted mt-1">
                     {{ m.top.map(t => t.stock + ' ' + formatRp(t.value)).join(' · ') }}
                   </div>
                 </div>
@@ -785,11 +793,11 @@
               <!-- IHSG Trend -->
               <div class="section">
                 <div class="section-title">🔄 IHSG Trend</div>
-                <div class="grid-3" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
-                  <div v-for="p in mrAnalysis.ihsg_trend" :key="p.label" class="card" style="text-align:center;padding:14px">
-                    <div style="font-size:12px;color:var(--muted)">{{ p.label }}</div>
-                    <div style="font-size:22px;font-weight:700" :style="{color: p.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ p.avg }}%</div>
-                    <div style="font-size:10px;color:var(--muted)">merah {{ p.red }}/{{ p.total }} hari</div>
+                <div class="grid-3-card">
+                  <div v-for="p in mrAnalysis.ihsg_trend" :key="p.label" class="card text-center p-3">
+                    <div class="text-xs text-muted">{{ p.label }}</div>
+                    <div class="font-bold" style="font-size:22px" :style="{color: p.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ p.avg }}%</div>
+                    <div class="text-xs text-muted">merah {{ p.red }}/{{ p.total }} hari</div>
                   </div>
                 </div>
               </div>
@@ -797,13 +805,13 @@
               <!-- Backtest Results -->
               <div class="section">
                 <div class="section-title">⚡ Backtest Results</div>
-                <div class="grid-3" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
-                  <div v-for="bt in mrAnalysis.backtest" :key="bt.label" class="card" style="padding:14px">
-                    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">{{ bt.label }}</div>
-                    <div style="font-size:14px;display:flex;justify-content:space-between;align-items:center">
-                      <span v-if="bt.win_rate >= 50" style="font-size:28px;font-weight:800;color:var(--success)">{{ bt.win_rate }}%</span>
-                      <span v-else style="font-size:28px;font-weight:800;color:var(--danger)">{{ bt.win_rate }}%</span>
-                      <span style="font-size:11px;color:var(--muted)">{{ bt.wins }}/{{ bt.trades }} win</span>
+                <div class="grid-3-card">
+                  <div v-for="bt in mrAnalysis.backtest" :key="bt.label" class="card p-3">
+                    <div class="text-xs text-muted mb-2">{{ bt.label }}</div>
+                    <div class="flex items-center justify-between">
+                      <span v-if="bt.win_rate >= 50" class="font-bold text-success" style="font-size:28px">{{ bt.win_rate }}%</span>
+                      <span v-else class="font-bold text-danger" style="font-size:28px">{{ bt.win_rate }}%</span>
+                      <span class="text-xs text-muted">{{ bt.wins }}/{{ bt.trades }} win</span>
                     </div>
                   </div>
                 </div>
@@ -812,10 +820,10 @@
               <!-- Same-Day Signals -->
               <div class="section" v-if="mrAnalysis.same_day_signals && mrAnalysis.same_day_signals.length">
                 <div class="section-title">🔥 Same-Day Signal (Foreign Buy → langsung Gainer)</div>
-                <div class="card" style="padding:12px">
-                  <div v-for="s in mrAnalysis.same_day_signals" :key="s.stock" style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">
-                    <span style="font-weight:600;color:var(--accent)">{{ s.stock }}</span>
-                    <span style="color:var(--success)">{{ s.count }}x</span>
+                <div class="card p-3">
+                  <div v-for="s in mrAnalysis.same_day_signals" :key="s.stock" class="flex justify-between font-semibold text-sm p-1" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                    <span class="text-accent">{{ s.stock }}</span>
+                    <span class="text-success">{{ s.count }}x</span>
                   </div>
                 </div>
               </div>
@@ -823,16 +831,16 @@
               <!-- Hot Picks -->
               <div class="section">
                 <div class="section-title">🎯 Hot Pick (Foreign Buy Terbaru)</div>
-                <div class="card" style="padding:0;overflow:hidden">
+                <div class="card card-table">
                   <div class="table-wrap">
                     <table>
                       <thead><tr><th>Stock</th><th>7d Total</th><th>Freq</th><th>Same-Day</th></tr></thead>
                       <tbody>
                         <tr v-for="s in mrAnalysis.recent_hot" :key="s.stock">
-                          <td style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
+                          <td class="font-semibold text-accent">{{ s.stock }}</td>
                           <td>{{ formatRp(s.total) }}</td>
                           <td>{{ s.freq }}x</td>
-                          <td style="color:var(--success)">{{ s.same_day > 0 ? s.same_day + 'x 🔥' : '-' }}</td>
+                          <td class="text-success">{{ s.same_day > 0 ? s.same_day + 'x 🔥' : '-' }}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -843,19 +851,19 @@
               <!-- IHSG Outlook -->
               <div class="section">
                 <div class="section-title">📊 IHSG Outlook</div>
-                <div class="card" style="padding:16px">
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div class="card p-4">
+                  <div class="ihsg-outlook">
                     <div>
-                      <span style="font-size:13px;color:var(--muted)">5 report terakhir: </span>
-                      <span v-for="(v, i) in mrAnalysis.ihsg_outlook.latest" :key="i" :style="{color: v >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight:600, marginRight:'4px'}">{{ v }}%</span>
+                      <span class="ihsg-outlook-label">5 report terakhir: </span>
+                      <span v-for="(v, i) in mrAnalysis.ihsg_outlook.latest" :key="i" class="ihsg-outlook-value" :style="{color: v >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ v }}%</span>
                     </div>
                     <div>
-                      <span v-if="mrAnalysis.ihsg_outlook.status === 'bearish'" style="font-size:18px;font-weight:700;color:var(--danger)">⚠️ Bearish</span>
-                      <span v-else-if="mrAnalysis.ihsg_outlook.status === 'koreksi'" style="font-size:18px;font-weight:700;color:var(--warning)">⚡ Koreksi</span>
-                      <span v-else style="font-size:18px;font-weight:700;color:var(--success)">✅ Stabil</span>
+                      <span v-if="mrAnalysis.ihsg_outlook.status === 'bearish'" class="ihsg-status-bearish">⚠️ Bearish</span>
+                      <span v-else-if="mrAnalysis.ihsg_outlook.status === 'koreksi'" class="ihsg-status-koreksi">⚡ Koreksi</span>
+                      <span v-else class="ihsg-status-stabil">✅ Stabil</span>
                     </div>
                   </div>
-                  <div style="font-size:11px;color:var(--muted)">Disclaimer: Backtest berdasarkan data @creativetrader. Bukan saran investasi.</div>
+                  <div class="text-xs text-muted">Disclaimer: Backtest berdasarkan data @creativetrader. Bukan saran investasi.</div>
                 </div>
               </div>
             </div>

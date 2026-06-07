@@ -479,19 +479,33 @@
           const sorted = [...full].reverse();
           const labels = sorted.map(r => r.date);
           const ihsgData = sorted.map(r => r.ihsg_change);
-          const colors = ihsgData.map(v => v >= 0 ? '#10B981' : '#EF5350');
+          const colors = ihsgData.map(v => v !== null && v >= 0 ? '#10B981' : '#EF5350');
 
           if (ihsgChartInstance) ihsgChartInstance.destroy();
           const ctx1 = document.getElementById('ihsgChart');
           if (ctx1) {
+            const hasIHSG = ihsgData.some(v => v !== null);
             ihsgChartInstance = new Chart(ctx1, {
               type: 'bar',
               data: { labels, datasets: [{ label: 'IHSG Change %', data: ihsgData, backgroundColor: colors, borderRadius: 4 }] },
-              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' }, ticks: { callback: v => v + '%' } }, x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } } } }
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' }, ticks: { callback: v => v.toFixed(2) + '%' } }, x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } } } }
             });
+            if (!hasIHSG) {
+              // Show "no data" overlay
+              const parent = ctx1.parentElement;
+              if (parent && !parent.querySelector('.chart-no-data')) {
+                const nd = document.createElement('div');
+                nd.className = 'chart-no-data';
+                nd.innerHTML = '⚠️ Belum ada data IHSG';
+                nd.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;z-index:10;pointer-events:none';
+                parent.style.position = 'relative';
+                parent.appendChild(nd);
+              }
+            }
           }
 
           const fMap = {};
+          const fRealStocks = [];
           full.forEach(r => (r.foreign_buy || []).forEach(s => {
             if (!fMap[s.stock]) fMap[s.stock] = { count: 0, total: 0 };
             fMap[s.stock].count++;
@@ -502,11 +516,23 @@
           if (foreignChartInstance) foreignChartInstance.destroy();
           const ctx2 = document.getElementById('foreignChart');
           if (ctx2) {
+            const hasForeignData = fSorted.length > 0;
             foreignChartInstance = new Chart(ctx2, {
               type: 'bar',
               data: { labels: fSorted.map(([k]) => k), datasets: [{ label: 'Foreign Buy (Rp)', data: fSorted.map(([,v]) => v.total), backgroundColor: '#7C3AED', borderRadius: 4 }] },
-              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' }, ticks: { callback: v => formatRp(v) } }, x: { grid: { display: false } } } }
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' }, ticks: { callback: v => formatRp(v) } }, x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } } } }
             });
+            if (!hasForeignData) {
+              const parent = ctx2.parentElement;
+              if (parent && !parent.querySelector('.chart-no-data')) {
+                const nd = document.createElement('div');
+                nd.className = 'chart-no-data';
+                nd.innerHTML = '⚠️ Belum ada data foreign buy';
+                nd.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;z-index:10;pointer-events:none';
+                parent.style.position = 'relative';
+                parent.appendChild(nd);
+              }
+            }
           }
         }
 

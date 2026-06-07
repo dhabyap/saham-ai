@@ -1604,7 +1604,7 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           if (tab === 'analysis' && !mrAnalysis.value) loadMrAnalysis();
         }
 
-        function switchView(view) {
+        function switchView(view, tab) {
           currentView.value = view;
           if (view === 'marketreports') loadMarketReports();
           const firstTabs = {
@@ -1615,7 +1615,8 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
             settings: 'general',
             marketreports: 'overview',
           };
-          currentTab.value = firstTabs[view] || 'overview';
+          _viewChanging = true;
+          currentTab.value = tab || firstTabs[view] || 'overview';
           if (window.innerWidth <= 768) sidebarOpen.value = false;
         }
 
@@ -1648,14 +1649,58 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           document.documentElement.setAttribute('data-theme', val);
         });
 
+        let _viewChanging = false;
+
+        watch(currentTab, (tab) => {
+          if (currentView.value) {
+            const hash = `#${currentView.value}/${tab}`;
+            if (_viewChanging) {
+              history.pushState(null, '', hash);
+              _viewChanging = false;
+            } else if (window.location.hash !== hash) {
+              history.replaceState(null, '', hash);
+            }
+          }
+        });
+
+        function navigateFromHash() {
+          const hash = window.location.hash.replace('#', '');
+          if (!hash) return null;
+          const parts = hash.split('/');
+          const validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'settings', 'marketreports'];
+          const view = validViews.includes(parts[0]) ? parts[0] : null;
+          const tab = parts[1] || null;
+          return { view, tab };
+        }
+
         function getViewFromUrl() {
+          // Priority 1: URL hash (SPA navigation)
+          const fromHash = navigateFromHash();
+          if (fromHash && fromHash.view) return fromHash;
+          // Priority 2: URL pathname (direct server route)
           const path = window.location.pathname.replace(/\/$/, '');
           const pathMap = { '/market-reports': 'marketreports', '/dashboard': 'dashboard', '/daytrading': 'daytrading', '/longterm': 'longterm', '/analysis': 'analysis', '/settings': 'settings' };
-          if (pathMap[path]) return pathMap[path];
+          if (pathMap[path]) return { view: pathMap[path], tab: null };
+          // Priority 3: Query param (legacy fallback)
           const params = new URLSearchParams(window.location.search);
           const view = params.get('view');
           const validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'settings', 'marketreports'];
-          return validViews.includes(view) ? view : null;
+          if (validViews.includes(view)) return { view, tab: null };
+          return null;
+        }
+
+        function syncViewFromUrl() {
+          const result = getViewFromUrl();
+          if (result && result.view) {
+            currentView.value = result.view;
+            const firstTabs = {
+              dashboard: 'overview', daytrading: 'signals', longterm: 'accumulation',
+              analysis: 'search', settings: 'general', marketreports: 'overview',
+            };
+            _viewChanging = true;
+            currentTab.value = result.tab || firstTabs[result.view] || 'overview';
+            if (result.view === 'marketreports') loadMarketReports();
+          }
         }
 
         onMounted(() => {
@@ -1669,11 +1714,14 @@ html[data-theme="classy"] .section-title{font-family:var(--heading-font);font-we
           document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') searchOpen.value = false;
           });
-          const urlView = getViewFromUrl();
-          if (urlView) {
-            currentView.value = urlView;
-            if (urlView === 'marketreports') loadMarketReports();
-          }
+          // Restore view from URL on initial load
+          syncViewFromUrl();
+          // Listen for hash changes (browser back/forward)
+          window.addEventListener('hashchange', () => {
+            const prevView = currentView.value;
+            const prevTab = currentTab.value;
+            syncViewFromUrl();
+          });
         });
 
         return {

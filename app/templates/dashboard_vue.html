@@ -171,7 +171,7 @@
             <div class="section">
               <div class="section-head">
                 <div class="section-title">&#127793; BPJS Day Trading Signals</div>
-                <button class="view-all" @click="alert('View all day trading candidates')">View All &rarr;</button>
+                <button class="view-all" @click="switchView('daytrading', 'candidates')">View All &rarr;</button>
               </div>
               <div class="candidate-row">
                 <div v-for="item in bpjsSignals" :key="item.code" class="candidate-card">
@@ -189,7 +189,7 @@
             <div class="section">
               <div class="section-head">
                 <div class="section-title">&#128142; Long Term Accumulation</div>
-                <button class="view-all" @click="alert('View all long term candidates')">View All &rarr;</button>
+                <button class="view-all" @click="switchView('longterm', 'accumulation')">View All &rarr;</button>
               </div>
               <div class="candidate-row">
                 <div v-for="item in longTermSignals" :key="item.code" class="candidate-card">

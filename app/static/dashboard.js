@@ -111,235 +111,60 @@
           { id: 'alerts', label: 'Alerts' },
         ];
 
-        const watchlist = ref([
-          { code: 'BBCA', chg: 3.5 },
-          { code: 'ASII', chg: 2.8 },
-          { code: 'TLKM', chg: -2.1 },
-          { code: 'ADRO', chg: 1.4 },
-          { code: 'ICBP', chg: 0.2 },
-          { code: 'BBRI', chg: 1.9 },
-          { code: 'UNVR', chg: -0.8 },
-          { code: 'GOTO', chg: -3.2 },
-        ]);
-
-        const allStocks = [
-          { code: 'BBCA', name: 'Bank Central Asia', chg: 3.5 },
-          { code: 'ASII', name: 'Astra International', chg: 2.8 },
-          { code: 'TLKM', name: 'Telkom Indonesia', chg: -2.1 },
-          { code: 'ADRO', name: 'Adaro Energy', chg: 1.4 },
-          { code: 'ICBP', name: 'Indofood CBP', chg: 0.2 },
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: 1.9 },
-          { code: 'UNVR', name: 'Unilever Indonesia', chg: -0.8 },
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: -3.2 },
-          { code: 'BBNI', name: 'Bank Negara Indonesia', chg: 1.1 },
-          { code: 'INDF', name: 'Indofood Sukses Makmur', chg: -0.5 },
-        ];
+        const watchlist = ref([]);
+        const allStocks = ref([]);
 
         const filteredStocks = computed(() => {
           const q = searchQuery.value.toLowerCase();
-          if (!q) return allStocks;
-          return allStocks.filter(s =>
+          if (!q) return allStocks.value;
+          return allStocks.value.filter(s =>
             s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
           );
         });
 
         const market = ref({
-          fgi: { value: 62, label: 'Greed' },
-          advancing: { count: 285, change: 185, pct: '52%' },
-          declining: { count: 263, change: 263, pct: '48%' },
-          avgChange: '+0.38%',
-          totalVolume: '12.8B',
-          volumeChange: '+8.2% vs prev session',
-          status: 'Open',
-          hours: '09:00 \u2013 15:00 WIB',
+          fgi: { value: 50, label: 'Neutral' },
+          advancing: { count: 0, change: 0, pct: '0%' },
+          declining: { count: 0, change: 0, pct: '0%' },
+          avgChange: '0%',
+          totalVolume: '0',
+          volumeChange: '-',
+          status: 'Loading...',
+          hours: '-',
         });
 
         const aiPerf = ref({
-          accuracy: '72.5%',
-          accuracyChange: '+2.3% vs prev week',
-          winRate: '65.3%',
-          winRateChange: '+1.1% vs prev week',
-          avgProfit: '+1.8%',
-          totalPredictions: '127',
+          accuracy: '-',
+          accuracyChange: '-',
+          winRate: '-',
+          winRateChange: '-',
+          avgProfit: '-',
+          totalPredictions: '-',
         });
 
-        const aiPerfDetails = ref([
-          { metric: 'Accuracy (30d)', value: '71.2%', trend: '+1.8%', trendClass: 'profit-positive', desc: 'Overall prediction accuracy over 30 days' },
-          { metric: 'Win Rate (30d)', value: '64.7%', trend: '+0.9%', trendClass: 'profit-positive', desc: 'Percentage of profitable trades' },
-          { metric: 'Avg Hold Time', value: '2.4 days', trend: '-0.3d', trendClass: 'profit-positive', desc: 'Average position holding period' },
-          { metric: 'Max Drawdown', value: '-4.2%', trend: '-1.1%', trendClass: 'profit-positive', desc: 'Maximum portfolio drawdown' },
-          { metric: 'Sharpe Ratio', value: '1.84', trend: '+0.12', trendClass: 'profit-positive', desc: 'Risk-adjusted return metric' },
-          { metric: 'Profit Factor', value: '2.31', trend: '+0.18', trendClass: 'profit-positive', desc: 'Gross profit / gross loss' },
-          { metric: 'Best Trade', value: 'BBCA +8.2%', trend: '-', trendClass: '', desc: 'Highest profit single trade' },
-          { metric: 'Worst Trade', value: 'GOTO -4.1%', trend: '-', trendClass: '', desc: 'Highest loss single trade' },
-        ]);
+        const aiPerfDetails = ref([]);
 
-        const movers = ref({
-          gainers: [
-            { code: 'BBCA', name: 'Bank Central Asia', chg: '+3.5%' },
-            { code: 'ASII', name: 'Astra International', chg: '+2.8%' },
-            { code: 'ADRO', name: 'Adaro Energy', chg: '+2.1%' },
-          ],
-          losers: [
-            { code: 'TLKM', name: 'Telkom Indonesia', chg: '-2.1%' },
-            { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: '-3.2%' },
-            { code: 'UNVR', name: 'Unilever Indonesia', chg: '-0.8%' },
-          ],
-          volume: [
-            { code: 'BBRI', name: 'Bank Rakyat Indonesia', vol: '218.3M' },
-            { code: 'GOTO', name: 'GoTo Gojek Tokopedia', vol: '187.6M' },
-            { code: 'BBCA', name: 'Bank Central Asia', vol: '142.1M' },
-          ],
-        });
-
-        const allGainers = ref([
-          { code: 'BBCA', name: 'Bank Central Asia', chg: '+3.5%' },
-          { code: 'ASII', name: 'Astra International', chg: '+2.8%' },
-          { code: 'ADRO', name: 'Adaro Energy', chg: '+2.1%' },
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: '+1.9%' },
-          { code: 'ICBP', name: 'Indofood CBP', chg: '+1.2%' },
-          { code: 'BBNI', name: 'Bank Negara Indonesia', chg: '+1.1%' },
-        ]);
-
-        const allLosers = ref([
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: '-3.2%' },
-          { code: 'TLKM', name: 'Telkom Indonesia', chg: '-2.1%' },
-          { code: 'UNVR', name: 'Unilever Indonesia', chg: '-0.8%' },
-          { code: 'INDF', name: 'Indofood Sukses Makmur', chg: '-0.5%' },
-          { code: 'SMGR', name: 'Semen Indonesia', chg: '-0.3%' },
-        ]);
-
-        const allVolume = ref([
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', vol: '218.3M' },
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', vol: '187.6M' },
-          { code: 'BBCA', name: 'Bank Central Asia', vol: '142.1M' },
-          { code: 'ASII', name: 'Astra International', vol: '98.7M' },
-          { code: 'TLKM', name: 'Telkom Indonesia', vol: '76.4M' },
-        ]);
-
-        const bpjsSignals = ref([
-          { code: 'BBCA', signal: 'ENTER', signalClass: 'success', confidence: 87, price: 'Rp 9,850' },
-          { code: 'ASII', signal: 'ENTER', signalClass: 'success', confidence: 82, price: 'Rp 5,600' },
-          { code: 'ADRO', signal: 'WAIT', signalClass: 'warning', confidence: 64, price: 'Rp 2,890' },
-          { code: 'BBRI', signal: 'ENTER', signalClass: 'success', confidence: 79, price: 'Rp 4,420' },
-        ]);
-
-        const longTermSignals = ref([
-          { code: 'ICBP', signal: 'Active Accum', signalClass: 'accent', confidence: 91, entryZone: 'Rp 10,200 \u2013 10,600' },
-          { code: 'UNVR', signal: 'Accum Watch', signalClass: 'warning', confidence: 73, entryZone: 'Rp 2,800 \u2013 3,100' },
-          { code: 'TLKM', signal: 'Active Accum', signalClass: 'accent', confidence: 85, entryZone: 'Rp 3,600 \u2013 3,900' },
-          { code: 'GOTO', signal: 'Avoid', signalClass: 'danger', confidence: 42, entryZone: 'N/A' },
-        ]);
-
-        const sectors = ref([
-          { name: 'Technology', width: '76%', barColor: 'var(--success)', textColor: 'var(--success)', change: '+2.31%', flow: 'Inflow', flowClass: 'success' },
-          { name: 'Financials', width: '62%', barColor: 'var(--success)', textColor: 'var(--success)', change: '+1.87%', flow: 'Inflow', flowClass: 'success' },
-          { name: 'Energy', width: '48%', barColor: 'var(--accent)', textColor: 'var(--accent)', change: '+0.95%', flow: 'Neutral', flowClass: 'accent' },
-          { name: 'Consumer Cycl.', width: '28%', barColor: 'var(--warning)', textColor: 'var(--warning)', change: '-0.42%', flow: 'Neutral', flowClass: 'warning' },
-          { name: 'Healthcare', width: '18%', barColor: 'var(--danger)', textColor: 'var(--danger)', change: '-1.23%', flow: 'Outflow', flowClass: 'danger' },
-          { name: 'Infrastructure', width: '12%', barColor: 'var(--danger)', textColor: 'var(--danger)', change: '-2.05%', flow: 'Outflow', flowClass: 'danger' },
-        ]);
-
-        const predictions = ref([
-          { code: 'BBCA', signal: 'BUY', signalClass: 'success', confidence: 87, result: 'Win', resultClass: 'success', profit: '+3.5%', profitClass: 'profit-positive', date: 'Jun 04' },
-          { code: 'TLKM', signal: 'SELL', signalClass: 'danger', confidence: 76, result: 'Win', resultClass: 'success', profit: '+2.1%', profitClass: 'profit-positive', date: 'Jun 03' },
-          { code: 'ASII', signal: 'BUY', signalClass: 'success', confidence: 82, result: 'Win', resultClass: 'success', profit: '+2.8%', profitClass: 'profit-positive', date: 'Jun 03' },
-          { code: 'GOTO', signal: 'BUY', signalClass: 'success', confidence: 68, result: 'Loss', resultClass: 'danger', profit: '-1.4%', profitClass: 'profit-negative', date: 'Jun 02' },
-          { code: 'ADRO', signal: 'HOLD', signalClass: 'warning', confidence: 55, result: 'Pending', resultClass: 'warning', profit: '+0.2%', profitClass: 'profit-positive', date: 'Jun 02' },
-        ]);
-
-        const allPredictions = ref([
-          { code: 'BBCA', signal: 'BUY', signalClass: 'success', confidence: 87, result: 'Win', resultClass: 'success', profit: '+3.5%', profitClass: 'profit-positive', date: 'Jun 04' },
-          { code: 'TLKM', signal: 'SELL', signalClass: 'danger', confidence: 76, result: 'Win', resultClass: 'success', profit: '+2.1%', profitClass: 'profit-positive', date: 'Jun 03' },
-          { code: 'ASII', signal: 'BUY', signalClass: 'success', confidence: 82, result: 'Win', resultClass: 'success', profit: '+2.8%', profitClass: 'profit-positive', date: 'Jun 03' },
-          { code: 'GOTO', signal: 'BUY', signalClass: 'success', confidence: 68, result: 'Loss', resultClass: 'danger', profit: '-1.4%', profitClass: 'profit-negative', date: 'Jun 02' },
-          { code: 'ADRO', signal: 'HOLD', signalClass: 'warning', confidence: 55, result: 'Pending', resultClass: 'warning', profit: '+0.2%', profitClass: 'profit-positive', date: 'Jun 02' },
-          { code: 'BBRI', signal: 'BUY', signalClass: 'success', confidence: 79, result: 'Win', resultClass: 'success', profit: '+1.9%', profitClass: 'profit-positive', date: 'Jun 01' },
-          { code: 'ICBP', signal: 'HOLD', signalClass: 'warning', confidence: 63, result: 'Pending', resultClass: 'warning', profit: '+0.5%', profitClass: 'profit-positive', date: 'May 31' },
-          { code: 'UNVR', signal: 'SELL', signalClass: 'danger', confidence: 71, result: 'Win', resultClass: 'success', profit: '+1.8%', profitClass: 'profit-positive', date: 'May 30' },
-        ]);
-
-        const dayTradingSignals = ref([
-          { code: 'BBCA', signal: 'ENTER', signalClass: 'success', confidence: 87, price: 'Rp 9,850', entry: 'Rp 9,800', exit: 'Rp 10,200' },
-          { code: 'ASII', signal: 'ENTER', signalClass: 'success', confidence: 82, price: 'Rp 5,600', entry: 'Rp 5,550', exit: 'Rp 5,900' },
-          { code: 'ADRO', signal: 'WAIT', signalClass: 'warning', confidence: 64, price: 'Rp 2,890', entry: 'Rp 2,850', exit: 'Rp 3,050' },
-          { code: 'BBRI', signal: 'ENTER', signalClass: 'success', confidence: 79, price: 'Rp 4,420', entry: 'Rp 4,380', exit: 'Rp 4,650' },
-          { code: 'TLKM', signal: 'WAIT', signalClass: 'warning', confidence: 58, price: 'Rp 3,210', entry: 'Rp 3,150', exit: 'Rp 3,400' },
-          { code: 'GOTO', signal: 'ENTER', signalClass: 'success', confidence: 71, price: 'Rp 1,850', entry: 'Rp 1,820', exit: 'Rp 1,980' },
-          { code: 'UNVR', signal: 'WAIT', signalClass: 'warning', confidence: 52, price: 'Rp 2,950', entry: 'Rp 2,900', exit: 'Rp 3,100' },
-          { code: 'ICBP', signal: 'ENTER', signalClass: 'success', confidence: 76, price: 'Rp 10,400', entry: 'Rp 10,300', exit: 'Rp 10,900' },
-        ]);
-
-        const dayTradingCandidates = ref([
-          { stock: 'BBCA', signal: 'ENTER', signalClass: 'success', conf: 87, entry: '9,800', tp: '10,200', cl: '9,650', volRatio: '2.3x', foreignFlow: '+1.2B', action: 'Buy' },
-          { stock: 'ASII', signal: 'ENTER', signalClass: 'success', conf: 82, entry: '5,550', tp: '5,900', cl: '5,450', volRatio: '1.8x', foreignFlow: '+0.8B', action: 'Buy' },
-          { stock: 'BBRI', signal: 'ENTER', signalClass: 'success', conf: 79, entry: '4,380', tp: '4,650', cl: '4,300', volRatio: '1.5x', foreignFlow: '+0.6B', action: 'Buy' },
-          { stock: 'ICBP', signal: 'ENTER', signalClass: 'success', conf: 76, entry: '10,300', tp: '10,900', cl: '10,100', volRatio: '2.1x', foreignFlow: '+0.4B', action: 'Buy' },
-          { stock: 'BBNI', signal: 'ENTER', signalClass: 'success', conf: 74, entry: '5,100', tp: '5,400', cl: '5,000', volRatio: '1.6x', foreignFlow: '+0.5B', action: 'Buy' },
-          { stock: 'GOTO', signal: 'ENTER', signalClass: 'success', conf: 71, entry: '1,820', tp: '1,980', cl: '1,750', volRatio: '1.4x', foreignFlow: '+0.3B', action: 'Buy' },
-          { stock: 'ADRO', signal: 'WAIT', signalClass: 'warning', conf: 64, entry: '2,850', tp: '3,050', cl: '2,780', volRatio: '0.9x', foreignFlow: '-0.1B', action: 'Watch' },
-          { stock: 'INDF', signal: 'WAIT', signalClass: 'warning', conf: 61, entry: '6,800', tp: '7,200', cl: '6,650', volRatio: '0.8x', foreignFlow: '+0.1B', action: 'Watch' },
-          { stock: 'TLKM', signal: 'WAIT', signalClass: 'warning', conf: 58, entry: '3,150', tp: '3,400', cl: '3,080', volRatio: '0.7x', foreignFlow: '-0.2B', action: 'Watch' },
-          { stock: 'UNVR', signal: 'WAIT', signalClass: 'warning', conf: 52, entry: '2,900', tp: '3,100', cl: '2,850', volRatio: '0.6x', foreignFlow: '-0.1B', action: 'Watch' },
-        ]);
-
-        const dayTradingHistory = ref([
-          { date: 'Jun 04', stock: 'BBCA', entry: '9,750', exit: '10,100', profit: '+3.6%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'Jun 03', stock: 'ASII', entry: '5,500', exit: '5,800', profit: '+5.5%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'Jun 03', stock: 'BBRI', entry: '4,400', exit: '4,500', profit: '+2.3%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'Jun 02', stock: 'GOTO', entry: '1,900', exit: '1,860', profit: '-2.1%', profitClass: 'profit-negative', result: 'Loss', resultClass: 'danger' },
-          { date: 'Jun 02', stock: 'ADRO', entry: '2,900', exit: '2,950', profit: '+1.7%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'Jun 01', stock: 'TLKM', entry: '3,200', exit: '3,150', profit: '-1.6%', profitClass: 'profit-negative', result: 'Loss', resultClass: 'danger' },
-          { date: 'Jun 01', stock: 'ICBP', entry: '10,250', exit: '10,500', profit: '+2.4%', profitClass: 'profit-positive', result: 'Win', resultClass: 'success' },
-          { date: 'May 31', stock: 'UNVR', entry: '3,000', exit: '2,950', profit: '-1.7%', profitClass: 'profit-negative', result: 'Pending', resultClass: 'warning' },
-        ]);
-
-        const ltAccumulation = ref([
-          { code: 'ICBP', phase: 'Active Accum', signalClass: 'accent', confidence: 91, entryZone: '10,200 \u2013 10,600', accumDays: 24, rsStatus: 'Strong' },
-          { code: 'TLKM', phase: 'Active Accum', signalClass: 'accent', confidence: 85, entryZone: '3,600 \u2013 3,900', accumDays: 18, rsStatus: 'Strong' },
-          { code: 'ASII', phase: 'Early Accum', signalClass: 'accent', confidence: 78, entryZone: '5,400 \u2013 5,700', accumDays: 8, rsStatus: 'Improving' },
-          { code: 'BBRI', phase: 'Accum Watch', signalClass: 'warning', confidence: 73, entryZone: '4,200 \u2013 4,500', accumDays: 12, rsStatus: 'Neutral' },
-          { code: 'UNVR', phase: 'Accum Watch', signalClass: 'warning', confidence: 68, entryZone: '2,800 \u2013 3,100', accumDays: 6, rsStatus: 'Neutral' },
-          { code: 'BBCA', phase: 'Distribution', signalClass: 'danger', confidence: 55, entryZone: 'N/A', accumDays: 0, rsStatus: 'Weak' },
-          { code: 'ADRO', phase: 'Accum Watch', signalClass: 'warning', confidence: 62, entryZone: '2,750 \u2013 2,950', accumDays: 5, rsStatus: 'Improving' },
-          { code: 'BBNI', phase: 'Early Accum', signalClass: 'accent', confidence: 71, entryZone: '4,900 \u2013 5,200', accumDays: 10, rsStatus: 'Improving' },
-        ]);
-
-        const ltPortfolio = ref([
-          { stock: 'ICBP', entryDate: 'May 12', avgPrice: '10,250', currentPrice: '10,400', profitPct: '+1.5%', profitClass: 'profit-positive', position: '1,000', status: 'Holding', statusClass: 'accent' },
-          { stock: 'TLKM', entryDate: 'May 18', avgPrice: '3,650', currentPrice: '3,210', profitPct: '-12.1%', profitClass: 'profit-negative', position: '2,500', status: 'Holding', statusClass: 'warning' },
-          { stock: 'ASII', entryDate: 'May 25', avgPrice: '5,500', currentPrice: '5,600', profitPct: '+1.8%', profitClass: 'profit-positive', position: '1,500', status: 'Holding', statusClass: 'accent' },
-          { stock: 'BBRI', entryDate: 'Jun 01', avgPrice: '4,300', currentPrice: '4,420', profitPct: '+2.8%', profitClass: 'profit-positive', position: '2,000', status: 'Holding', statusClass: 'accent' },
-          { stock: 'INDF', entryDate: 'May 05', avgPrice: '6,950', currentPrice: '6,800', profitPct: '-2.2%', profitClass: 'profit-negative', position: '800', status: 'Holding', statusClass: 'warning' },
-        ]);
-
-        const ltWatchlist = ref([
-          { code: 'BBCA', name: 'Bank Central Asia', chg: 3.5, volume: '142.1M', sector: 'Financials' },
-          { code: 'ASII', name: 'Astra International', chg: 2.8, volume: '98.7M', sector: 'Consumer Cycl.' },
-          { code: 'TLKM', name: 'Telkom Indonesia', chg: -2.1, volume: '76.4M', sector: 'Technology' },
-          { code: 'ADRO', name: 'Adaro Energy', chg: 1.4, volume: '52.3M', sector: 'Energy' },
-          { code: 'ICBP', name: 'Indofood CBP', chg: 0.2, volume: '28.1M', sector: 'Consumer Cycl.' },
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: 1.9, volume: '218.3M', sector: 'Financials' },
-          { code: 'UNVR', name: 'Unilever Indonesia', chg: -0.8, volume: '22.6M', sector: 'Consumer Cycl.' },
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: -3.2, volume: '187.6M', sector: 'Technology' },
-        ]);
+        const movers = ref({ gainers: [], losers: [], volume: [] });
+        const allGainers = ref([]);
+        const allLosers = ref([]);
+        const allVolume = ref([]);
+        const bpjsSignals = ref([]);
+        const longTermSignals = ref([]);
+        const sectors = ref([]);
+        const predictions = ref([]);
+        const allPredictions = ref([]);
+        const dayTradingSignals = ref([]);
+        const dayTradingCandidates = ref([]);
+        const dayTradingHistory = ref([]);
+        const ltAccumulation = ref([]);
+        const ltPortfolio = ref([]);
+        const ltWatchlist = ref([]);
 
         const analysisQuery = ref('');
         const analysisSector = ref('All');
         const analysisSectors = ['All', 'Financials', 'Technology', 'Energy', 'Consumer Cycl.', 'Healthcare'];
 
-        const analysisStocks = ref([
-          { code: 'BBCA', name: 'Bank Central Asia', chg: 3.5, sector: 'Financials', price: 'Rp 9,850', score: 87 },
-          { code: 'ASII', name: 'Astra International', chg: 2.8, sector: 'Consumer Cycl.', price: 'Rp 5,600', score: 82 },
-          { code: 'TLKM', name: 'Telkom Indonesia', chg: -2.1, sector: 'Technology', price: 'Rp 3,210', score: 64 },
-          { code: 'ADRO', name: 'Adaro Energy', chg: 1.4, sector: 'Energy', price: 'Rp 2,890', score: 71 },
-          { code: 'ICBP', name: 'Indofood CBP', chg: 0.2, sector: 'Consumer Cycl.', price: 'Rp 10,400', score: 78 },
-          { code: 'BBRI', name: 'Bank Rakyat Indonesia', chg: 1.9, sector: 'Financials', price: 'Rp 4,420', score: 79 },
-          { code: 'UNVR', name: 'Unilever Indonesia', chg: -0.8, sector: 'Consumer Cycl.', price: 'Rp 2,950', score: 52 },
-          { code: 'GOTO', name: 'GoTo Gojek Tokopedia', chg: -3.2, sector: 'Technology', price: 'Rp 1,850', score: 42 },
-          { code: 'BBNI', name: 'Bank Negara Indonesia', chg: 1.1, sector: 'Financials', price: 'Rp 5,200', score: 74 },
-          { code: 'INDF', name: 'Indofood Sukses Makmur', chg: -0.5, sector: 'Consumer Cycl.', price: 'Rp 6,800', score: 61 },
-        ]);
+        const analysisStocks = ref([]);
 
         const filteredAnalysis = computed(() => {
           let items = analysisStocks.value;
@@ -354,82 +179,94 @@
         });
 
         const selectedStock = ref({
-          code: 'BBCA',
-          name: 'Bank Central Asia',
-          price: 'Rp 9,850',
-          chg: 1.2,
-          rsi: '62.4',
-          rsiLabel: 'Neutral-Bullish',
-          macd: '+28.5',
-          ma20: 'Rp 9,720',
-          ma50: 'Rp 9,450',
-          bbUpper: 'Rp 10,120',
-          bbLower: 'Rp 9,380',
-          r2: 'Rp 10,400',
-          r1: 'Rp 10,100',
-          pivot: 'Rp 9,850',
-          s1: 'Rp 9,600',
-          s2: 'Rp 9,400',
-          volume: '142.1M',
-          score: 87,
-          confidence: 82,
-          recommendation: 'BUY',
-          signalClass: 'success',
-          analysis: 'BBCA shows strong bullish momentum with RSI at 62.4 indicating room for further upside. MACD positive crossover confirmed. Price above both MA20 and MA50 suggesting sustained uptrend. Volume increasing with strong foreign inflow. Accumulation phase detected with institutional buying pressure. Recommended entry at Rp 9,800 with TP at Rp 10,200 and CL at Rp 9,650.',
+          code: '-', name: '-', price: '-', chg: 0,
+          rsi: '-', rsiLabel: '-', macd: '-',
+          ma20: '-', ma50: '-', bbUpper: '-', bbLower: '-',
+          r2: '-', r1: '-', pivot: '-', s1: '-', s2: '-',
+          volume: '-', score: 0, confidence: 0,
+          recommendation: 'HOLD', signalClass: 'warning',
+          analysis: 'Select a stock to analyze.',
         });
 
-        function selectStock(item) {
-          const detailMap = {
-            BBCA: { rsi: '62.4', rsiLabel: 'Neutral-Bullish', macd: '+28.5', ma20: 'Rp 9,720', ma50: 'Rp 9,450', bbUpper: 'Rp 10,120', bbLower: 'Rp 9,380', r2: 'Rp 10,400', r1: 'Rp 10,100', pivot: 'Rp 9,850', s1: 'Rp 9,600', s2: 'Rp 9,400', volume: '142.1M', score: 87, confidence: 82, recommendation: 'BUY', signalClass: 'success', analysis: 'BBCA shows strong bullish momentum with RSI at 62.4 indicating room for further upside. MACD positive crossover confirmed. Price above both MA20 and MA50 suggesting sustained uptrend. Volume increasing with strong foreign inflow.' },
-            ASII: { rsi: '58.2', rsiLabel: 'Neutral', macd: '+12.3', ma20: 'Rp 5,520', ma50: 'Rp 5,380', bbUpper: 'Rp 5,850', bbLower: 'Rp 5,300', r2: 'Rp 5,950', r1: 'Rp 5,780', pivot: 'Rp 5,600', s1: 'Rp 5,420', s2: 'Rp 5,250', volume: '98.7M', score: 82, confidence: 78, recommendation: 'BUY', signalClass: 'success', analysis: 'ASII recovering from consolidation with improving volume. RSI neutral leaving room for upside. MACD showing early positive crossover. Accumulation pattern forming above MA50.' },
-            TLKM: { rsi: '38.5', rsiLabel: 'Bearish', macd: '-15.2', ma20: 'Rp 3,350', ma50: 'Rp 3,450', bbUpper: 'Rp 3,600', bbLower: 'Rp 3,100', r2: 'Rp 3,400', r1: 'Rp 3,300', pivot: 'Rp 3,210', s1: 'Rp 3,120', s2: 'Rp 3,030', volume: '76.4M', score: 64, confidence: 58, recommendation: 'WAIT', signalClass: 'warning', analysis: 'TLKM in short-term downtrend. RSI below 40 indicating bearish momentum. Price below both MA20 and MA50. Waiting for reversal confirmation before entry.' },
-            ADRO: { rsi: '55.6', rsiLabel: 'Neutral', macd: '+5.8', ma20: 'Rp 2,820', ma50: 'Rp 2,760', bbUpper: 'Rp 3,050', bbLower: 'Rp 2,650', r2: 'Rp 3,050', r1: 'Rp 2,950', pivot: 'Rp 2,890', s1: 'Rp 2,800', s2: 'Rp 2,720', volume: '52.3M', score: 71, confidence: 68, recommendation: 'HOLD', signalClass: 'warning', analysis: 'ADRO showing consolidation near support levels. RSI neutral with no clear direction. Volume declining suggesting lack of catalyst. Wait for breakout above Rp 2,950.' },
-          };
-          const def = detailMap[item.code] || { rsi: '50.0', rsiLabel: 'Neutral', macd: '0.0', ma20: item.price, ma50: item.price, bbUpper: '-', bbLower: '-', r2: '-', r1: '-', pivot: '-', s1: '-', s2: '-', volume: '-', score: item.score, confidence: Math.round(item.score * 0.9), recommendation: 'HOLD', signalClass: 'warning', analysis: 'Analysis data not available for this stock.' };
-          selectedStock.value = { ...item, ...def };
+        async function selectStock(item) {
+          try {
+            const res = await fetch(`/api/analyze/${item.code}`);
+            if (!res.ok) throw new Error('Fetch failed');
+            const data = await res.json();
+            selectedStock.value = {
+              code: item.code,
+              name: item.name || data.stock_name || '',
+              price: data.price ? 'Rp ' + Number(data.price).toLocaleString('id') : '-',
+              chg: data.change_pct || 0,
+              rsi: data.rsi != null ? String(data.rsi) : '-',
+              rsiLabel: data.rsi_status || '-',
+              macd: data.macd != null ? (data.macd >= 0 ? '+' : '') + Number(data.macd).toFixed(1) : '-',
+              ma20: data.ma20 ? 'Rp ' + Number(data.ma20).toLocaleString('id') : '-',
+              ma50: data.ma50 ? 'Rp ' + Number(data.ma50).toLocaleString('id') : '-',
+              bbUpper: '-', bbLower: '-',
+              r2: data.resistance ? 'Rp ' + Number(data.resistance * 1.05).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-',
+              r1: data.resistance ? 'Rp ' + Number(data.resistance).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-',
+              pivot: data.price ? 'Rp ' + Number(data.price).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-',
+              s1: data.support ? 'Rp ' + Number(data.support).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-',
+              s2: data.support ? 'Rp ' + Number(data.support * 0.95).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-',
+              volume: data.volume ? Number(data.volume).toLocaleString('id') : '-',
+              score: data.confidence || item.score || 50,
+              confidence: data.confidence || item.score || 50,
+              recommendation: data.recommendation || 'HOLD',
+              signalClass: (data.recommendation === 'BUY' || data.recommendation === 'ENTER') ? 'success' :
+                           (data.recommendation === 'SELL') ? 'danger' : 'warning',
+              analysis: data.full_analysis || data.reason || 'Analysis not available.',
+            };
+          } catch(e) {
+            console.error('Analyze failed:', e);
+            selectedStock.value = {
+              code: item.code, name: item.name || '', price: '-', chg: 0,
+              rsi: '-', rsiLabel: '-', macd: '-',
+              ma20: '-', ma50: '-', bbUpper: '-', bbLower: '-',
+              r2: '-', r1: '-', pivot: '-', s1: '-', s2: '-',
+              volume: '-', score: item.score || 50, confidence: item.score || 50,
+              recommendation: 'HOLD', signalClass: 'warning',
+              analysis: 'Gagal mengambil data analisis dari server.',
+            };
+          }
           currentTab.value = 'detail';
         }
 
-        const comparisonStocks = ref([
-          { code: 'BBCA', price: '9,850', chg: '+1.2%', rsi: '62.4', macd: '+28.5', volume: '142.1M', score: '87', rec: 'BUY' },
-          { code: 'BBRI', price: '4,420', chg: '+1.9%', rsi: '55.8', macd: '+12.1', volume: '218.3M', score: '79', rec: 'HOLD' },
-          { code: 'ASII', price: '5,600', chg: '+2.8%', rsi: '58.2', macd: '+8.4', volume: '98.7M', score: '82', rec: 'BUY' },
-        ]);
+        const comparisonStocks = ref([]);
+        const comparisonAddCode = ref('');
 
         const comparisonRows = computed(() => [
           { label: 'Price', getValue: s => s.price },
-          { label: 'Change %', getValue: s => s.chg, getClass: s => s.chg.startsWith('+') ? 'profit-positive' : 'profit-negative' },
+          { label: 'Change %', getValue: s => s.chg, getClass: s => s.chg && s.chg.startsWith('+') ? 'profit-positive' : 'profit-negative' },
           { label: 'RSI (14)', getValue: s => s.rsi },
-          { label: 'MACD', getValue: s => s.macd, getClass: s => s.macd.startsWith('+') ? 'profit-positive' : 'profit-negative' },
+          { label: 'MACD', getValue: s => s.macd, getClass: s => s.macd && s.macd.startsWith('+') ? 'profit-positive' : 'profit-negative' },
           { label: 'Volume', getValue: s => s.volume },
           { label: 'AI Score', getValue: s => s.score, getClass: s => parseInt(s.score) >= 80 ? 'profit-positive' : parseInt(s.score) >= 60 ? '' : 'profit-negative' },
           { label: 'Recommendation', getValue: s => s.rec, getClass: s => s.rec === 'BUY' ? 'profit-positive' : s.rec === 'SELL' ? 'profit-negative' : '' },
         ]);
 
-        const comparisonAddCode = ref('');
         const comparisonAvailable = computed(() => {
           const used = new Set(comparisonStocks.value.map(s => s.code));
-          return allStocks.filter(s => !used.has(s.code)).map(s => s.code);
+          return allStocks.value.filter(s => !used.has(s.code)).map(s => s.code);
         });
 
-        function addComparison() {
+        async function addComparison() {
           if (!comparisonAddCode.value) return;
-          const stock = allStocks.find(s => s.code === comparisonAddCode.value);
-          if (!stock) return;
-          const details = {
-            BBCA: { price: '9,850', chg: '+1.2%', rsi: '62.4', macd: '+28.5', volume: '142.1M', score: '87', rec: 'BUY' },
-            ASII: { price: '5,600', chg: '+2.8%', rsi: '58.2', macd: '+8.4', volume: '98.7M', score: '82', rec: 'BUY' },
-            BBRI: { price: '4,420', chg: '+1.9%', rsi: '55.8', macd: '+12.1', volume: '218.3M', score: '79', rec: 'HOLD' },
-            TLKM: { price: '3,210', chg: '-2.1%', rsi: '38.5', macd: '-15.2', volume: '76.4M', score: '64', rec: 'WAIT' },
-            ADRO: { price: '2,890', chg: '+1.4%', rsi: '55.6', macd: '+5.8', volume: '52.3M', score: '71', rec: 'HOLD' },
-            ICBP: { price: '10,400', chg: '+0.2%', rsi: '51.2', macd: '+3.5', volume: '28.1M', score: '78', rec: 'HOLD' },
-            UNVR: { price: '2,950', chg: '-0.8%', rsi: '42.1', macd: '-8.2', volume: '22.6M', score: '52', rec: 'SELL' },
-            GOTO: { price: '1,850', chg: '-3.2%', rsi: '32.8', macd: '-22.4', volume: '187.6M', score: '42', rec: 'WAIT' },
-            BBNI: { price: '5,200', chg: '+1.1%', rsi: '54.3', macd: '+6.7', volume: '45.2M', score: '74', rec: 'HOLD' },
-            INDF: { price: '6,800', chg: '-0.5%', rsi: '48.9', macd: '-2.1', volume: '18.5M', score: '61', rec: 'HOLD' },
-          };
-          const d = details[stock.code] || { price: '-', chg: '0%', rsi: '50', macd: '0', volume: '-', score: '50', rec: 'HOLD' };
-          comparisonStocks.value.push({ code: stock.code, ...d });
+          try {
+            const res = await fetch('/api/analyze/' + comparisonAddCode.value);
+            if (!res.ok) throw new Error('fetch failed');
+            const d = await res.json();
+            comparisonStocks.value.push({
+              code: comparisonAddCode.value,
+              price: d.price ? Number(d.price).toLocaleString('id') : '-',
+              chg: d.change_pct != null ? (d.change_pct >= 0 ? '+' : '') + d.change_pct + '%' : '0%',
+              rsi: d.rsi != null ? String(d.rsi) : '50',
+              macd: d.macd != null ? (d.macd >= 0 ? '+' : '') + Number(d.macd).toFixed(1) : '0',
+              volume: d.volume ? Number(d.volume).toLocaleString('id') : '-',
+              score: String(d.confidence || 50),
+              rec: d.recommendation || 'HOLD',
+            });
+          } catch(e) { console.error('Comparison add failed:', e); }
           comparisonAddCode.value = '';
         }
 
@@ -439,12 +276,7 @@
         const settingsEmailNotif = ref(true);
         const settingsPushNotif = ref(true);
 
-        const settingsAlerts = ref([
-          { stock: 'BBCA', type: 'Price Alert', condition: 'Above 10,000', status: 'Active' },
-          { stock: 'ASII', type: 'RSI Alert', condition: 'RSI < 30', status: 'Active' },
-          { stock: 'TLKM', type: 'Volume Alert', condition: 'Volume > 2x avg', status: 'Active' },
-          { stock: 'ICBP', type: 'Price Alert', condition: 'Below 9,800', status: 'Inactive' },
-        ]);
+        const settingsAlerts = ref([]);
 
         const newAlertStock = ref('');
         const newAlertType = ref('Price Alert');
@@ -632,11 +464,264 @@
         }
 
         function mockScan() {
-          alert('Scan initiated... Found 8 active signals.');
+          loadDayTradingData();
+          currentTab.value = 'signals';
         }
 
         function mockSave() {
-          alert('Settings saved successfully!');
+          alert('Settings saved (local only).');
+        }
+
+        // ── Data Loaders ──
+
+        async function loadMarketSummary() {
+          try {
+            const [sumRes, sentRes] = await Promise.all([
+              fetch('/api/market-summary'),
+              fetch('/api/market-sentiment'),
+            ]);
+            const sum = await sumRes.json();
+            const sent = await sentRes.json();
+            const fg = sent.fear_greed || sum.fear_greed || { index: 50, label: 'Neutral' };
+            const vol = sum.total_volume || 0;
+            const volStr = vol >= 1e12 ? (vol/1e12).toFixed(1)+'T' : vol >= 1e9 ? (vol/1e9).toFixed(1)+'B' : vol >= 1e6 ? (vol/1e6).toFixed(1)+'M' : String(vol);
+            market.value = {
+              fgi: { value: fg.index || 50, label: fg.label || 'Neutral' },
+              advancing: { count: sum.advancing || 0, change: '+0', pct: sum.total_stocks ? Math.round(sum.advancing/sum.total_stocks*100)+'%' : '0%' },
+              declining: { count: sum.declining || 0, change: '0', pct: sum.total_stocks ? Math.round(sum.declining/sum.total_stocks*100)+'%' : '0%' },
+              avgChange: (sum.avg_change != null ? (sum.avg_change >= 0 ? '+' : '') + sum.avg_change + '%' : '0%'),
+              totalVolume: volStr,
+              volumeChange: '-',
+              status: 'Open',
+              hours: '09:00 \u2013 15:00 WIB',
+            };
+          } catch(e) { console.error('Market summary load failed:', e); }
+        }
+
+        async function loadTopMovers() {
+          try {
+            const [gRes, lRes, vRes] = await Promise.all([
+              fetch('/api/top-gainers?limit=10'),
+              fetch('/api/top-losers?limit=10'),
+              fetch('/api/top-volume?limit=10'),
+            ]);
+            const g = await gRes.json();
+            const l = await lRes.json();
+            const v = await vRes.json();
+            const fmt = items => items.map(s => ({
+              code: s.code, name: s.name || s.stock_name || '',
+              chg: (s.change_pct >= 0 ? '+' : '') + s.change_pct + '%',
+              vol: s.volume ? (s.volume >= 1e9 ? (s.volume/1e9).toFixed(1)+'B' : (s.volume/1e6).toFixed(1)+'M') : '-',
+            }));
+            const gainers = (g.gainers || []).slice(0,3);
+            const losers = (l.losers || []).slice(0,3);
+            const volume = (v.volumes || []).slice(0,3);
+            movers.value = { gainers: fmt(gainers), losers: fmt(losers), volume: fmt(volume) };
+            allGainers.value = fmt(g.gainers || []);
+            allLosers.value = fmt(l.losers || []);
+            allVolume.value = fmt(v.volumes || []);
+          } catch(e) { console.error('Top movers load failed:', e); }
+        }
+
+        async function loadSectors() {
+          try {
+            const res = await fetch('/api/sector-performance');
+            const data = await res.json();
+            const maxPerf = Math.max(...Object.values(data).map(s => Math.abs(s.performance)), 0.01);
+            sectors.value = Object.entries(data).map(([name, s]) => {
+              const perf = s.performance;
+              const pct = perf >= 0 ? perf : -perf;
+              const width = Math.max(8, Math.min(100, (pct / maxPerf) * 100));
+              const isPos = perf >= 0;
+              const barColor = isPos ? 'var(--success)' : 'var(--danger)';
+              const flowMap = { INFLOW: { label: 'Inflow', cls: 'success' }, OUTFLOW: { label: 'Outflow', cls: 'danger' }, NEUTRAL: { label: 'Neutral', cls: 'accent' } };
+              const f = flowMap[s.flow] || flowMap.NEUTRAL;
+              return {
+                name, width: width + '%', barColor, textColor: barColor,
+                change: (perf >= 0 ? '+' : '') + perf.toFixed(2) + '%',
+                flow: f.label, flowClass: f.cls,
+              };
+            });
+          } catch(e) { console.error('Sectors load failed:', e); }
+        }
+
+        async function loadStocks() {
+          try {
+            const res = await fetch('/api/stocks');
+            const data = await res.json();
+            // Minimal sector map for analysis filtering
+            const SECTOR_GUESS = {
+              BBCA:'Financials', BBRI:'Financials', BMRI:'Financials', BBNI:'Financials',
+              TLKM:'Technology', EXCL:'Technology', TOWR:'Technology',
+              ASII:'Consumer Cycl.', UNVR:'Consumer Cycl.', INDF:'Consumer Cycl.', ICBP:'Consumer Cycl.', HMSP:'Consumer Cycl.', GGRM:'Consumer Cycl.',
+              ADRO:'Energy', ITMG:'Energy', PTBA:'Energy', MEDC:'Energy',
+              CPIN:'Healthcare', KLBF:'Healthcare',
+              JSMR:'Infrastructure', PGAS:'Infrastructure', SMGR:'Infrastructure', INTP:'Infrastructure', SMMA:'Infrastructure', AKRA:'Infrastructure',
+              GOTO:'Technology',
+            };
+            allStocks.value = (data.stocks || []).map(s => ({
+              code: s.code, name: s.name || '',
+              chg: 0, price: '-', sector: SECTOR_GUESS[s.code] || 'Other', score: 0,
+            }));
+            // Also prime analysis stocks
+            analysisStocks.value = allStocks.value;
+            // Load scores for first batch
+            allStocks.value.forEach((s, i) => {
+              fetch('/api/analyze/' + s.code).then(r => r.json()).then(d => {
+                if (d.stock_code) {
+                  const chg = d.change_pct || 0;
+                  s.chg = chg;
+                  s.price = d.price ? 'Rp ' + Number(d.price).toLocaleString('id') : '-';
+                  s.score = d.confidence || 50;
+                  if (analysisStocks.value[i]) {
+                    analysisStocks.value[i] = { ...analysisStocks.value[i], chg, price: s.price, score: s.score };
+                  }
+                }
+              }).catch(() => {});
+            });
+          } catch(e) { console.error('Stocks load failed:', e); }
+        }
+
+        async function loadWatchlistData() {
+          try {
+            const res = await fetch('/api/watchlist/1');
+            const data = await res.json();
+            watchlist.value = (data.watchlist || []).map(w => ({ code: w.stock_code || w.code || '', chg: 0 }));
+            ltWatchlist.value = (data.watchlist || []).map(w => ({
+              code: w.stock_code || w.code || '', name: '', chg: 0, volume: '-', sector: '-',
+            }));
+            // Fetch changes for each
+            watchlist.value.forEach(w => {
+              fetch('/api/stock/' + w.code).then(r => r.json()).then(d => {
+                w.chg = d.change_pct || 0;
+              }).catch(() => {});
+            });
+          } catch(e) { console.error('Watchlist load failed:', e); }
+        }
+
+        async function loadDayTradingData() {
+          try {
+            const res = await fetch('/api/day-trade/candidates');
+            const json = await res.json();
+            const candidates = (json.data && json.data.candidates) || [];
+            const signalMap = { ENTER: { cls: 'success' }, WAIT: { cls: 'warning' }, AVOID: { cls: 'danger' }, HOLD: { cls: 'accent' } };
+            dayTradingSignals.value = candidates.map(c => {
+              const sig = signalMap[c.action] || signalMap.WAIT;
+              return {
+                code: c.stock_code,
+                signal: c.action,
+                signalClass: sig.cls,
+                confidence: c.confidence || 0,
+                price: c.current_price ? 'Rp ' + Number(c.current_price).toLocaleString('id') : '-',
+                entry: c.entry_price ? 'Rp ' + Number(c.entry_price).toLocaleString('id') : '-',
+                exit: c.target_profit ? 'Rp ' + Number(c.target_profit).toLocaleString('id') : '-',
+              };
+            });
+            dayTradingCandidates.value = candidates.map(c => ({
+              stock: c.stock_code,
+              signal: c.action,
+              signalClass: signalMap[c.action] ? signalMap[c.action].cls : 'warning',
+              conf: c.confidence || 0,
+              entry: c.entry_price ? Number(c.entry_price).toLocaleString('id') : '-',
+              tp: c.target_profit ? Number(c.target_profit).toLocaleString('id') : '-',
+              cl: c.cut_loss ? Number(c.cut_loss).toLocaleString('id') : '-',
+              volRatio: c.volume_ratio ? c.volume_ratio.toFixed(1) + 'x' : '-',
+              foreignFlow: c.foreign_flow_status || '-',
+              action: c.action === 'ENTER' ? 'Buy' : 'Watch',
+            }));
+            // Top 4 as signal cards on overview
+            bpjsSignals.value = dayTradingSignals.value.slice(0, 4);
+          } catch(e) { console.error('Day trade load failed:', e); }
+        }
+
+        async function loadForeignFlowData() {
+          try {
+            const res = await fetch('/api/foreign-flow/summary');
+            const json = await res.json();
+            const acc = (json.data && json.data.top_accumulating) || [];
+            longTermSignals.value = acc.map(a => ({
+              code: a.stock_code,
+              signal: a.strength === 'strong' ? 'Active Accum' : a.strength === 'moderate' ? 'Accum Watch' : 'Early Accum',
+              signalClass: a.strength === 'strong' ? 'accent' : a.strength === 'moderate' ? 'warning' : 'accent',
+              confidence: Math.min(99, Math.round((a.accumulation_days || 0) * 3 + 50)),
+              entryZone: a.cumulative_net ? 'Rp ' + Number(a.cumulative_net/1000000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : 'N/A',
+            }));
+            ltAccumulation.value = acc.map(a => ({
+              code: a.stock_code,
+              phase: a.strength === 'strong' ? 'Active Accum' : a.strength === 'moderate' ? 'Accum Watch' : 'Early Accum',
+              signalClass: a.strength === 'strong' ? 'accent' : 'warning',
+              confidence: Math.min(99, Math.round((a.accumulation_days || 0) * 3 + 50)),
+              entryZone: a.cumulative_net ? Number(a.cumulative_net/1000000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : 'N/A',
+              accumDays: a.accumulation_days || 0,
+              rsStatus: a.strength || 'Neutral',
+            }));
+          } catch(e) { console.error('Foreign flow load failed:', e); }
+        }
+
+        async function loadAnalysisHistory() {
+          try {
+            const res = await fetch('/api/analysis-history?limit=20');
+            const json = await res.json();
+            const history = json.history || [];
+            if (history.length) {
+              const wins = history.filter(h => h.result === 'win' || h.result === 'success');
+              const total = history.length;
+              const winRate = total ? Math.round(wins.length / total * 100) : 0;
+              aiPerf.value = {
+                accuracy: winRate + '%',
+                accuracyChange: '-',
+                winRate: winRate + '%',
+                winRateChange: '-',
+                avgProfit: history.reduce((a, h) => a + (h.profit_pct || 0), 0) / total + '%',
+                totalPredictions: String(total),
+              };
+              // Format for tables
+              const fmtHistory = history.map(h => ({
+                code: h.stock_code || h.code || '-',
+                signal: h.prediction || h.signal || 'HOLD',
+                signalClass: (h.prediction === 'BUY' || h.prediction === 'ENTER') ? 'success' : h.prediction === 'SELL' ? 'danger' : 'warning',
+                confidence: h.confidence || 50,
+                result: h.result === 'win' ? 'Win' : h.result === 'loss' ? 'Loss' : 'Pending',
+                resultClass: h.result === 'win' ? 'success' : h.result === 'loss' ? 'danger' : 'warning',
+                profit: (h.profit_pct >= 0 ? '+' : '') + (h.profit_pct || 0) + '%',
+                profitClass: (h.profit_pct || 0) >= 0 ? 'profit-positive' : 'profit-negative',
+                date: h.created_at ? h.created_at.slice(5, 10) : '-',
+              }));
+              predictions.value = fmtHistory.slice(0, 5);
+              allPredictions.value = fmtHistory;
+              dayTradingHistory.value = fmtHistory.filter(h => h.code).map(h => ({
+                date: h.date, stock: h.code, entry: '-', exit: '-',
+                profit: h.profit, profitClass: h.profitClass, result: h.result, resultClass: h.resultClass,
+              }));
+            }
+          } catch(e) { console.error('Analysis history load failed:', e); }
+        }
+
+        async function loadAlerts() {
+          try {
+            const res = await fetch('/api/alerts?limit=20');
+            const json = await res.json();
+            settingsAlerts.value = (json.alerts || []).map(a => ({
+              stock: a.stock_code || a.code || '-',
+              type: a.alert_type || a.type || 'Price Alert',
+              condition: a.condition || '-',
+              status: a.status || 'Inactive',
+            }));
+          } catch(e) { console.error('Alerts load failed:', e); }
+        }
+
+        async function loadAllDashboardData() {
+          await Promise.allSettled([
+            loadMarketSummary(),
+            loadTopMovers(),
+            loadSectors(),
+            loadStocks(),
+            loadWatchlistData(),
+            loadDayTradingData(),
+            loadForeignFlowData(),
+            loadAnalysisHistory(),
+            loadAlerts(),
+          ]);
         }
 
         watch(currentTheme, (val) => {
@@ -717,6 +802,8 @@
             const prevTab = currentTab.value;
             syncViewFromUrl();
           });
+          // Load all dashboard data from real APIs
+          loadAllDashboardData();
         });
 
         return {
@@ -742,6 +829,7 @@
           mrMonths, mrExpandedMonths, toggleMonth,
           mrNetForeign,
           formatRp, loadMarketReports, loadMrAnalysis, switchMrTab,
+          loadAllDashboardData,
         };
       }
     }).mount('#app');

@@ -22,6 +22,7 @@ ENV/
 *.sqlite
 *.sqlite3
 app/database/*.db
+*.session
 app/static/charts/
 
 # Logs and temporary files
@@ -42,3 +43,8 @@ nul
 # Upload folders
 uploads/
 !uploads/.gitkeep
+
+# Generated / export files
+telegram_session_string.txt
+market_reports.json
+backtest_results*.json

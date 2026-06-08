@@ -16,6 +16,11 @@
         const mrAnalysis = ref(null);
         const mrLoadingAnalysis = ref(false);
         const mrExpandedMonths = ref({});
+        const foreignOverviewStocks = ref([]);
+        const pahlawanBursaStocks = ref([]);
+        const dailyNetTotal = ref(0);
+        const foreignStockCount = ref(0);
+        const foreignActivitySummary = ref(null);
         const mrNetForeign = computed(() => {
           const map = {};
           mrReports.value.forEach(r => {
@@ -593,6 +598,36 @@
           mrLoadingAnalysis.value = false;
         }
 
+        async function loadForeignOverview() {
+          try {
+            const res = await fetch('/api/market-reports?limit=5');
+            const json = await res.json();
+            const reports = json.data || [];
+            if (!reports.length) return;
+            const latest = reports[0];
+            const fb = latest.foreign_buy || [];
+            const lb = latest.local_buy || [];
+            const map = {};
+            fb.forEach(s => { map[s.stock] = { stock: s.stock, foreignBuy: s.value, localBuy: 0 }; });
+            lb.forEach(s => {
+              if (map[s.stock]) map[s.stock].localBuy = s.value;
+              else map[s.stock] = { stock: s.stock, foreignBuy: 0, localBuy: s.value };
+            });
+            const stocks = Object.values(map).map(s => ({ ...s, net: s.foreignBuy - s.localBuy }));
+            foreignOverviewStocks.value = stocks.filter(s => s.net > 0).sort((a, b) => b.net - a.net).slice(0, 10);
+            pahlawanBursaStocks.value = stocks.filter(s => s.net < 0).sort((a, b) => (b.localBuy - b.foreignBuy) - (a.localBuy - a.foreignBuy)).slice(0, 10);
+            dailyNetTotal.value = stocks.reduce((sum, s) => sum + s.net, 0);
+            foreignStockCount.value = stocks.filter(s => s.net > 0).length;
+            foreignActivitySummary.value = {
+              totalForeign: fb.reduce((a, s) => a + s.value, 0),
+              totalLocal: lb.reduce((a, s) => a + s.value, 0),
+              date: latest.date,
+            };
+          } catch(e) {
+            console.error('Foreign overview load failed:', e);
+          }
+        }
+
         function switchMrTab(tab) {
           currentTab.value = tab;
           if (tab === 'overview') setTimeout(() => renderMrCharts(mrReports.value), 100);
@@ -711,6 +746,8 @@
           });
           // Restore view from URL on initial load
           syncViewFromUrl();
+          // Load foreign overview data for dashboard
+          loadForeignOverview();
           // Listen for hash changes (browser back/forward)
           window.addEventListener('hashchange', () => {
             const prevView = currentView.value;
@@ -741,7 +778,8 @@
           mrAnalysis, mrLoadingAnalysis,
           mrMonths, mrExpandedMonths, toggleMonth,
           mrNetForeign,
-          formatRp, loadMarketReports, loadMrAnalysis, switchMrTab,
+          foreignOverviewStocks, pahlawanBursaStocks, dailyNetTotal, foreignStockCount, foreignActivitySummary,
+          formatRp, loadMarketReports, loadMrAnalysis, loadForeignOverview, switchMrTab,
         };
       }
     }).mount('#app');

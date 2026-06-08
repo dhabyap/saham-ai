@@ -94,6 +94,65 @@
       <div class="content">
         <div v-if="currentView === 'dashboard'">
           <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <!-- Foreign Flow Overview -->
+            <div class="section" v-if="foreignActivitySummary">
+              <div class="section-title">🌍 Foreign Flow Overview</div>
+              <div class="grid-6">
+                <div class="card card-accent card-big" style="border-left:4px solid #7C3AED;">
+                  <div class="card-header"><span class="card-label">🌍 Net Foreign Flow</span></div>
+                  <span class="card-value" style="color:#7C3AED">{{ formatRp(dailyNetTotal) }}</span>
+                  <span class="card-sub">Asing beli bersih di {{ foreignStockCount }} saham ({{ foreignActivitySummary.date }})</span>
+                </div>
+              </div>
+            </div>
+            <div class="section" v-if="foreignOverviewStocks.length">
+              <div class="section-head">
+                <div class="section-title">🌍 Foreign Accumulation — Top 10</div>
+                <span class="text-xs text-muted font-normal">Net foreign > 0 (asing akumulasi, rekomendasi beli)</span>
+              </div>
+              <div class="card p-4">
+                <table style="width:100%">
+                  <thead><tr>
+                    <th class="text-left p-2 text-muted">Stock</th>
+                    <th class="text-right p-2 text-muted">🌍 Foreign</th>
+                    <th class="text-right p-2 text-muted">🏠 Local</th>
+                    <th class="text-right p-2 text-muted text-success">Net</th>
+                  </tr></thead>
+                  <tbody>
+                    <tr v-for="s in foreignOverviewStocks" :key="s.stock" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                      <td class="p-2 font-semibold" style="color:#7C3AED">{{ s.stock }}</td>
+                      <td class="p-2 text-right" style="color:var(--success)">{{ formatRp(s.foreignBuy) }}</td>
+                      <td class="p-2 text-right" style="color:var(--secondary)">{{ formatRp(s.localBuy) }}</td>
+                      <td class="p-2 text-right font-bold" style="color:var(--success)">+{{ formatRp(s.net) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="section" v-if="pahlawanBursaStocks.length">
+              <div class="section-head">
+                <div class="section-title" style="color:#EF5350">⚠️ Pahlawan Bursa Warning</div>
+                <span class="text-xs text-muted font-normal">Local buy >> foreign buy — hindari, bahaya!</span>
+              </div>
+              <div class="card p-4" style="border-left:4px solid #EF5350;">
+                <table style="width:100%">
+                  <thead><tr>
+                    <th class="text-left p-2 text-muted">Stock</th>
+                    <th class="text-right p-2 text-muted">🏠 Local</th>
+                    <th class="text-right p-2 text-muted">🌍 Foreign</th>
+                    <th class="text-right p-2 text-muted" style="color:#EF5350">Local Surplus</th>
+                  </tr></thead>
+                  <tbody>
+                    <tr v-for="s in pahlawanBursaStocks" :key="s.stock" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                      <td class="p-2 font-semibold" style="color:#EF5350">{{ s.stock }}</td>
+                      <td class="p-2 text-right" style="color:var(--secondary)">{{ formatRp(s.localBuy) }}</td>
+                      <td class="p-2 text-right" style="color:var(--success)">{{ formatRp(s.foreignBuy) }}</td>
+                      <td class="p-2 text-right font-bold" style="color:#EF5350">{{ formatRp(s.localBuy - s.foreignBuy) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <div class="section">
               <div class="section-title">Market Summary</div>
               <div class="grid-6">

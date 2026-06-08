@@ -150,3 +150,74 @@ def get_telegram_ids():
     with get_db() as conn:
         cur = conn.execute("SELECT telegram_id FROM users WHERE is_active = 1 AND telegram_id IS NOT NULL")
         return [row["telegram_id"] for row in cur.fetchall()]
+
+
+# === Airdrop CRUD ===
+
+def add_airdrop(name, url, description="", estimated_value="", source="", platform="", requirements="", deadline=None):
+    with get_db() as conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO airdrops (name, url, description, estimated_value, source, platform, requirements, deadline) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (name, url, description, estimated_value, source, platform, requirements, deadline),
+        )
+
+
+def get_airdrops(status="active"):
+    with get_db() as conn:
+        cur = conn.execute(
+            "SELECT * FROM airdrops WHERE is_ongoing = 1 AND status = ? ORDER BY deadline ASC, added_at DESC",
+            (status,),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
+def get_all_airdrops():
+    with get_db() as conn:
+        cur = conn.execute(
+            "SELECT * FROM airdrops ORDER BY is_ongoing DESC, deadline ASC, added_at DESC"
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
+def update_airdrop_status(airdrop_id, status, is_ongoing=None):
+    with get_db() as conn:
+        if is_ongoing is not None:
+            conn.execute(
+                "UPDATE airdrops SET status = ?, is_ongoing = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (status, is_ongoing, airdrop_id),
+            )
+        else:
+            conn.execute(
+                "UPDATE airdrops SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (status, airdrop_id),
+            )
+
+
+def upsert_airdrop(name, url, description="", estimated_value="", source="", platform="", requirements="", deadline=None):
+    """Insert or update airdrop. Match on name+source."""
+    with get_db() as conn:
+        existing = conn.execute(
+            "SELECT id FROM airdrops WHERE name = ? AND source = ?",
+            (name, source),
+        ).fetchone()
+        if existing:
+            conn.execute(
+                """UPDATE airdrops SET url=?, description=?, estimated_value=?, platform=?,
+                   requirements=?, deadline=?, is_ongoing=1, status='active', updated_at=CURRENT_TIMESTAMP
+                   WHERE id=?""",
+                (url, description, estimated_value, platform, requirements, deadline, existing["id"]),
+            )
+        else:
+            conn.execute(
+                "INSERT INTO airdrops (name, url, description, estimated_value, source, platform, requirements, deadline) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (name, url, description, estimated_value, source, platform, requirements, deadline),
+            )
+
+
+def mark_airdrop_done(airdrop_id):
+    with get_db() as conn:
+        conn.execute(
+            "UPDATE airdrops SET is_ongoing = 0, status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            (airdrop_id,),
+        )
+

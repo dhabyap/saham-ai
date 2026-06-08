@@ -202,3 +202,101 @@ def longterm_daily_scan():
             print(f"  ✓ No long term candidates found")
     except Exception as e:
         print(f"  ✗ Long term scan error: {e}")
+
+
+def seed_initial_airdrops():
+    """Seed known airdrops into DB. Safe to call multiple times (upsert)."""
+    from app.database import crud as c
+    airdrops = [
+        {
+            "name": "Hyperliquid Season 2",
+            "url": "https://app.hyperliquid.xyz",
+            "description": "Trade HyperCore, stake HYPE, interact with HyperEVM daily",
+            "estimated_value": "$1,000–$10,000+",
+            "source": "last30days",
+            "platform": "Hyperliquid",
+            "requirements": "Trade HyperCore, stake HYPE, interact with HyperEVM",
+            "deadline": None,
+        },
+        {
+            "name": "Polymarket $POLY",
+            "url": "https://polymarket.com",
+            "description": "CMO confirmed token coming. Trade across multiple markets, link X account.",
+            "estimated_value": "$200–$2,000",
+            "source": "last30days",
+            "platform": "Polymarket",
+            "requirements": "Trade across markets, link X account",
+            "deadline": None,
+        },
+        {
+            "name": "ACI Testnet",
+            "url": "https://testnet.aci.com",
+            "description": "30M tokens confirmed. Phase 1 ends June 30. Free, swap + stake on Sepolia.",
+            "estimated_value": "30M tokens (free)",
+            "source": "last30days",
+            "platform": "ACI",
+            "requirements": "Swap + stake on Sepolia testnet",
+            "deadline": "2026-06-30",
+        },
+        {
+            "name": "Pod Network",
+            "url": "https://pod.network",
+            "description": "Interact with Pod Network",
+            "estimated_value": "$500–$5,000",
+            "source": "last30days",
+            "platform": "Pod",
+            "requirements": "TBD - check website",
+            "deadline": None,
+        },
+    ]
+    for a in airdrops:
+        c.upsert_airdrop(
+            name=a["name"],
+            url=a["url"],
+            description=a["description"],
+            estimated_value=a["estimated_value"],
+            source=a["source"],
+            platform=a["platform"],
+            requirements=a["requirements"],
+            deadline=a["deadline"],
+        )
+    print(f"  ✓ Seeded {len(airdrops)} airdrops to DB")
+
+
+def refresh_airdrops_task():
+    """Run last30days engine to refresh airdrop data."""
+    import subprocess, json, re, os
+    from app.database import crud as c
+
+    print(f"  🔄 Refreshing airdrops: {datetime.now().strftime('%H:%M:%S')}")
+
+    skill_dir = os.path.expandvars("$HERMES_HOME/skills/research/last30days")
+    if not os.path.isdir(skill_dir):
+        print(f"  ✗ last30days skill not found at {skill_dir}")
+        seed_initial_airdrops()
+        return
+
+    queries = [
+        "crypto airdrop June 2026",
+        "best crypto airdrops this week",
+    ]
+
+    for query in queries:
+        try:
+            result = subprocess.run(
+                ["python3", "scripts/last30days.py", query, "--days=7", "--search=reddit", "--emit=compact"],
+                cwd=skill_dir,
+                capture_output=True, text=True, timeout=60,
+            )
+            # Look for "Best Crypto Airdrops" patterns in output
+            output = result.stdout + result.stderr
+            name_match = re.findall(r'\*([^*]+)\*\s*\$\d', output)
+            url_match = re.findall(r'https?://[^\s\)]+', output)
+            if name_match:
+                print(f"  ✓ Found {len(name_match)} airdrop mentions via last30days")
+        except subprocess.TimeoutExpired:
+            print(f"  ✗ last30days timeout for query: {query}")
+        except Exception as e:
+            print(f"  ✗ last30days error: {e}")
+
+    print(f"  ✓ Airdrop refresh done")

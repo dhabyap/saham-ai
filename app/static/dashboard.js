@@ -538,7 +538,7 @@
           try {
             const res = await fetch('/api/market-reports?limit=500');
             const json = await res.json();
-            const full = (json.data || []).filter(r => r.type === 'full');
+            const full = (json.data || []).filter(r => r.type === 'akhir_sesi');
             mrReports.value = full;
 
             // Auto-expand first month

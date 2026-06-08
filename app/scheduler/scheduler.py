@@ -10,6 +10,8 @@ from app.scheduler.tasks import (
     evaluate_predictions_task,
     bpjs_daily_scan,
     longterm_daily_scan,
+    seed_initial_airdrops,
+    refresh_airdrops_task,
 )
 
 
@@ -67,6 +69,22 @@ def start_scheduler():
         replace_existing=True,
     )
 
+    scheduler.add_job(
+        seed_initial_airdrops,
+        trigger=CronTrigger(hour=4, minute=0, timezone="Asia/Jakarta"),
+        id="seed_initial_airdrops",
+        name="Seed initial airdrops",
+        replace_existing=True,
+    )
+
+    scheduler.add_job(
+        refresh_airdrops_task,
+        trigger=IntervalTrigger(hours=6),
+        id="refresh_airdrops",
+        name="Refresh airdrop data",
+        replace_existing=True,
+    )
+
     scheduler.start()
     print(f"⏰ Scheduler started (interval: {interval} minutes)")
     print("  - Market summary update")
@@ -75,6 +93,8 @@ def start_scheduler():
     print("  - AI prediction evaluation")
     print("  - BPJS daily scan (16:05 WIB)")
     print("  - Long term daily scan (16:10 WIB)")
+    print("  - Airdrop refresh")
+    print("  - Seed initial airdrops")
 
 
 def stop_scheduler():

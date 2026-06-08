@@ -979,6 +979,56 @@ class TelegramBot:
                 continue
         return buy_list
 
+    async def airdrop_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /airdrop - show ongoing crypto airdrops."""
+        try:
+            from app.database import crud as c
+            airdrops = c.get_airdrops()
+
+            if not airdrops:
+                msg = (
+                    "🪂 *Airdrop Tracker*\n\n"
+                    "Belum ada data airdrop.\n"
+                    "Tunggu refresh otomatis atau minta update /airdroprefresh"
+                )
+                await update.message.reply_text(msg, parse_mode="Markdown")
+                return
+
+            lines = ["🪂 *Airdrop Tracker*\n"]
+            for a in airdrops:
+                emoji = "🟢"
+                if a.get("deadline"):
+                    from datetime import datetime
+                    try:
+                        deadline = datetime.strptime(a["deadline"], "%Y-%m-%d").date()
+                        days_left = (deadline - datetime.now().date()).days
+                        if days_left < 0:
+                            emoji = "🔴"
+                        elif days_left < 7:
+                            emoji = "🟡"
+                    except:
+                        pass
+
+                lines.append(
+                    f"{emoji} *{a['name']}*\n"
+                    f"   💰 {a.get('estimated_value', '?')}\n"
+                    f"   🔗 {a['url']}\n"
+                    f"   📋 {a.get('requirements', '')[:100] or '-'}"
+                )
+                if a.get("deadline"):
+                    lines.append(f"   ⏰ Deadline: {a['deadline']}")
+                lines.append("")
+
+            msg = "\n".join(lines)
+            # Split long messages
+            if len(msg) > 4000:
+                msg = "\n".join(lines[:10]) + "\n\n📌 *Gas /airdrop lagi lihat sisanya*"
+
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in airdrop_cmd: {e}")
+            await update.message.reply_text("❌ Error: /airdrop tidak tersedia")
+
     async def error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle uncaught errors from any handler."""
         print(f"Telegram error: {context.error}")
@@ -1017,6 +1067,7 @@ class TelegramBot:
             BotCommand("movers", "Top gainers/losers/volume"),
             BotCommand("sectors", "Performa sektor"),
             BotCommand("predictions", "Prediksi & alert terbaru"),
+            BotCommand("airdrop", "Lihat airdrop kripto aktif"),
         ]
         await app.bot.set_my_commands(commands)
 
@@ -1077,6 +1128,7 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("movers", self.movers_cmd))
         self.app.add_handler(CommandHandler("sectors", self.sectors_cmd))
         self.app.add_handler(CommandHandler("predictions", self.predictions_cmd))
+        self.app.add_handler(CommandHandler("airdrop", self.airdrop_cmd))
         self.app.add_error_handler(self.error_handler)
 
         print("🤖 Telegram Bot started...")

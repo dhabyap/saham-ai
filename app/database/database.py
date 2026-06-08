@@ -454,6 +454,21 @@ def init_db():
                     status VARCHAR(20) DEFAULT 'completed',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS airdrops (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(255) NOT NULL,
+                    description TEXT,
+                    url TEXT,
+                    estimated_value VARCHAR(255),
+                    source VARCHAR(255),
+                    platform VARCHAR(100),
+                    requirements TEXT,
+                    deadline DATE,
+                    status VARCHAR(50) DEFAULT 'active',
+                    is_ongoing TINYINT(1) DEFAULT 1,
+                    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                );
             """)
         else:
             conn.executescript("""
@@ -707,5 +722,20 @@ def init_db():
                     duration_seconds REAL,
                     status TEXT DEFAULT 'completed',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS airdrops (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    url TEXT,
+                    estimated_value TEXT,
+                    source TEXT,
+                    platform TEXT,
+                    requirements TEXT,
+                    deadline TEXT,
+                    status TEXT DEFAULT 'active',
+                    is_ongoing INTEGER DEFAULT 1,
+                    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)

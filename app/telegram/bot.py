@@ -18,7 +18,7 @@ from app.services.stock_service import (
     STOCK_LIST,
 )
 from app.services.analysis_service import AnalysisService
-from app.services.market_service import get_market_summary, get_market_sentiment
+from app.services.market_service import get_market_summary, get_market_sentiment, get_sector_performance
 from app.charts.chart_generator import generate_full_analysis_chart
 from app.database import crud
 from app.database import ai_crud
@@ -89,12 +89,21 @@ class TelegramBot:
                 "/add BBCA - Tambah saham\n"
                 "/remove BBCA - Hapus saham\n"
                 "/watchlist - Daftar watchlist\n\n"
+                "*Foreign Flow:*\n"
+                "/marketreport - Laporan asing vs lokal (hidden)\n"
+                "/market - Overview market IDX (termasuk data asing)\n"
+                "🔍 Cari saham dengan net foreign > 0 (asing akumulasi)\n\n"
                 "*Market:*\n"
                 "/topgainer - Top gainer hari ini\n"
                 "/toploser - Top loser hari ini\n"
                 "/topvolume - Top volume perdagangan\n"
                 "/market - Overview market IDX\n"
                 "/sentiment - Sentimen market\n\n"
+                "*Dashboard:*\n"
+                "/overview - Overview market IDX\n"
+                "/movers - Top gainers/losers/volume\n"
+                "/sectors - Performa sektor\n"
+                "/predictions - Prediksi & alert terbaru\n\n"
                 "*Strategi:*\n"
                 "/daytrade BBCA - BPJS Day Trade signal\n"
                 "/bpjs - Kandidat BPJS hari ini\n"
@@ -748,6 +757,200 @@ class TelegramBot:
             print(f"Error in brokerhelp: {e}")
             await update.message.reply_text("❌ Error menampilkan bantuan. Coba lagi.")
 
+    async def overview_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /overview - market summary + AI perf + FGI."""
+        try:
+            await update.message.reply_text("📊 Ambil overview market...")
+            summary = get_market_summary()
+
+            fg = summary["fear_greed"]
+            if fg["index"] >= 60:
+                fg_emoji = "🟢"
+            elif fg["index"] >= 40:
+                fg_emoji = "🟡"
+            else:
+                fg_emoji = "🔴"
+
+            vol = summary.get("total_volume", 0)
+            vol_str = f"{vol/1e9:.1f}B" if vol >= 1e9 else f"{vol/1e6:.1f}M"
+
+            adv_pct = (summary["advancing"] / summary["total_stocks"] * 100) if summary["total_stocks"] else 0
+            dec_pct = (summary["declining"] / summary["total_stocks"] * 100) if summary["total_stocks"] else 0
+
+            msg = (
+                "📊 *Overview Market IDX* 📊\n"
+                f"📅 {datetime.now().strftime('%d %b %Y')}\n\n"
+                f"{fg_emoji} *Fear & Greed:* {fg['index']} - {fg['label']}\n"
+                f"  ◀ Extreme Fear — Extreme Greed ▶\n\n"
+                f"📈 Advancing: {summary['advancing']} ({adv_pct:.0f}%)\n"
+                f"📉 Declining: {summary['declining']} ({dec_pct:.0f}%)\n"
+                f"⏸ Unchanged: {summary['unchanged']}\n"
+                f"📊 Total: {summary['total_stocks']} saham\n"
+                f"💵 Rata-rata: {summary['avg_change']:+.2f}%\n"
+                f"📦 Volume: {vol_str}\n"
+                f"🔹 Status: Buka (09:00-15:00 WIB)\n"
+            )
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in overview: {e}")
+            await update.message.reply_text("❌ Error: /overview tidak tersedia")
+
+    async def movers_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /movers - top gainers, losers, volume."""
+        try:
+            await update.message.reply_text("📈 Cari market movers...")
+            gainers = get_top_gainers(5)
+            losers = get_top_losers(5)
+            volumes = get_top_volume(5)
+
+            msg = "📈 *Market Movers* 📉\n"
+            msg += f"📅 {datetime.now().strftime('%d %b %Y')}\n\n"
+
+            msg += "*🏆 Top Gainers:*\n"
+            for g in gainers[:5]:
+                msg += f"  {g['code']} — Rp{g['price']:,.0f} ({g['change_pct']:+.2f}%)\n"
+
+            msg += "\n*😞 Top Losers:*\n"
+            for g in losers[:5]:
+                msg += f"  {g['code']} — Rp{g['price']:,.0f} ({g['change_pct']:+.2f}%)\n"
+
+            msg += "\n*📊 Top Volume:*\n"
+            for g in volumes[:5]:
+                vol = g.get("volume", 0)
+                vol_str = f"{vol/1e9:.2f}B" if vol >= 1e9 else f"{vol/1e6:.1f}M"
+                msg += f"  {g['code']} — Rp{g['price']:,.0f} ({vol_str})\n"
+
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in movers: {e}")
+            await update.message.reply_text("❌ Error: /movers tidak tersedia")
+
+    async def sectors_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /sectors - sector performance."""
+        try:
+            await update.message.reply_text("🏢 Ambil data sektor...")
+            sectors = get_sector_performance()
+
+            if not sectors:
+                await update.message.reply_text("🏢 Belum ada data sektor.")
+                return
+
+            sorted_sectors = sorted(sectors.items(), key=lambda x: -x[1]["performance"])
+
+            msg = "🏢 *Sektor Performance* 🏢\n"
+            msg += f"📅 {datetime.now().strftime('%d %b %Y')}\n\n"
+
+            for name, data in sorted_sectors:
+                perf = data["performance"]
+                icon = "🟢" if perf > 0 else "🔴"
+                flow_icon = {"INFLOW": "⬆️", "OUTFLOW": "⬇️", "NEUTRAL": "➡️"}.get(data["flow"], "")
+                msg += f"{icon} *{name}*: {perf:+.2f}% {flow_icon}\n"
+
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in sectors: {e}")
+            await update.message.reply_text("❌ Error: /sectors tidak tersedia")
+
+    async def predictions_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /predictions - recent analysis predictions."""
+        try:
+            await update.message.reply_text("🔮 Ambil prediksi terbaru...")
+            history = crud.get_recent_analysis(10)
+            alerts = crud.get_alerts(5)
+
+            msg = "🔮 *Prediksi Terbaru* 🔮\n"
+            msg += f"📅 {datetime.now().strftime('%d %b %Y')}\n\n"
+
+            if history:
+                msg += "*📊 Riwayat Analisa:*\n"
+                for h in history[:8]:
+                    code = h.get("stock_code", h.get("stock", "?"))
+                    signal = h.get("signal", h.get("recommendation", "-"))
+                    conf = h.get("confidence", h.get("score", 0))
+                    msg += f"  • {code}: {signal} ({conf}%)\n"
+            else:
+                msg += "Belum ada riwayat analisa.\n"
+
+            if alerts:
+                msg += "\n*⚠️ Alert:*\n"
+                for a in alerts[:3]:
+                    msg += f"  • {a.get('stock_code', '?')}: {a.get('message', a.get('alert_type', ''))}\n"
+
+            msg += "\n💡 Gunakan /analyze BBCA untuk analisa baru"
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in predictions: {e}")
+            await update.message.reply_text("❌ Error: /predictions tidak tersedia")
+
+    async def marketreport_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Hidden: show latest @creativetrader report + AI analysis."""
+        try:
+            await update.message.reply_text("📊 Ambil laporan pasar terbaru...")
+            import json, os
+            base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            reports_file = os.path.join(base, "market_reports.json")
+            if not os.path.exists(reports_file):
+                await update.message.reply_text("❌ Belum ada data. Jalankan scraper dulu.")
+                return
+            with open(reports_file) as f:
+                reports = json.load(f)
+            if not reports:
+                await update.message.reply_text("❌ Laporan kosong.")
+                return
+            latest = reports[0]
+            date = latest.get('date', '?')
+            ihsg = latest.get('ihsg_change')
+            fb = latest.get('foreign_buy', [])
+            lb = latest.get('local_buy', [])
+            gainers = latest.get('gainer', [])
+            losers = latest.get('loser', [])
+            ihsg_icon = "🔴" if (ihsg or 0) < 0 else "🟢"
+            msg = f"{ihsg_icon} *Market Report* — {date}\nIHSG: {ihsg:+.2f}%\n\n"
+            if fb:
+                msg += "*🌍 Top Foreign Buy:*\n"
+                for s in fb[:5]:
+                    v = s['value']
+                    u = "T" if v >= 1e12 else "M"
+                    w = v / 1e12 if v >= 1e12 else v / 1e9
+                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\n"
+                msg += "\n"
+            if lb:
+                msg += "*🏠 Top Local Buy:*\n"
+                for s in lb[:5]:
+                    v = s['value']
+                    u = "T" if v >= 1e12 else "M"
+                    w = v / 1e12 if v >= 1e12 else v / 1e9
+                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\n"
+                msg += "\n"
+            if gainers:
+                msg += "*📈 Top Gainer:*\n"
+                for g in gainers[:3]:
+                    msg += f"  {g['stock']}: {g['change_pct']:+.1f}%\n"
+            if losers:
+                msg += "*📉 Top Loser:*\n"
+                for l in losers[:3]:
+                    msg += f"  {l['stock']}: {l['change_pct']:+.1f}%\n"
+            msg += "\n"
+            # AI analysis
+            from collections import Counter
+            ihsg_vals = [r['ihsg_change'] for r in reports if r['ihsg_change'] is not None]
+            red = sum(1 for v in ihsg_vals if v < 0)
+            green = sum(1 for v in ihsg_vals if v > 0)
+            avg = sum(ihsg_vals) / len(ihsg_vals) if ihsg_vals else 0
+            foreign_freq = Counter()
+            for r in reports:
+                for s in r.get('foreign_buy', []):
+                    foreign_freq[s['stock']] += 1
+            top_fb = foreign_freq.most_common(5)
+            msg += f"*📊 Analisis ({len(reports)} laporan)*\n"
+            msg += f"Rata IHSG: {avg:+.2f}% | Hijau/Merah: {green}/{red}\n"
+            msg += f"Top asing beli: {', '.join(s for s, c in top_fb)}\n"
+            msg += f"\n💡 /analyze BBCA — analisa detail"
+            await update.message.reply_text(msg, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error in marketreport: {e}")
+            await update.message.reply_text("❌ Error: /marketreport tidak tersedia")
+
     def _scan_buy_list(self):
         """Scan all stocks and return BUY candidates. Runs in thread."""
         all_codes = list(STOCK_LIST.keys())[:20]
@@ -810,6 +1013,10 @@ class TelegramBot:
             BotCommand("longtermcandidates", "Kandidat long term"),
             BotCommand("broker", "Input data broker asing (contoh: /broker BBCA)"),
             BotCommand("brokerhelp", "Panduan input data broker"),
+            BotCommand("overview", "Overview market IDX"),
+            BotCommand("movers", "Top gainers/losers/volume"),
+            BotCommand("sectors", "Performa sektor"),
+            BotCommand("predictions", "Prediksi & alert terbaru"),
         ]
         await app.bot.set_my_commands(commands)
 
@@ -865,6 +1072,11 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("longtermcandidates", self.longtermcandidates_cmd))
         self.app.add_handler(CommandHandler("broker", self.broker_cmd))
         self.app.add_handler(CommandHandler("brokerhelp", self.brokerhelp_cmd))
+        self.app.add_handler(CommandHandler("marketreport", self.marketreport_cmd))  # hidden
+        self.app.add_handler(CommandHandler("overview", self.overview_cmd))
+        self.app.add_handler(CommandHandler("movers", self.movers_cmd))
+        self.app.add_handler(CommandHandler("sectors", self.sectors_cmd))
+        self.app.add_handler(CommandHandler("predictions", self.predictions_cmd))
         self.app.add_error_handler(self.error_handler)
 
         print("🤖 Telegram Bot started...")

@@ -475,6 +475,156 @@
           return 'Rp' + val.toLocaleString('id');
         }
 
+        function formatVolume(v) {
+          if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B';
+          if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+          if (v >= 1e3) return (v / 1e3).toFixed(0) + 'K';
+          return v.toString();
+        }
+
+        function formatPrice(v) {
+          return 'Rp ' + Math.round(v).toLocaleString('id-ID');
+        }
+
+        function applyMarketData(data) {
+          market.value.fgi.value = data.fear_greed.index;
+          market.value.fgi.label = data.fear_greed.label;
+          market.value.advancing.count = data.advancing;
+          market.value.advancing.change = data.advancing;
+          market.value.advancing.pct = (data.advancing / data.total_stocks * 100).toFixed(0) + '%';
+          market.value.declining.count = data.declining;
+          market.value.declining.change = data.declining;
+          market.value.declining.pct = (data.declining / data.total_stocks * 100).toFixed(0) + '%';
+          market.value.avgChange = (data.avg_change >= 0 ? '+' : '') + data.avg_change.toFixed(2) + '%';
+          market.value.totalVolume = formatVolume(data.total_volume);
+          market.value.volumeChange = '';
+        }
+
+        function applyGainersData(data) {
+          const items = (data.gainers || []).map(item => ({
+            code: item.code,
+            name: item.name,
+            chg: (item.change_pct >= 0 ? '+' : '') + item.change_pct.toFixed(1) + '%'
+          }));
+          movers.value.gainers = items.slice(0, 5);
+          allGainers.value = items;
+        }
+
+        function applyLosersData(data) {
+          const items = (data.losers || []).map(item => ({
+            code: item.code,
+            name: item.name,
+            chg: (item.change_pct >= 0 ? '+' : '') + item.change_pct.toFixed(1) + '%'
+          }));
+          movers.value.losers = items.slice(0, 5);
+          allLosers.value = items;
+        }
+
+        function applyVolumeData(data) {
+          const items = (data.volumes || []).map(item => ({
+            code: item.code,
+            name: item.name,
+            vol: formatVolume(item.volume)
+          }));
+          movers.value.volume = items.slice(0, 5);
+          allVolume.value = items;
+        }
+
+        function applySectorsData(data) {
+          sectors.value = Object.entries(data).map(([name, info]) => {
+            const perf = info.performance;
+            const isPos = perf >= 0;
+            const width = Math.min(Math.abs(perf) * 10, 100);
+            const color = isPos ? 'var(--success)' : 'var(--danger)';
+            let flowClass = 'accent';
+            if (info.flow === 'INFLOW') flowClass = 'success';
+            else if (info.flow === 'OUTFLOW') flowClass = 'danger';
+            return {
+              name,
+              width: width + '%',
+              barColor: color,
+              textColor: color,
+              change: (isPos ? '+' : '') + perf.toFixed(2) + '%',
+              flow: info.flow,
+              flowClass
+            };
+          });
+        }
+
+        function applyDaytradeData(data) {
+          if (data.status === 'ok' && data.data && data.data.candidates && data.data.candidates.length > 0) {
+            bpjsSignals.value = data.data.candidates.map(c => ({
+              code: c.code,
+              signal: c.signal,
+              signalClass: c.signal === 'ENTER' ? 'success' : c.signal === 'WAIT' ? 'warning' : 'danger',
+              confidence: c.confidence,
+              price: formatPrice(c.price)
+            }));
+          }
+        }
+
+        function applyLongtermData(data) {
+          if (data.status === 'ok' && data.data && data.data.candidates && data.data.candidates.length > 0) {
+            longTermSignals.value = data.data.candidates.map(c => ({
+              code: c.code,
+              signal: c.signal,
+              signalClass: c.signalClass || (c.signal === 'Active Accum' ? 'accent' : c.signal === 'Accum Watch' ? 'warning' : 'danger'),
+              confidence: c.confidence,
+              entryZone: c.entryZone
+            }));
+          }
+        }
+
+        function applyForeignData(data) {
+          if (data.status === 'ok' && data.data) {
+            const items = [];
+            (data.data.top_accumulating || []).forEach(item => {
+              items.push({
+                code: item.code,
+                phase: 'Active Accum',
+                signalClass: 'accent',
+                confidence: item.confidence || 0,
+                entryZone: item.entry_zone || 'N/A',
+                accumDays: item.accum_days || 0,
+                rsStatus: item.rs_status || 'Neutral'
+              });
+            });
+            (data.data.top_distributing || []).forEach(item => {
+              items.push({
+                code: item.code,
+                phase: 'Distribution',
+                signalClass: 'danger',
+                confidence: item.confidence || 0,
+                entryZone: 'N/A',
+                accumDays: 0,
+                rsStatus: 'Weak'
+              });
+            });
+            if (items.length > 0) ltAccumulation.value = items;
+          }
+        }
+
+        async function loadAllData() {
+          const [marketRes, gainersRes, losersRes, volumeRes, sectorsRes, daytradeRes, longtermRes, foreignRes] = await Promise.allSettled([
+            fetch('/api/market-summary').then(r => r.json()),
+            fetch('/api/top-gainers?limit=5').then(r => r.json()),
+            fetch('/api/top-losers?limit=5').then(r => r.json()),
+            fetch('/api/top-volume?limit=5').then(r => r.json()),
+            fetch('/api/sector-performance').then(r => r.json()),
+            fetch('/api/day-trade/candidates').then(r => r.json()),
+            fetch('/api/long-term/candidates').then(r => r.json()),
+            fetch('/api/foreign-flow/summary').then(r => r.json())
+          ]);
+          if (marketRes.status === 'fulfilled') applyMarketData(marketRes.value);
+          if (gainersRes.status === 'fulfilled') applyGainersData(gainersRes.value);
+          if (losersRes.status === 'fulfilled') applyLosersData(losersRes.value);
+          if (volumeRes.status === 'fulfilled') applyVolumeData(volumeRes.value);
+          if (sectorsRes.status === 'fulfilled') applySectorsData(sectorsRes.value);
+          if (daytradeRes.status === 'fulfilled') applyDaytradeData(daytradeRes.value);
+          if (longtermRes.status === 'fulfilled') applyLongtermData(longtermRes.value);
+          if (foreignRes.status === 'fulfilled') applyForeignData(foreignRes.value);
+        }
+
         function renderMrCharts(full) {
           const sorted = [...full].reverse();
           const labels = sorted.map(r => r.date);
@@ -717,6 +867,7 @@
             const prevTab = currentTab.value;
             syncViewFromUrl();
           });
+          loadAllData();
         });
 
         return {
@@ -741,7 +892,7 @@
           mrAnalysis, mrLoadingAnalysis,
           mrMonths, mrExpandedMonths, toggleMonth,
           mrNetForeign,
-          formatRp, loadMarketReports, loadMrAnalysis, switchMrTab,
+          formatRp, formatVolume, formatPrice, loadAllData, loadMarketReports, loadMrAnalysis, switchMrTab,
         };
       }
     }).mount('#app');

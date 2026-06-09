@@ -16,6 +16,31 @@
         const mrAnalysis = ref(null);
         const mrLoadingAnalysis = ref(false);
         const mrExpandedMonths = ref({});
+        const mrSortKey = ref('net');
+        const mrSortDir = ref('desc');
+        function toggleMrSort(key) {
+          if (mrSortKey.value === key) {
+            mrSortDir.value = mrSortDir.value === 'asc' ? 'desc' : 'asc';
+          } else {
+            mrSortKey.value = key;
+            mrSortDir.value = key === 'stock' ? 'asc' : 'desc';
+          }
+        }
+        function mrSortIcon(key) {
+          if (mrSortKey.value !== key) return ' ↕';
+          return mrSortDir.value === 'asc' ? ' ↑' : ' ↓';
+        }
+        const mrSortedForeign = computed(() => {
+          const key = mrSortKey.value;
+          const dir = mrSortDir.value === 'asc' ? 1 : -1;
+          const list = [...mrNetForeign.value].filter(x => x.net > 0);
+          return list.sort((a, b) => {
+            let va = a[key], vb = b[key];
+            if (key === 'lastDate') { va = va || ''; vb = vb || ''; }
+            if (typeof va === 'string') return va.localeCompare(vb) * dir;
+            return (va - vb) * dir;
+          });
+        });
         const foreignOverviewStocks = ref([]);
         const pahlawanBursaStocks = ref([]);
         const dailyNetTotal = ref(0);
@@ -466,15 +491,14 @@
           const sorted = [...full].reverse();
           const labels = sorted.map(r => r.date);
           const ihsgData = sorted.map(r => r.ihsg_change);
-          const colors = ihsgData.map(v => v !== null && v >= 0 ? '#10B981' : '#EF5350');
 
           if (ihsgChartInstance) ihsgChartInstance.destroy();
           const ctx1 = document.getElementById('ihsgChart');
           if (ctx1) {
             const hasIHSG = ihsgData.some(v => v !== null);
             ihsgChartInstance = new Chart(ctx1, {
-              type: 'bar',
-              data: { labels, datasets: [{ label: 'IHSG Change %', data: ihsgData, backgroundColor: colors, borderRadius: 4 }] },
+              type: 'line',
+              data: { labels, datasets: [{ label: 'IHSG Change %', data: ihsgData, borderColor: '#7C3AED', backgroundColor: 'rgba(124,58,237,0.1)', tension: 0.3, fill: true, pointRadius: 1.5, pointHoverRadius: 4, borderWidth: 2 }] },
               options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' }, ticks: { callback: v => v.toFixed(2) + '%' } }, x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } } } }
             });
             if (!hasIHSG) {
@@ -492,21 +516,26 @@
           }
 
           const fMap = {};
-          const fRealStocks = [];
-          full.forEach(r => (r.foreign_buy || []).forEach(s => {
-            if (!fMap[s.stock]) fMap[s.stock] = { count: 0, total: 0 };
-            fMap[s.stock].count++;
-            fMap[s.stock].total += s.value;
-          }));
-          const fSorted = Object.entries(fMap).sort((a,b) => b[1].total - a[1].total).slice(0, 10);
+          full.forEach(r => {
+            (r.foreign_buy || []).forEach(s => {
+              if (!fMap[s.stock]) fMap[s.stock] = { net: 0 };
+              fMap[s.stock].net += s.value;
+            });
+            (r.local_buy || []).forEach(s => {
+              if (!fMap[s.stock]) fMap[s.stock] = { net: 0 };
+              fMap[s.stock].net -= s.value;
+            });
+          });
+          const fSorted = Object.entries(fMap).filter(([,v]) => v.net > 0).sort((a,b) => b[1].net - a[1].net).slice(0, 10);
 
           if (foreignChartInstance) foreignChartInstance.destroy();
           const ctx2 = document.getElementById('foreignChart');
           if (ctx2) {
             const hasForeignData = fSorted.length > 0;
+            const fColors = fSorted.map(([,v]) => v.net >= 0 ? '#7C3AED' : '#EF5350');
             foreignChartInstance = new Chart(ctx2, {
               type: 'bar',
-              data: { labels: fSorted.map(([k]) => k), datasets: [{ label: 'Foreign Buy (Rp)', data: fSorted.map(([,v]) => v.total), backgroundColor: '#7C3AED', borderRadius: 4 }] },
+              data: { labels: fSorted.map(([k]) => k), datasets: [{ label: 'Net Foreign (Rp)', data: fSorted.map(([,v]) => v.net), backgroundColor: fColors, borderRadius: 4 }] },
               options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' }, ticks: { callback: v => formatRp(v) } }, x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } } } }
             });
             if (!hasForeignData) {
@@ -538,7 +567,7 @@
           try {
             const res = await fetch('/api/market-reports?limit=500');
             const json = await res.json();
-            const full = (json.data || []).filter(r => r.type === 'full');
+            const full = (json.data || []).filter(r => r.type === 'full' || r.type === 'akhir_sesi' || r.type === 'sesi1');
             mrReports.value = full;
 
             // Auto-expand first month
@@ -1013,7 +1042,7 @@
           mrReports, mrStats, mrForeignStocks, mrLocalStocks,
           mrAnalysis, mrLoadingAnalysis,
           mrMonths, mrExpandedMonths, toggleMonth,
-          mrNetForeign,
+          mrNetForeign, mrSortKey, mrSortDir, toggleMrSort, mrSortIcon, mrSortedForeign,
           foreignOverviewStocks, pahlawanBursaStocks, dailyNetTotal, foreignStockCount, foreignActivitySummary,
           formatRp, loadMarketReports, loadMrAnalysis, loadForeignOverview, switchMrTab,
         };

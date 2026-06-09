@@ -49,10 +49,10 @@ def main():
         log('❌ Scrape failed — check Telethon session validity')
         return rc
 
-    # Step 2: Import to MySQL
+    # Step 2: Import to MySQL (incremental — keep existing)
     if os.path.exists(REPORT_FILE):
-        log('🗄️  Step 2: Importing to MySQL...')
-        run_py(IMPORTER)
+        log('🗄️  Step 2: Importing to MySQL (incremental)...')
+        run_py(IMPORTER, ['--keep'])
     else:
         log('⚠️  No market_reports.json found, skipping import')
 

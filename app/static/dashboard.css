@@ -1317,6 +1317,11 @@ html[data-theme="classy"] .theme-btn.active {
 .table-net-foreign td { padding:8px 10px;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px; }
 .table-net-foreign tbody tr:last-child td { border-bottom:none; }
 .table-net-foreign tbody tr:hover { background:rgba(0,0,0,0.02); }
+.table-net-foreign th { cursor:pointer; user-select:none; }
+.table-net-foreign th:hover { color:var(--accent); }
+.sort-icon { font-size:11px; opacity:.6; margin-left:2px; }
+.table thead th { cursor:pointer; user-select:none; }
+.table thead th:hover { color:var(--accent); }
 
 .theme-switcher {
     display:flex;

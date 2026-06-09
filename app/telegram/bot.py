@@ -883,10 +883,11 @@ class TelegramBot:
             await update.message.reply_text("❌ Error: /predictions tidak tersedia")
 
     async def marketreport_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Hidden: show latest @creativetrader report + AI analysis."""
+        """Hidden: show latest @creativetrader report + 1-year AI analysis."""
         try:
             await update.message.reply_text("📊 Ambil laporan pasar terbaru...")
             import json, os
+            from collections import defaultdict
             base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             reports_file = os.path.join(base, "market_reports.json")
             if not os.path.exists(reports_file):
@@ -897,6 +898,8 @@ class TelegramBot:
             if not reports:
                 await update.message.reply_text("❌ Laporan kosong.")
                 return
+
+            # ── Latest Report ──
             latest = reports[0]
             date = latest.get('date', '?')
             ihsg = latest.get('ihsg_change')
@@ -905,50 +908,105 @@ class TelegramBot:
             gainers = latest.get('gainer', [])
             losers = latest.get('loser', [])
             ihsg_icon = "🔴" if (ihsg or 0) < 0 else "🟢"
-            msg = f"{ihsg_icon} *Market Report* — {date}\nIHSG: {ihsg:+.2f}%\n\n"
+
+            msg = f"{ihsg_icon} *Market Report* — {date}\\nIHSG: {ihsg:+.2f}%\\n\\n"
+
             if fb:
-                msg += "*🌍 Top Foreign Buy:*\n"
+                msg += "*🌍 Top Foreign Buy:*\\n"
                 for s in fb[:5]:
                     v = s['value']
                     u = "T" if v >= 1e12 else "M"
                     w = v / 1e12 if v >= 1e12 else v / 1e9
-                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\n"
-                msg += "\n"
+                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\\n"
+                msg += "\\n"
             if lb:
-                msg += "*🏠 Top Local Buy:*\n"
+                msg += "*🏠 Top Local Buy:*\\n"
                 for s in lb[:5]:
                     v = s['value']
                     u = "T" if v >= 1e12 else "M"
                     w = v / 1e12 if v >= 1e12 else v / 1e9
-                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\n"
-                msg += "\n"
+                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\\n"
+                msg += "\\n"
             if gainers:
-                msg += "*📈 Top Gainer:*\n"
+                msg += "*📈 Top Gainer:*\\n"
                 for g in gainers[:3]:
-                    msg += f"  {g['stock']}: {g['change_pct']:+.1f}%\n"
+                    msg += f"  {g['stock']}: {g['change_pct']:+.1f}%\\n"
             if losers:
-                msg += "*📉 Top Loser:*\n"
+                msg += "*📉 Top Loser:*\\n"
                 for l in losers[:3]:
-                    msg += f"  {l['stock']}: {l['change_pct']:+.1f}%\n"
-            msg += "\n"
-            # AI analysis
-            from collections import Counter
+                    msg += f"  {l['stock']}: {l['change_pct']:+.1f}%\\n"
+            msg += "\\n"
+
+            # ── 1-Year Analysis ──
             ihsg_vals = [r['ihsg_change'] for r in reports if r['ihsg_change'] is not None]
             red = sum(1 for v in ihsg_vals if v < 0)
             green = sum(1 for v in ihsg_vals if v > 0)
-            avg = sum(ihsg_vals) / len(ihsg_vals) if ihsg_vals else 0
-            foreign_freq = Counter()
+            avg_ihsg = sum(ihsg_vals) / len(ihsg_vals) if ihsg_vals else 0
+            dates = sorted(set(r['date'] for r in reports if r.get('date')))
+
+            # Net foreign accumulation (foreign - local per stock)
+            foreign_total = defaultdict(float)
+            local_total = defaultdict(float)
+            foreign_freq = defaultdict(int)
             for r in reports:
                 for s in r.get('foreign_buy', []):
+                    foreign_total[s['stock']] += s['value']
                     foreign_freq[s['stock']] += 1
-            top_fb = foreign_freq.most_common(5)
-            msg += f"*📊 Analisis ({len(reports)} laporan)*\n"
-            msg += f"Rata IHSG: {avg:+.2f}% | Hijau/Merah: {green}/{red}\n"
-            msg += f"Top asing beli: {', '.join(s for s, c in top_fb)}\n"
-            msg += f"\n💡 /analyze BBCA — analisa detail"
+                for s in r.get('local_buy', []):
+                    local_total[s['stock']] += s['value']
+
+            net_foreign = []
+            for stock in foreign_total:
+                net = foreign_total[stock] - local_total.get(stock, 0)
+                if net > 0:
+                    net_foreign.append((stock, net, foreign_freq[stock]))
+            net_foreign.sort(key=lambda x: -x[1])
+
+            # Monthly IHSG
+            monthly_ihsg = defaultdict(list)
+            for r in reports:
+                if r.get('ihsg_change') is not None:
+                    monthly_ihsg[r['date'][:7]].append(r['ihsg_change'])
+            months_sorted = sorted(monthly_ihsg.keys())
+
+            # ── Build Analysis Section ──
+            msg += f"*📊 1-Tahun Analisis ({len(reports)} laporan)*\\n"
+            msg += f"Rentang: {dates[0]} — {dates[-1]}\\n"
+            msg += f"IHSG: rata {avg_ihsg:+.2f}% | 🟢{green} 🔴{red} | min {min(ihsg_vals):+.2f}% max {max(ihsg_vals):+.2f}%\\n\\n"
+
+            # Top 5 net foreign accumulation
+            msg += "*🌍 Akumulasi Asing Teratas:*\\n"
+            for stock, net, freq in net_foreign[:5]:
+                u = "T" if net >= 1e12 else "M"
+                w = net / 1e12 if net >= 1e12 else net / 1e9
+                msg += f"  {stock}: Rp{w:.2f}{u} ({freq}x)\\n"
+            msg += "\\n"
+
+            # Last 6 months IHSG
+            msg += "*📆 IHSG per Bulan:*\\n"
+            for m in months_sorted[-6:]:
+                vals = monthly_ihsg[m]
+                avg_m = sum(vals) / len(vals)
+                r = sum(1 for v in vals if v < 0)
+                g = sum(1 for v in vals if v > 0)
+                icon = "🔴" if avg_m < 0 else "🟢"
+                msg += f"  {m}: {icon} {avg_m:+.2f}% ({g}/{r})\\n"
+            msg += "\\n"
+
+            # Best & worst months
+            best_m = max(months_sorted, key=lambda m: sum(monthly_ihsg[m]) / len(monthly_ihsg[m]))
+            worst_m = min(months_sorted, key=lambda m: sum(monthly_ihsg[m]) / len(monthly_ihsg[m]))
+            best_avg = sum(monthly_ihsg[best_m]) / len(monthly_ihsg[best_m])
+            worst_avg = sum(monthly_ihsg[worst_m]) / len(monthly_ihsg[worst_m])
+            msg += f"Terbaik: {best_m} ({best_avg:+.2f}%)\\n"
+            msg += f"Terburuk: {worst_m} ({worst_avg:+.2f}%)\\n"
+            msg += f"\\n💡 /analyze BBCA — analisa detail saham"
+
             await update.message.reply_text(msg, parse_mode="Markdown")
         except Exception as e:
             print(f"Error in marketreport: {e}")
+            import traceback
+            traceback.print_exc()
             await update.message.reply_text("❌ Error: /marketreport tidak tersedia")
 
     def _scan_buy_list(self):

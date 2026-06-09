@@ -660,7 +660,7 @@
               </div>
             </div>
             <div class="section">
-              <div class="section-title">Top Foreign Buy Frequency</div>
+              <div class="section-title">Top Net Foreign Accumulation</div>
               <div class="card p-4">
                 <div class="chart-wrap"><canvas id="foreignChart"></canvas></div>
               </div>
@@ -695,11 +695,11 @@
                 <div class="overflow-x-auto">
                   <table class="table-net-foreign" style="width:100%">
                     <thead><tr>
-                      <th class="text-left p-2 text-muted">Stock</th>
-                      <th class="text-right p-2 text-muted">🌍 Foreign</th>
-                      <th class="text-right p-2 text-muted">🏠 Local</th>
-                      <th class="text-right p-2 text-muted">Net</th>
-                      <th class="text-right p-2 text-muted">Last</th>
+                      <th class="text-left p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
+                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('foreignTotal')">🌍 Foreign<span class="sort-icon">{{ mrSortIcon('foreignTotal') }}</span></th>
+                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('localTotal')">🏠 Local<span class="sort-icon">{{ mrSortIcon('localTotal') }}</span></th>
+                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('net')">Net<span class="sort-icon">{{ mrSortIcon('net') }}</span></th>
+                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('lastDate')">Last<span class="sort-icon">{{ mrSortIcon('lastDate') }}</span></th>
                     </tr></thead>
                     <tbody>
                       <tr v-for="s in mrNetForeign" :key="s.stock" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
@@ -771,16 +771,22 @@
               <div class="card card-table">
                 <div class="table-wrap">
                   <table>
-                    <thead><tr><th>Stock</th><th>🌍 Foreign</th><th>🏠 Local</th><th>Net</th><th>Last</th></tr></thead>
+                    <thead><tr>
+                      <th style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
+                      <th style="cursor:pointer" @click="toggleMrSort('foreignTotal')">🌍 Foreign<span class="sort-icon">{{ mrSortIcon('foreignTotal') }}</span></th>
+                      <th style="cursor:pointer" @click="toggleMrSort('localTotal')">🏠 Local<span class="sort-icon">{{ mrSortIcon('localTotal') }}</span></th>
+                      <th style="cursor:pointer" @click="toggleMrSort('net')">Net<span class="sort-icon">{{ mrSortIcon('net') }}</span></th>
+                      <th style="cursor:pointer" @click="toggleMrSort('lastDate')">Last<span class="sort-icon">{{ mrSortIcon('lastDate') }}</span></th>
+                    </tr></thead>
                     <tbody>
-                      <tr v-for="s in mrNetForeign.filter(x => x.net > 0)" :key="s.stock">
+                      <tr v-for="s in mrSortedForeign" :key="s.stock">
                         <td class="font-semibold text-accent">{{ s.stock }}</td>
                         <td class="text-success">{{ formatRp(s.foreignTotal) }}</td>
                         <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>
                         <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
                         <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
                       </tr>
-                      <tr v-if="!mrNetForeign.filter(x => x.net > 0).length"><td colspan="5" class="text-center text-muted">No data</td></tr>
+                      <tr v-if="!mrSortedForeign.length"><td colspan="5" class="text-center text-muted">No data</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -820,9 +826,15 @@
                 <div class="card card-table">
                   <div class="table-wrap">
                     <table>
-                      <thead><tr><th>Stock</th><th>🌍 Foreign</th><th>🏠 Local</th><th>Net</th><th>Last</th></tr></thead>
+                      <thead><tr>
+                        <th style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
+                        <th style="cursor:pointer" @click="toggleMrSort('foreignTotal')">🌍 Foreign<span class="sort-icon">{{ mrSortIcon('foreignTotal') }}</span></th>
+                        <th style="cursor:pointer" @click="toggleMrSort('localTotal')">🏠 Local<span class="sort-icon">{{ mrSortIcon('localTotal') }}</span></th>
+                        <th style="cursor:pointer" @click="toggleMrSort('net')">Net<span class="sort-icon">{{ mrSortIcon('net') }}</span></th>
+                        <th style="cursor:pointer" @click="toggleMrSort('lastDate')">Last<span class="sort-icon">{{ mrSortIcon('lastDate') }}</span></th>
+                      </tr></thead>
                       <tbody>
-                        <tr v-for="s in mrNetForeign.filter(x => x.net > 0).slice(0,20)" :key="s.stock">
+                        <tr v-for="s in mrSortedForeign.slice(0,20)" :key="s.stock">
                           <td class="font-semibold text-accent">{{ s.stock }}</td>
                           <td class="font-semibold text-success">{{ formatRp(s.foreignTotal) }}</td>
                           <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>

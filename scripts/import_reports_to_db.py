@@ -45,7 +45,7 @@ def import_reports(report_file: str, clear_first: bool = True):
             stock = item['stock']
             value = item['value']
             cur.execute(
-                'INSERT INTO foreign_flow (stock_code, trade_date, foreign_buy, foreign_sell, foreign_net, domestic_buy, domestic_sell, total_volume, source, created_at) '
+                'INSERT IGNORE INTO foreign_flow (stock_code, trade_date, foreign_buy, foreign_sell, foreign_net, domestic_buy, domestic_sell, total_volume, source, created_at) '
                 'VALUES (%s, %s, %s, 0, %s, 0, 0, %s, %s, NOW())',
                 (stock, date, value, value, value, 'creativetrader')
             )
@@ -56,7 +56,7 @@ def import_reports(report_file: str, clear_first: bool = True):
             stock = item['stock']
             value = item['value']
             cur.execute(
-                'INSERT INTO foreign_flow (stock_code, trade_date, foreign_buy, foreign_sell, foreign_net, domestic_buy, domestic_sell, total_volume, source, created_at) '
+                'INSERT IGNORE INTO foreign_flow (stock_code, trade_date, foreign_buy, foreign_sell, foreign_net, domestic_buy, domestic_sell, total_volume, source, created_at) '
                 'VALUES (%s, %s, 0, %s, %s, %s, 0, %s, %s, NOW())',
                 (stock, date, value, -value, value, value, 'creativetrader')
             )

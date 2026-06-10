@@ -28,6 +28,7 @@ class AnalysisService:
 
         ai_provider_name = ""
         ai_source = ""
+        ai_error = ""
         if use_ai and self.ai.is_available():
             ai_result = self.ai.analyze(data, strategy=strategy, risk_level=risk_level)
             if ai_result:
@@ -38,6 +39,7 @@ class AnalysisService:
                 trend = ai_result.get("trend", data["trend"])
                 ai_provider_name = ai_result.get("ai_provider", "")
                 ai_source = ai_result.get("source", "")
+                ai_error = ai_result.get("ai_error", "")
             else:
                 recommendation, confidence, reason, details = self.learning.get_scored_recommendation(
                     data, strategy, risk_level,
@@ -45,6 +47,7 @@ class AnalysisService:
                 full_analysis = reason
                 trend = data["trend"]
                 ai_source = "rule_based"
+                ai_error = "AI return kosong"
         else:
             recommendation, confidence, reason, details = self.learning.get_scored_recommendation(
                 data, strategy, risk_level,
@@ -52,6 +55,7 @@ class AnalysisService:
             full_analysis = reason
             trend = data["trend"]
             ai_source = "rule_based"
+            ai_error = "AI tidak tersedia (disabled/no config)" if not self.ai.is_available() else ""
 
         result = {
             **data,
@@ -64,6 +68,7 @@ class AnalysisService:
             "risk_level": risk_level,
             "ai_provider": ai_provider_name,
             "source": ai_source,
+            "ai_error": ai_error,
         }
 
         pred_id = ai_crud.save_prediction(

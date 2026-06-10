@@ -240,9 +240,11 @@ def init_db():
                     alert_type VARCHAR(50) NOT NULL,
                     message TEXT,
                     value DOUBLE,
+                    sent INT DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 );
+
                 CREATE TABLE IF NOT EXISTS stock_cache (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     stock_code VARCHAR(50) UNIQUE,
@@ -494,6 +496,7 @@ def init_db():
                     alert_type TEXT NOT NULL,
                     message TEXT,
                     value REAL,
+                    sent INTEGER DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 );

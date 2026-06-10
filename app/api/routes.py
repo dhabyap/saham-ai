@@ -29,6 +29,7 @@ from app.database.foreign_flow_models import (
     get_accumulation_status,
     get_all_accumulation_status,
 )
+from app.services.treemap_service import get_treemap_data
 import pandas as pd
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -266,19 +267,6 @@ async def get_market_breadth():
     return {"status": "ok", "data": data}
 
 
-@router.get("/foreign-flow/{code}")
-async def foreign_flow(code: str, days: int = Query(30, ge=1, le=365)):
-    history = get_foreign_flow(code, days)
-    accumulation = get_accumulation_status(code)
-    return {
-        "status": "ok",
-        "data": {
-            "history": history,
-            "accumulation_status": accumulation,
-        },
-    }
-
-
 @router.get("/foreign-flow/summary")
 async def foreign_flow_summary():
     all_status = get_all_accumulation_status()
@@ -294,13 +282,17 @@ async def foreign_flow_summary():
     }
 
 
-@router.get("/day-trade/{code}")
-async def day_trade_analysis(code: str):
-    from app.ai.strategies.bpjs_strategy import BPJSStrategy
-    result = BPJSStrategy().analyze(code)
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-    return {"status": "ok", "data": result}
+@router.get("/foreign-flow/{code}")
+async def foreign_flow(code: str, days: int = Query(30, ge=1, le=365)):
+    history = get_foreign_flow(code, days)
+    accumulation = get_accumulation_status(code)
+    return {
+        "status": "ok",
+        "data": {
+            "history": history,
+            "accumulation_status": accumulation,
+        },
+    }
 
 
 @router.get("/day-trade/candidates")
@@ -315,6 +307,15 @@ async def day_trade_candidates():
             "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         },
     }
+
+
+@router.get("/day-trade/{code}")
+async def day_trade_analysis(code: str):
+    from app.ai.strategies.bpjs_strategy import BPJSStrategy
+    result = BPJSStrategy().analyze(code)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return {"status": "ok", "data": result}
 
 
 @router.get("/scored-analysis/{code}")
@@ -596,3 +597,8 @@ async def get_market_report_analysis():
             }
         }
     }
+
+@router.get("/treemap")
+def treemap_data():
+    """Market heatmap treemap — stocks grouped by sector."""
+    return get_treemap_data()

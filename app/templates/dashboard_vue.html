@@ -6,6 +6,7 @@
 <title>AI Stock Analyzer — Dashboard</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <link rel="stylesheet" href="/static/dashboard.css">
 </head>
 <body>
@@ -64,6 +65,7 @@
         <button class="tab-btn" :class="{ active: currentTab === 'movers' }" @click="currentTab = 'movers'">Market Movers</button>
         <button class="tab-btn" :class="{ active: currentTab === 'sectors' }" @click="currentTab = 'sectors'">Sectors</button>
         <button class="tab-btn" :class="{ active: currentTab === 'preds' }" @click="currentTab = 'preds'">Predictions</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'treemap' }" @click="currentTab = 'treemap'">🔥 Heatmap</button>
       </div>
       <div v-else-if="currentView === 'daytrading'" class="tabs">
         <button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">Signals</button>
@@ -394,6 +396,27 @@
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'treemap' }">
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title">🔥 Market Heatmap</div>
+                <span class="text-xs text-muted">Ukuran = kapitalisasi pasar | Warna = perubahan %</span>
+              </div>
+              <div class="card p-4">
+                <div v-if="treemapLoading" style="text-align:center;padding:60px 0;color:var(--muted)">Memuat data...</div>
+                <div v-else id="treemap-container" style="width:100%;height:640px"></div>
+              </div>
+            </div>
+            <div class="section" v-if="treemapSectors.length">
+              <div class="card p-4" style="display:flex;flex-wrap:wrap;gap:24px;align-items:center">
+                <span style="font-size:13px;color:var(--muted);margin-right:8px">Sectors:</span>
+                <span v-for="s in treemapSectors" :key="s.name" class="badge" :class="s.change_pct >= 0 ? 'badge-success' : 'badge-danger'" style="font-size:12px">
+                  {{ s.name }} {{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%
+                </span>
+                <span class="text-xs text-muted" style="margin-left:auto">📅 {{ treemapDate }}</span>
               </div>
             </div>
           </div>

@@ -72,21 +72,46 @@ def get_recent_analysis(limit=20):
         return [dict(row) for row in cur.fetchall()]
 
 
+def has_active_alert(stock_code, alert_type):
+    """Check if unsent alert already exists for this stock+type."""
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id FROM alert_logs WHERE stock_code=? AND alert_type=? AND sent=0 LIMIT 1",
+            (stock_code.upper(), alert_type),
+        ).fetchone()
+        return row is not None
+
+
 def save_alert(user_id, stock_code, alert_type, message, value=None):
+    # Skip if same stock+type already has unsent alert
+    if has_active_alert(stock_code, alert_type):
+        return
     with get_db() as conn:
         conn.execute(
             "INSERT INTO alert_logs (user_id, stock_code, alert_type, message, value) VALUES (?, ?, ?, ?, ?)",
-            (user_id, stock_code, alert_type, message, value),
+            (user_id, stock_code.upper(), alert_type, message, value),
         )
 
 
 def get_alerts(limit=20):
     with get_db() as conn:
         cur = conn.execute(
-            "SELECT * FROM alert_logs ORDER BY created_at DESC LIMIT ?",
+            "SELECT * FROM alert_logs WHERE sent=0 ORDER BY created_at ASC LIMIT ?",
             (limit,),
         )
         return [dict(row) for row in cur.fetchall()]
+
+
+def mark_alerts_sent(ids):
+    """Mark alert IDs as sent so they won't be fetched again."""
+    if not ids:
+        return
+    with get_db() as conn:
+        placeholders = ",".join("?" for _ in ids)
+        conn.execute(
+            f"UPDATE alert_logs SET sent=1 WHERE id IN ({placeholders})",
+            ids,
+        )
 
 
 def cache_stock_data(stock_code, data_json):

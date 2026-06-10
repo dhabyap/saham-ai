@@ -89,9 +89,9 @@ class TelegramBot:
                 "/add BBCA - Tambah saham\n"
                 "/remove BBCA - Hapus saham\n"
                 "/watchlist - Daftar watchlist\n\n"
-                "*Foreign Flow:*\n"
-                "/marketreport - Laporan asing vs lokal (hidden)\n"
-                "/market - Overview market IDX (termasuk data asing)\n"
+                "*Market Report:*\n"
+                "/marketreport - Laporan @creativetrader + AI insights\n"
+                "/market - Overview market IDX\n"
                 "🔍 Cari saham dengan net foreign > 0 (asing akumulasi)\n\n"
                 "*Market:*\n"
                 "/topgainer - Top gainer hari ini\n"
@@ -166,6 +166,12 @@ class TelegramBot:
             src_icon = source_emoji.get(source, "❓")
             src_text = source_label.get(source, source)
 
+            # AI error warning
+            ai_err = result.get("ai_error", "")
+            ai_warn = ""
+            if ai_err and source in ("rule_based",):
+                ai_warn = f"\n⚠️ *Catatan:* {ai_err}\n"
+
             message = (
                 f"{rec_emoji} *{result['stock_code']}* - {result.get('stock_name', '')}\n"
                 f"💰 Harga: Rp{result['price']:,.0f} "
@@ -180,7 +186,7 @@ class TelegramBot:
                 f"• Resistance: Rp{result['resistance']:,.0f}\n\n"
                 f"🎯 *Rekomendasi: {result['recommendation']}*\n"
                 f"📈 Confidence: {result['confidence']}%\n"
-                f"{src_icon} _Sumber: {src_text}_\n\n"
+                f"{src_icon} _Sumber: {src_text}_{ai_warn}\n\n"
                 f"💡 *Reason:*\n{result['reason']}\n\n"
                 f"#IDX #{result['stock_code'].replace('.JK', '')}"
             )
@@ -606,20 +612,42 @@ class TelegramBot:
             await update.message.reply_text("🔍 Mencari kandidat BPJS hari ini...")
 
             loop = asyncio.get_event_loop()
-            candidates = await loop.run_in_executor(None, lambda: BPJSStrategy().scan_candidates())
+            candidates, data_date = await loop.run_in_executor(None, lambda: BPJSStrategy().scan_candidates())
 
             if not candidates:
                 await update.message.reply_text("📭 Tidak ada kandidat BPJS hari ini.")
                 return
 
-            msg = "🎯 *BPJS Candidates Hari Ini*\n\n"
+            today_str = datetime.now().strftime("%d %b")
+            is_prev = data_date and data_date != today_str
+            date_label = f"📅 {data_date}" if is_prev else ""
+
+            msg = f"🎯 *BPJS* {date_label}\n\n"
+
+            # Check if these are pre-market WATCH signals or real-time ENTER
+            is_watch = candidates[0].get("action") == "WATCH"
+
             for i, c in enumerate(candidates[:10], 1):
                 action = c.get("action", "WAIT")
-                emoji = "🟢" if action == "ENTER" else "⏳"
+                if action == "ENTER":
+                    emoji = "🟢"
+                elif action == "WATCH":
+                    emoji = "👀"
+                else:
+                    emoji = "⏳"
                 conf = c.get("confidence", 0)
+                vol = c.get("volume_ratio", "-")
+                foreign = c.get("foreign_flow_status", "")
+                ff = "🌍" if foreign == "accumulating" else "⚪"
                 msg += f"{emoji} {i}. *{c['stock_code']}* | Conf: {conf}%\n"
                 msg += f"   💡 {c.get('reason', '-')[:80]}\n"
+
             msg += f"\nTotal: {len(candidates)} kandidat"
+
+            if is_watch:
+                msg += "\n⚠️ Market tutup — ini watchlist utk hari ini (buka nanti utk sinyal real-time)"
+            elif is_prev:
+                msg += "\n⚠️ Data dari hari sebelumnya"
 
             await update.message.reply_text(msg, parse_mode="Markdown")
         except Exception as e:
@@ -883,7 +911,7 @@ class TelegramBot:
             await update.message.reply_text("❌ Error: /predictions tidak tersedia")
 
     async def marketreport_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Hidden: show latest @creativetrader report + 1-year AI analysis."""
+        """Show latest @creativetrader report + 1-year analysis + AI insights."""
         try:
             await update.message.reply_text("📊 Ambil laporan pasar terbaru...")
             import json, os
@@ -909,33 +937,28 @@ class TelegramBot:
             losers = latest.get('loser', [])
             ihsg_icon = "🔴" if (ihsg or 0) < 0 else "🟢"
 
-            msg = f"{ihsg_icon} *Market Report* — {date}\\nIHSG: {ihsg:+.2f}%\\n\\n"
+            msg = f"{ihsg_icon} *Market Report* — {date}\n"
+            msg += f"IHSG: {ihsg:+.2f}%\n\n"
 
             if fb:
-                msg += "*🌍 Top Foreign Buy:*\\n"
+                msg += "🌍 *Foreign Buy:*\n"
                 for s in fb[:5]:
                     v = s['value']
                     u = "T" if v >= 1e12 else "M"
                     w = v / 1e12 if v >= 1e12 else v / 1e9
-                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\\n"
-                msg += "\\n"
+                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\n"
             if lb:
-                msg += "*🏠 Top Local Buy:*\\n"
+                msg += "🏠 *Local Buy:*\n"
                 for s in lb[:5]:
                     v = s['value']
                     u = "T" if v >= 1e12 else "M"
                     w = v / 1e12 if v >= 1e12 else v / 1e9
-                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\\n"
-                msg += "\\n"
+                    msg += f"  {s['stock']}: Rp{w:.2f}{u}\n"
             if gainers:
-                msg += "*📈 Top Gainer:*\\n"
-                for g in gainers[:3]:
-                    msg += f"  {g['stock']}: {g['change_pct']:+.1f}%\\n"
+                msg += "📈 *Gainer:* " + " | ".join(f"{g['stock']} {g['change_pct']:+.1f}%" for g in gainers[:3]) + "\n"
             if losers:
-                msg += "*📉 Top Loser:*\\n"
-                for l in losers[:3]:
-                    msg += f"  {l['stock']}: {l['change_pct']:+.1f}%\\n"
-            msg += "\\n"
+                msg += "📉 *Loser:* " + " | ".join(f"{l['stock']} {l['change_pct']:+.1f}%" for l in losers[:3]) + "\n"
+            msg += "\n"
 
             # ── 1-Year Analysis ──
             ihsg_vals = [r['ihsg_change'] for r in reports if r['ihsg_change'] is not None]
@@ -944,7 +967,6 @@ class TelegramBot:
             avg_ihsg = sum(ihsg_vals) / len(ihsg_vals) if ihsg_vals else 0
             dates = sorted(set(r['date'] for r in reports if r.get('date')))
 
-            # Net foreign accumulation (foreign - local per stock)
             foreign_total = defaultdict(float)
             local_total = defaultdict(float)
             foreign_freq = defaultdict(int)
@@ -962,45 +984,95 @@ class TelegramBot:
                     net_foreign.append((stock, net, foreign_freq[stock]))
             net_foreign.sort(key=lambda x: -x[1])
 
-            # Monthly IHSG
             monthly_ihsg = defaultdict(list)
             for r in reports:
                 if r.get('ihsg_change') is not None:
                     monthly_ihsg[r['date'][:7]].append(r['ihsg_change'])
             months_sorted = sorted(monthly_ihsg.keys())
 
-            # ── Build Analysis Section ──
-            msg += f"*📊 1-Tahun Analisis ({len(reports)} laporan)*\\n"
-            msg += f"Rentang: {dates[0]} — {dates[-1]}\\n"
-            msg += f"IHSG: rata {avg_ihsg:+.2f}% | 🟢{green} 🔴{red} | min {min(ihsg_vals):+.2f}% max {max(ihsg_vals):+.2f}%\\n\\n"
+            msg += f"📊 *1-Th* ({len(reports)} laporan)\n"
+            msg += f"IHSG rata {avg_ihsg:+.2f}% | 🟢{green} 🔴{red}\n"
+            msg += f"Min {min(ihsg_vals):+.2f}% Max {max(ihsg_vals):+.2f}%\n"
+            msg += f"{dates[0]} — {dates[-1]}\n\n"
 
-            # Top 5 net foreign accumulation
-            msg += "*🌍 Akumulasi Asing Teratas:*\\n"
-            for stock, net, freq in net_foreign[:5]:
+            msg += "🌍 *Top Asing 1-th:*\n"
+            for stock, net, freq in net_foreign[:3]:
                 u = "T" if net >= 1e12 else "M"
                 w = net / 1e12 if net >= 1e12 else net / 1e9
-                msg += f"  {stock}: Rp{w:.2f}{u} ({freq}x)\\n"
-            msg += "\\n"
+                msg += f"  {stock}: Rp{w:.2f}{u} ({freq}x)\n"
+            msg += "\n"
 
-            # Last 6 months IHSG
-            msg += "*📆 IHSG per Bulan:*\\n"
-            for m in months_sorted[-6:]:
+            msg += "📆 *IHSG 3 bln:*\n"
+            for m in months_sorted[-3:]:
                 vals = monthly_ihsg[m]
                 avg_m = sum(vals) / len(vals)
                 r = sum(1 for v in vals if v < 0)
                 g = sum(1 for v in vals if v > 0)
                 icon = "🔴" if avg_m < 0 else "🟢"
-                msg += f"  {m}: {icon} {avg_m:+.2f}% ({g}/{r})\\n"
-            msg += "\\n"
+                msg += f"  {m[5:]}: {icon} {avg_m:+.2f}% ({g}/{r})\n"
 
-            # Best & worst months
             best_m = max(months_sorted, key=lambda m: sum(monthly_ihsg[m]) / len(monthly_ihsg[m]))
             worst_m = min(months_sorted, key=lambda m: sum(monthly_ihsg[m]) / len(monthly_ihsg[m]))
             best_avg = sum(monthly_ihsg[best_m]) / len(monthly_ihsg[best_m])
             worst_avg = sum(monthly_ihsg[worst_m]) / len(monthly_ihsg[worst_m])
-            msg += f"Terbaik: {best_m} ({best_avg:+.2f}%)\\n"
-            msg += f"Terburuk: {worst_m} ({worst_avg:+.2f}%)\\n"
-            msg += f"\\n💡 /analyze BBCA — analisa detail saham"
+            msg += f"  Terbaik: {best_m} ({best_avg:+.2f}%)\n"
+            msg += f"  Terburuk: {worst_m} ({worst_avg:+.2f}%)\n\n"
+
+            # ── AI Insights ──
+            msg += "🧠 *AI Insights*\n"
+            insights = []
+
+            # Sentiment
+            if ihsg and ihsg > 0.5:
+                insights.append(f"IHSG {ihsg:+.2f}% — bullish, asing akumulasi")
+            elif ihsg and ihsg > 0:
+                insights.append(f"IHSG hijau tipis {ihsg:+.2f}% — wait & see")
+            elif ihsg and ihsg < -0.5:
+                insights.append(f"IHSG {ihsg:+.2f}% — tekanan jual, risk off")
+            else:
+                insights.append(f"IHSG flat {ihsg:+.2f}% — sideway")
+
+            # Foreign vs local
+            if fb and lb:
+                fb_total = sum(s['value'] for s in fb[:5])
+                lb_total = sum(s['value'] for s in lb[:5])
+                ratio = fb_total / lb_total if lb_total else 0
+                if ratio > 2:
+                    insights.append("Asing dominan 2x lokal — inflow asing deras")
+                elif ratio > 1:
+                    insights.append("Asing lebih agresif drpd lokal")
+                else:
+                    insights.append("Lokal dominasi — asing wait & see")
+
+            # Top foreign stock
+            if fb:
+                top = fb[0]
+                insights.append(f"Top asing: {top['stock']} Rp{top['value']/1e9:.1f}M")
+
+            # Monthly trend
+            if len(months_sorted) >= 2:
+                last_m = sum(monthly_ihsg[months_sorted[-1]]) / len(monthly_ihsg[months_sorted[-1]])
+                prev_m = sum(monthly_ihsg[months_sorted[-2]]) / len(monthly_ihsg[months_sorted[-2]])
+                if last_m > prev_m:
+                    insights.append(f"Momentum membaik vs bln lalu ({prev_m:+.2f}%→{last_m:+.2f}%)")
+                elif last_m < prev_m:
+                    insights.append(f"Momentum melemah vs bln lalu ({prev_m:+.2f}%→{last_m:+.2f}%)")
+
+            # Net foreign leader
+            if net_foreign:
+                leader = net_foreign[0]
+                insights.append(f"Akumulasi asing tertinggi 1-th: {leader[0]}")
+
+            # 1-year avg
+            if avg_ihsg < -0.1:
+                insights.append("Tren 1-th negatif — prioritaskan saham defensif")
+            elif avg_ihsg > 0.1:
+                insights.append("Tren 1-th positif — akumulasi di weakness")
+
+            for ins in insights[:6]:
+                msg += f"  • {ins}\n"
+
+            msg += f"\n💡 /analyze BBCA — analisa detail saham"
 
             await update.message.reply_text(msg, parse_mode="Markdown")
         except Exception as e:

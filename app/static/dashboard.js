@@ -119,6 +119,7 @@
           { id: 'movers', label: 'Market Movers' },
           { id: 'sectors', label: 'Sectors' },
           { id: 'preds', label: 'Predictions' },
+          { id: 'treemap', label: 'Heatmap' },
         ];
         const daytradingTabs = [
           { id: 'signals', label: 'Signals' },
@@ -183,6 +184,10 @@
         const sectors = ref([]);
         const predictions = ref([]);
         const allPredictions = ref([]);
+        const treemapLoading = ref(false);
+        const treemapData = ref(null);
+        const treemapSectors = ref([]);
+        const treemapDate = ref("");
         const dayTradingSignals = ref([]);
         const dayTradingCandidates = ref([]);
         const dayTradingHistory = ref([]);
@@ -648,6 +653,9 @@
         function switchView(view, tab) {
           currentView.value = view;
           if (view === 'marketreports') loadMarketReports();
+          if (view === 'daytrading') loadDayTradingData();
+          if (view === 'longterm') loadForeignFlowData();
+          if (view === 'analysis') loadStocks();
           const firstTabs = {
             dashboard: 'overview',
             daytrading: 'signals',
@@ -955,6 +963,7 @@
               history.replaceState(null, '', hash);
             }
           }
+          if (tab === 'treemap') fetchTreemapData();
         });
 
         function navigateFromHash() {
@@ -997,6 +1006,228 @@
           }
         }
 
+        async function fetchTreemapData() {
+          if (treemapLoading.value) return;
+          treemapLoading.value = true;
+          try {
+            const res = await fetch('/api/treemap');
+            const data = await res.json();
+            treemapData.value = data;
+            treemapSectors.value = data.sectors || [];
+            treemapDate.value = data.date || '';
+          } catch (e) {
+            console.error('Treemap fetch error:', e);
+            return;
+          } finally {
+            treemapLoading.value = false;
+          }
+          // Wait for DOM to render container, then draw treemap
+          await Vue.nextTick();
+          renderTreemap(treemapData.value);
+        }
+
+        function renderTreemap(data) {
+          const el = document.getElementById('treemap-container');
+          if (!el || !data || !data.sectors || !data.sectors.length) {
+            console.warn('Treemap: no data or container');
+            return;
+          }
+          console.log('Treemap render start, sectors:', data.sectors.length);
+          el.innerHTML = '';
+          el.style.position = 'relative';
+
+          const W = el.clientWidth || 900;
+          const H = el.clientHeight || 640;
+
+          const svg = d3.select(el).append('svg')
+            .attr('width', W)
+            .attr('height', H)
+            .style('background', '#1a1a2e');
+
+          // Color scale: red→gray→green
+          const c = d3.scaleLinear()
+            .domain([-8, -2, 0, 2, 8])
+            .range(['#ef4444', '#a05252', '#6b7280', '#16a34a', '#22c55e'])
+            .clamp(true);
+
+          // Build proper nested hierarchy: root → sectors → stocks
+          // d3.hierarchy needs {children: [...]} — rename stocks→children
+          const treemapInput = {
+            children: data.sectors.map(function(sector) {
+              return {
+                name: sector.name,
+                stock_count: sector.stock_count,
+                change_pct: sector.change_pct,
+                total_size: sector.total_size,
+                children: sector.stocks.map(function(stock) {
+                  return {
+                    code: stock.code,
+                    change_pct: stock.change_pct,
+                    close: stock.close,
+                    volume: stock.volume,
+                    size: stock.size,
+                    sector: sector.name,
+                  };
+                }),
+              };
+            }),
+          };
+
+          const root = d3.hierarchy(treemapInput)
+            .sum(function(d) { return d.size || d.total_size || 0; })
+            .sort(function(a, b) { return (b.value || 0) - (a.value || 0); });
+
+          console.log('Hierarchy leaves:', root.leaves().length);
+
+          var layout = d3.treemap()
+            .size([W, H - 40])
+            .paddingOuter(3)
+            .paddingTop(20)
+            .paddingInner(2)
+            .round(true);
+
+          layout(root);
+
+          // Draw sector group background rects — fill allocated area with subtle color
+          svg.selectAll('g.sector-bg')
+            .data(root.children || [])
+            .enter().append('rect')
+            .attr('x', function(d) { return d.x0; })
+            .attr('y', function(d) { return d.y0; })
+            .attr('width', function(d) { return d.x1 - d.x0; })
+            .attr('height', function(d) { return d.y1 - d.y0; })
+            .attr('fill', function(d) {
+              var pct = d.data.change_pct || 0;
+              return pct >= 0 ? '#162b1a' : '#2b1616';
+            })
+            .attr('rx', 3)
+            .attr('stroke', '#2a2a4e')
+            .attr('stroke-width', 1);
+
+          // Draw leaves (stocks)
+          var leaf = svg.selectAll('g.leaf')
+            .data(root.leaves())
+            .enter().append('g')
+            .attr('transform', function(d) {
+              return 'translate(' + d.x0 + ',' + d.y0 + ')';
+            });
+
+          leaf.append('rect')
+            .attr('width', function(d) { return d.x1 - d.x0; })
+            .attr('height', function(d) { return d.y1 - d.y0; })
+            .attr('fill', function(d) { return c(d.data.change_pct || 0); })
+            .attr('rx', 2)
+            .attr('stroke', '#1a1a2e')
+            .attr('stroke-width', 1);
+
+          leaf.append('text')
+            .attr('x', 4)
+            .attr('y', 14)
+            .attr('fill', '#fff')
+            .attr('font-size', '10px')
+            .attr('font-weight', 'bold')
+            .style('pointer-events', 'none')
+            .style('text-shadow', '0 1px 3px rgba(0,0,0,0.8)')
+            .text(function(d) { return d.data.code || ''; });
+
+          leaf.append('text')
+            .attr('x', 4)
+            .attr('y', 26)
+            .attr('fill', '#fff')
+            .attr('font-size', '9px')
+            .style('pointer-events', 'none')
+            .style('text-shadow', '0 1px 3px rgba(0,0,0,0.8)')
+            .text(function(d) {
+              var pct = d.data.change_pct || 0;
+              return (pct >= 0 ? '+' : '') + pct + '%';
+            });
+
+          // Sector group labels
+          svg.selectAll('g.slabel')
+            .data(root.children || [])
+            .enter().append('text')
+            .attr('x', function(d) { return d.x0 + 6; })
+            .attr('y', function(d) { return d.y0 + 14; })
+            .attr('fill', '#94a3b8')
+            .attr('font-size', '10px')
+            .attr('font-weight', 'bold')
+            .style('pointer-events', 'none')
+            .style('text-shadow', '0 1px 3px rgba(0,0,0,0.8)')
+            .text(function(d) {
+              return d.data.name + ' (' + (d.data.stock_count || 0) + ')';
+            });
+
+          // Tooltip
+          var tt = d3.select(el).append('div')
+            .attr('class', 'treemap-tooltip')
+            .style('position', 'absolute')
+            .style('background', 'rgba(15,15,35,0.95)')
+            .style('color', '#fff')
+            .style('padding', '8px 12px')
+            .style('border-radius', '6px')
+            .style('border', '1px solid #333')
+            .style('font-size', '12px')
+            .style('pointer-events', 'none')
+            .style('opacity', '0')
+            .style('z-index', '1000');
+
+          leaf.on('mouseover', function(event, d) {
+            var s = d.data;
+            var pct = s.change_pct || 0;
+            var sign = pct >= 0 ? '+' : '';
+            var formattedClose = (s.close || 0).toLocaleString();
+            var formattedVol = ((s.volume || 0) / 1e6).toFixed(1);
+            tt.html(
+              '<b style="color:#7C3AED">' + s.code + '</b><br/>' +
+              'Change: <b>' + sign + pct + '%</b><br/>' +
+              'Price: ' + formattedClose + '<br/>' +
+              'Vol: ' + formattedVol + 'M<br/>' +
+              '<span style="color:#94a3b8">' + s.sector + '</span>'
+            )
+            .style('opacity', '1')
+            .style('left', (event.offsetX + 12) + 'px')
+            .style('top', (event.offsetY - 10) + 'px');
+          })
+          .on('mousemove', function(event) {
+            tt.style('left', (event.offsetX + 12) + 'px')
+              .style('top', (event.offsetY - 10) + 'px');
+          })
+          .on('mouseleave', function() {
+            tt.style('opacity', '0');
+          });
+
+          // Color legend bar at bottom
+          var lx = (W / 2) - 100;
+          var ly = H - 18;
+
+          var grad = svg.append('defs').append('linearGradient')
+            .attr('id', 'tm-grad');
+
+          grad.selectAll('stop')
+            .data([-8, -5, -2, 0, 2, 5, 8])
+            .enter().append('stop')
+            .attr('offset', function(d) { return ((d + 8) / 16 * 100) + '%'; })
+            .attr('stop-color', function(d) { return c(d); });
+
+          svg.append('rect')
+            .attr('x', lx)
+            .attr('y', ly)
+            .attr('width', 200)
+            .attr('height', 8)
+            .attr('rx', 3)
+            .style('fill', 'url(#tm-grad)');
+
+          var ls = d3.scaleLinear().domain([-8, 8]).range([0, 200]);
+          svg.append('g')
+            .attr('transform', 'translate(' + lx + ',' + (ly + 8) + ')')
+            .attr('color', '#94a3b8')
+            .style('font-size', '9px')
+            .call(d3.axisBottom(ls).ticks(5).tickFormat(function(d) { return d + '%'; }))
+            .call(function(g) { g.select('.domain').attr('stroke', 'none'); });
+
+          console.log('Treemap rendered:', root.leaves().length, 'stocks');
+        }
+
         onMounted(() => {
           const saved = localStorage.getItem('dashboard-theme');
           if (saved) {
@@ -1029,6 +1260,7 @@
           market, aiPerf, aiPerfDetails, movers,
           allGainers, allLosers, allVolume,
           bpjsSignals, longTermSignals, sectors, predictions, allPredictions,
+          treemapLoading, treemapData, treemapSectors, treemapDate,
           dayTradingSignals, dayTradingCandidates, dayTradingHistory,
           ltAccumulation, ltPortfolio, ltWatchlist,
           analysisQuery, analysisSector, analysisSectors, analysisStocks, filteredAnalysis,

@@ -59,6 +59,7 @@ class AIAnalyzer:
         system_prompt = custom_prompt["prompt_text"] if custom_prompt else self._get_default_system_prompt()
 
         tried = []
+        last_error = ""
         for provider in self.providers:
             if not provider.is_available():
                 continue
@@ -74,11 +75,16 @@ class AIAnalyzer:
                     return normalized
             except Exception as e:
                 safe = str(e).encode("ascii", "ignore").decode("ascii")
-                print(f"  {provider.name}: {safe[:120]}")
+                last_error = f"{provider.name}: {safe[:200]}"
+                print(f"  {last_error}")
 
-        if tried:
-            print(f"  All AI providers failed: {', '.join(tried)}")
-        return self._fallback_analysis(data)
+        ai_error = f"AI gagal: {', '.join(tried)}" if tried else "Tidak ada provider AI"
+        if last_error:
+            ai_error += f" ({last_error})"
+        print(f"  {ai_error}")
+        result = self._fallback_analysis(data)
+        result["ai_error"] = ai_error
+        return result
 
     def analyze_sentiment(self, market_data):
         self._build_providers()
@@ -104,12 +110,17 @@ class AIAnalyzer:
         sector = data.get('sector', 'N/A')
         sector_flow = data.get('sector_flow', 'N/A')
 
+        if isinstance(foreign_flow, (int, float)):
+            foreign_line = f"Foreign Net Buy: Rp{foreign_flow:,.0f}"
+        else:
+            foreign_line = f"Foreign Net Buy: {foreign_flow}"
+
         return (
             f"Analisa {data.get('stock_code')} menggunakan Money Flow Methodology:\n"
             f"Harga Rp{data.get('price'):,.0f} ({data.get('change_pct', 0):+.2f}%), "
             f"Volume {data.get('volume_ratio', 1)}x rata-rata\n"
             f"\n=== MONEY FLOW ===\n"
-            f"Foreign Net Buy: Rp{foreign_flow:,.0f}\n"
+            f"{foreign_line}\n"
             f"Akumulasi/Distribusi: {accumulation_days} hari akumulasi\n"
             f"Relative Strength vs IHSG: {relative_strength}\n"
             f"Sektor: {sector} ({sector_flow})\n"

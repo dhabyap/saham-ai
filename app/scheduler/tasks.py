@@ -120,7 +120,11 @@ async def send_telegram_alerts():
         )
 
     alerts = crud.get_alerts(limit=10)
+    if not alerts:
+        return
+
     telegram_ids = crud.get_telegram_ids()
+    sent_ids = []
 
     for alert in alerts:
         for tid in telegram_ids:
@@ -131,7 +135,13 @@ async def send_telegram_alerts():
                     parse_mode="Markdown",
                 )
             except Exception as e:
-                print(f"  ✗ Failed to send alert to {tid}: {e}")
+                print(f"  ✗ Failed to send alert {alert.get('id')} to {tid}: {e}")
+        sent_ids.append(alert["id"])
+
+    # Mark as sent so they won't repeat
+    if sent_ids:
+        crud.mark_alerts_sent(sent_ids)
+        print(f"  ✓ {len(sent_ids)} alerts sent and marked as delivered")
 
 
 def run_send_telegram_alerts():
@@ -154,14 +164,14 @@ def bpjs_daily_scan():
 
     print(f"  ✓ BPJS daily scan started: {datetime.now().strftime('%H:%M:%S')}")
     try:
-        candidates = BPJSStrategy().scan_candidates()
-        if candidates:
-            print(f"  ✓ Found {len(candidates)} BPJS candidates")
+        candidates_list, data_date = BPJSStrategy().scan_candidates()
+        if candidates_list:
+            print(f"  ✓ Found {len(candidates_list)} BPJS candidates (data: {data_date or '?'})")
             telegram_ids = crud.get_telegram_ids()
             for tid in telegram_ids:
                 user = crud.get_user(tid)
                 if user:
-                    for c in candidates[:5]:
+                    for c in candidates_list[:5]:
                         action = c.get("action", "WAIT")
                         if action == "ENTER":
                             crud.save_alert(

@@ -94,52 +94,52 @@
         let foreignChartInstance = null;
 
         const themes = [
-          { id: 'neumorphism', label: 'Light' },
-          { id: 'dark', label: 'Dark' },
-          { id: 'classy', label: 'Classy' },
+          { id: 'neumorphism', label: 'Terang' },
+          { id: 'dark', label: 'Gelap' },
+          { id: 'classy', label: 'Klasik' },
         ];
 
         const navItems = [
-          { view: 'dashboard',  icon: '&#9751;', label: 'Dashboard' },
-          { view: 'daytrading', icon: '&#8644;', label: 'Day Trading' },
-          { view: 'longterm',   icon: '&#9670;', label: 'Long Term' },
-          { view: 'analysis',   icon: '&#9776;', label: 'Analysis' },
-          { view: 'settings',   icon: '&#9881;', label: 'Settings' },
-          { view: 'marketreports', icon: '📊', label: 'Market Reports' },
+          { view: 'dashboard',  icon: '&#9751;', label: 'Beranda' },
+          { view: 'daytrading', icon: '&#8644;', label: 'Trading Harian' },
+          { view: 'longterm',   icon: '&#9670;', label: 'Jangka Panjang' },
+          { view: 'analysis',   icon: '&#9776;', label: 'Analisis' },
+          { view: 'settings',   icon: '&#9881;', label: 'Pengaturan' },
+          { view: 'marketreports', icon: '📊', label: 'Laporan Pasar' },
         ];
 
         const headerTitle = computed(() => {
-          const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', settings: 'Settings', marketreports: 'Market Reports' };
-          return map[currentView.value] || 'Dashboard';
+          const map = { dashboard: 'Beranda', daytrading: 'Trading Harian', longterm: 'Jangka Panjang', analysis: 'Analisis', settings: 'Pengaturan', marketreports: 'Laporan Pasar' };
+          return map[currentView.value] || 'Beranda';
         });
 
         const dashboardTabs = [
-          { id: 'overview', label: 'Overview' },
-          { id: 'aiperf', label: 'AI Performance' },
-          { id: 'movers', label: 'Market Movers' },
-          { id: 'sectors', label: 'Sectors' },
-          { id: 'preds', label: 'Predictions' },
-          { id: 'treemap', label: 'Heatmap' },
+          { id: 'overview', label: 'Ringkasan' },
+          { id: 'aiperf', label: 'Performa AI' },
+          { id: 'movers', label: 'Pergerakan Pasar' },
+          { id: 'sectors', label: 'Sektor' },
+          { id: 'preds', label: 'Prediksi' },
+          { id: 'treemap', label: 'Peta Panas' },
         ];
         const daytradingTabs = [
-          { id: 'signals', label: 'Signals' },
-          { id: 'candidates', label: 'Candidates' },
-          { id: 'history', label: 'History' },
+          { id: 'signals', label: 'Sinyal' },
+          { id: 'candidates', label: 'Kandidat' },
+          { id: 'history', label: 'Riwayat' },
         ];
         const longtermTabs = [
-          { id: 'accumulation', label: 'Accumulation' },
-          { id: 'portfolio', label: 'Portfolio' },
-          { id: 'watchlist', label: 'Watchlist' },
+          { id: 'accumulation', label: 'Akumulasi' },
+          { id: 'portfolio', label: 'Portofolio' },
+          { id: 'watchlist', label: 'Daftar Pantau' },
         ];
         const analysisTabs = [
-          { id: 'search', label: 'Search' },
+          { id: 'search', label: 'Cari' },
           { id: 'detail', label: 'Detail' },
-          { id: 'comparison', label: 'Comparison' },
+          { id: 'comparison', label: 'Perbandingan' },
         ];
         const settingsTabs = [
-          { id: 'general', label: 'General' },
-          { id: 'account', label: 'Account' },
-          { id: 'alerts', label: 'Alerts' },
+          { id: 'general', label: 'Umum' },
+          { id: 'account', label: 'Akun' },
+          { id: 'alerts', label: 'Notifikasi' },
         ];
 
         const watchlist = ref([]);
@@ -197,7 +197,7 @@
 
         const analysisQuery = ref('');
         const analysisSector = ref('All');
-        const analysisSectors = ['All', 'Financials', 'Technology', 'Energy', 'Consumer Cycl.', 'Healthcare'];
+        const analysisSectors = ['Semua', 'Keuangan', 'Teknologi', 'Energi', 'Konsumen Siklik', 'Kesehatan'];
 
         const analysisStocks = ref([]);
 
@@ -271,13 +271,13 @@
         const comparisonAddCode = ref('');
 
         const comparisonRows = computed(() => [
-          { label: 'Price', getValue: s => s.price },
-          { label: 'Change %', getValue: s => s.chg, getClass: s => s.chg && s.chg.startsWith('+') ? 'profit-positive' : 'profit-negative' },
+          { label: 'Harga', getValue: s => s.price },
+          { label: 'Perubahan %', getValue: s => s.chg, getClass: s => s.chg && s.chg.startsWith('+') ? 'profit-positive' : 'profit-negative' },
           { label: 'RSI (14)', getValue: s => s.rsi },
           { label: 'MACD', getValue: s => s.macd, getClass: s => s.macd && s.macd.startsWith('+') ? 'profit-positive' : 'profit-negative' },
           { label: 'Volume', getValue: s => s.volume },
-          { label: 'AI Score', getValue: s => s.score, getClass: s => parseInt(s.score) >= 80 ? 'profit-positive' : parseInt(s.score) >= 60 ? '' : 'profit-negative' },
-          { label: 'Recommendation', getValue: s => s.rec, getClass: s => s.rec === 'BUY' ? 'profit-positive' : s.rec === 'SELL' ? 'profit-negative' : '' },
+          { label: 'Skor AI', getValue: s => s.score, getClass: s => parseInt(s.score) >= 80 ? 'profit-positive' : parseInt(s.score) >= 60 ? '' : 'profit-negative' },
+          { label: 'Rekomendasi', getValue: s => s.rec, getClass: s => s.rec === 'BUY' ? 'profit-positive' : s.rec === 'SELL' ? 'profit-negative' : '' },
         ]);
 
         const comparisonAvailable = computed(() => {
@@ -691,7 +691,7 @@
         }
 
         function mockSave() {
-          alert('Settings saved (local only).');
+          alert('Pengaturan tersimpan (lokal).');
         }
 
         // ── Data Loaders ──
@@ -773,13 +773,13 @@
             const data = await res.json();
             // Minimal sector map for analysis filtering
             const SECTOR_GUESS = {
-              BBCA:'Financials', BBRI:'Financials', BMRI:'Financials', BBNI:'Financials',
-              TLKM:'Technology', EXCL:'Technology', TOWR:'Technology',
-              ASII:'Consumer Cycl.', UNVR:'Consumer Cycl.', INDF:'Consumer Cycl.', ICBP:'Consumer Cycl.', HMSP:'Consumer Cycl.', GGRM:'Consumer Cycl.',
-              ADRO:'Energy', ITMG:'Energy', PTBA:'Energy', MEDC:'Energy',
-              CPIN:'Healthcare', KLBF:'Healthcare',
-              JSMR:'Infrastructure', PGAS:'Infrastructure', SMGR:'Infrastructure', INTP:'Infrastructure', SMMA:'Infrastructure', AKRA:'Infrastructure',
-              GOTO:'Technology',
+              BBCA:'Keuangan', BBRI:'Keuangan', BMRI:'Keuangan', BBNI:'Keuangan',
+              TLKM:'Teknologi', EXCL:'Teknologi', TOWR:'Teknologi',
+              ASII:'Konsumen Siklik', UNVR:'Konsumen Siklik', INDF:'Konsumen Siklik', ICBP:'Konsumen Siklik', HMSP:'Konsumen Siklik', GGRM:'Konsumen Siklik',
+              ADRO:'Energi', ITMG:'Energi', PTBA:'Energi', MEDC:'Energi',
+              CPIN:'Kesehatan', KLBF:'Kesehatan',
+              JSMR:'Infrastruktur', PGAS:'Infrastruktur', SMGR:'Infrastruktur', INTP:'Infrastruktur', SMMA:'Infrastruktur', AKRA:'Infrastruktur',
+              GOTO:'Teknologi',
             };
             allStocks.value = (data.stocks || []).map(s => ({
               code: s.code, name: s.name || '',

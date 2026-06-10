@@ -6,7 +6,6 @@
 <title>AI Stock Analyzer — Dashboard</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://d3js.org/d3.v7.min.js"></script>
 <link rel="stylesheet" href="/static/dashboard.css">
 </head>
 <body>
@@ -33,7 +32,7 @@
           </li>
         </ul>
         <div class="sidebar-watchlist">
-          <h4>Daftar Pantau</h4>
+          <h4>Watchlist</h4>
           <div v-for="item in watchlist" :key="item.code" class="wl-item">
             <span class="wl-code">{{ item.code }}</span>
             <span class="wl-chg" :class="item.chg >= 0 ? 'wl-up' : 'wl-down'">{{ item.chg >= 0 ? '+' : '' }}{{ item.chg }}%</span>
@@ -47,7 +46,7 @@
         <span class="header-title">{{ headerTitle }}</span>
         <div class="header-search">
           <span class="search-ico">&#128269;</span>
-          <input type="text" v-model="searchQuery" placeholder="Cari saham..." @focus="searchOpen = true" @input="onSearchInput" autocomplete="off" />
+          <input type="text" v-model="searchQuery" placeholder="Search stocks..." @focus="searchOpen = true" @input="onSearchInput" autocomplete="off" />
         </div>
         <div class="theme-switcher">
           <button v-for="t in themes" :key="t.id" class="theme-btn" :class="{ active: currentTheme === t.id }" @click="switchTheme(t.id)" :title="t.label">{{ t.label }}</button>
@@ -60,45 +59,44 @@
         <span class="date-display">{{ dateStr }}</span>
       </header>
       <div v-if="currentView === 'dashboard'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Ringkasan</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'aiperf' }" @click="currentTab = 'aiperf'">Performa AI</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'movers' }" @click="currentTab = 'movers'">Pergerakan Pasar</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'sectors' }" @click="currentTab = 'sectors'">Sektor</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'preds' }" @click="currentTab = 'preds'">Prediksi</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'treemap' }" @click="currentTab = 'treemap'">🔥 Peta Panas</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'aiperf' }" @click="currentTab = 'aiperf'">AI Performance</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'movers' }" @click="currentTab = 'movers'">Market Movers</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'sectors' }" @click="currentTab = 'sectors'">Sectors</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'preds' }" @click="currentTab = 'preds'">Predictions</button>
       </div>
       <div v-else-if="currentView === 'daytrading'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">Sinyal</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'candidates' }" @click="currentTab = 'candidates'">Kandidat</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">Riwayat</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">Signals</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'candidates' }" @click="currentTab = 'candidates'">Candidates</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">History</button>
       </div>
       <div v-else-if="currentView === 'longterm'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'accumulation' }" @click="currentTab = 'accumulation'">Akumulasi</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'portfolio' }" @click="currentTab = 'portfolio'">Portofolio</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'watchlist' }" @click="currentTab = 'watchlist'">Daftar Pantau</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'accumulation' }" @click="currentTab = 'accumulation'">Accumulation</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'portfolio' }" @click="currentTab = 'portfolio'">Portfolio</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'watchlist' }" @click="currentTab = 'watchlist'">Watchlist</button>
       </div>
       <div v-else-if="currentView === 'analysis'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">Cari</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">Search</button>
         <button class="tab-btn" :class="{ active: currentTab === 'detail' }" @click="currentTab = 'detail'">Detail</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'comparison' }" @click="currentTab = 'comparison'">Perbandingan</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'comparison' }" @click="currentTab = 'comparison'">Comparison</button>
       </div>
       <div v-else-if="currentView === 'settings'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">Umum</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Akun</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">Notifikasi</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">General</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Account</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">Alerts</button>
       </div>
       <div v-else-if="currentView === 'marketreports'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📈 Grafik IHSG</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'reports' }" @click="switchMrTab('reports')">📋 Laporan</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'stocks' }" @click="switchMrTab('stocks')">🏛️ Pelacak Saham</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'analysis' }" @click="switchMrTab('analysis')">🤖 Analisis AI</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📈 IHSG Chart</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'reports' }" @click="switchMrTab('reports')">📋 Reports</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'stocks' }" @click="switchMrTab('stocks')">🏛️ Stock Tracker</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'analysis' }" @click="switchMrTab('analysis')">🤖 AI Analysis</button>
       </div>
       <div class="content">
         <div v-if="currentView === 'dashboard'">
           <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
             <!-- Foreign Flow Overview -->
             <div class="section" v-if="foreignActivitySummary">
-              <div class="section-title">🌍 Ringkasan Foreign Flow</div>
+              <div class="section-title">🌍 Foreign Flow Overview</div>
               <div class="grid-6">
                 <div class="card card-accent card-big" style="border-left:4px solid #7C3AED;">
                   <div class="card-header"><span class="card-label">🌍 Net Foreign Flow</span></div>
@@ -109,7 +107,7 @@
             </div>
             <div class="section" v-if="foreignOverviewStocks.length">
               <div class="section-head">
-                <div class="section-title">🌍 Akumulasi Foreign — Top 10</div>
+                <div class="section-title">🌍 Foreign Accumulation — Top 10</div>
                 <span class="text-xs text-muted font-normal">Net foreign > 0 (asing akumulasi, rekomendasi beli)</span>
               </div>
               <div class="card p-4">
@@ -133,7 +131,7 @@
             </div>
             <div class="section" v-if="pahlawanBursaStocks.length">
               <div class="section-head">
-                <div class="section-title" style="color:#EF5350">⚠️ Peringatan Pahlawan Bursa</div>
+                <div class="section-title" style="color:#EF5350">⚠️ Pahlawan Bursa Warning</div>
                 <span class="text-xs text-muted font-normal">Local buy >> foreign buy — hindari, bahaya!</span>
               </div>
               <div class="card p-4" style="border-left:4px solid #EF5350;">
@@ -156,28 +154,28 @@
               </div>
             </div>
             <div class="section">
-              <div class="section-title">Ringkasan Pasar</div>
+              <div class="section-title">Market Summary</div>
               <div class="grid-6">
                 <div class="card card-accent card-big">
-                  <div class="card-header"><span class="card-label">Indeks Ketakutan &amp; Keserakahan</span></div>
+                  <div class="card-header"><span class="card-label">Fear &amp; Greed Index</span></div>
                   <div><span class="card-value" style="color:var(--warning)">{{ market.fgi.value }}</span><span class="card-sub" style="font-size:14px;font-weight:700;color:var(--warning)"> {{ market.fgi.label }}</span></div>
                   <div class="fgi-outer"><div class="fgi-fill" :style="{ width: market.fgi.value + '%', background: 'linear-gradient(90deg,var(--danger),var(--warning),var(--success))' }"></div></div>
-                  <div class="fgi-labels"><span>Ketakutan Ekstrem</span><span>Keserakahan Ekstrem</span></div>
+                  <div class="fgi-labels"><span>Extreme Fear</span><span>Extreme Greed</span></div>
                 </div>
                 <div class="card card-big">
                   <div class="card-header"><span class="card-label">Advancing</span><span class="badge badge-success">+{{ market.advancing.change }}</span></div>
                   <span class="card-value" style="color:var(--success)">{{ market.advancing.count }}</span>
-                  <span class="card-sub">{{ market.advancing.pct }} dari seluruh saham</span>
+                  <span class="card-sub">{{ market.advancing.pct }} of all stocks</span>
                 </div>
                 <div class="card card-big">
                   <div class="card-header"><span class="card-label">Declining</span><span class="badge badge-danger">-{{ market.declining.change }}</span></div>
                   <span class="card-value" style="color:var(--danger)">{{ market.declining.count }}</span>
-                  <span class="card-sub">{{ market.declining.pct }} dari seluruh saham</span>
+                  <span class="card-sub">{{ market.declining.pct }} of all stocks</span>
                 </div>
                 <div class="card card-big">
                   <div class="card-header"><span class="card-label">Avg Change %</span></div>
                   <span class="card-value" style="color:var(--success)">{{ market.avgChange }}</span>
-                  <span class="card-sub">Rata-rata seluruh pasar</span>
+                  <span class="card-sub">Market-wide average</span>
                 </div>
                 <div class="card card-big">
                   <div class="card-header"><span class="card-label">Total Volume</span></div>
@@ -185,26 +183,26 @@
                   <span class="card-sub">{{ market.volumeChange }}</span>
                 </div>
                 <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Status Pasar</span></div>
+                  <div class="card-header"><span class="card-label">Market Status</span></div>
                   <span class="card-value" style="font-size:24px;color:var(--success)"><span style="color:var(--success)">&#9679;</span> {{ market.status }}</span>
                   <span class="card-sub">{{ market.hours }}</span>
                 </div>
               </div>
             </div>
             <div class="section">
-              <div class="section-title">Performa AI</div>
+              <div class="section-title">AI Performance</div>
               <div class="grid-4">
-                <div class="card card-accent"><div class="card-header"><span class="card-label">Akurasi 7 Hari</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.accuracy }}</span><span class="card-sub">&#9650; {{ aiPerf.accuracyChange }}</span></div>
-                <div class="card"><div class="card-header"><span class="card-label">Tingkat Menang</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.winRate }}</span><span class="card-sub">&#9650; {{ aiPerf.winRateChange }}</span></div>
-                <div class="card"><div class="card-header"><span class="card-label">Rata-rata Profit</span></div><span class="card-value" style="color:var(--success)">{{ aiPerf.avgProfit }}</span><span class="card-sub">Per trade menang</span></div>
-                <div class="card"><div class="card-header"><span class="card-label">Total Prediksi</span></div><span class="card-value" style="color:var(--muted)">{{ aiPerf.totalPredictions }}</span><span class="card-sub">7 Hari Terakhir</span></div>
+                <div class="card card-accent"><div class="card-header"><span class="card-label">Accuracy 7d</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.accuracy }}</span><span class="card-sub">&#9650; {{ aiPerf.accuracyChange }}</span></div>
+                <div class="card"><div class="card-header"><span class="card-label">Win Rate</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.winRate }}</span><span class="card-sub">&#9650; {{ aiPerf.winRateChange }}</span></div>
+                <div class="card"><div class="card-header"><span class="card-label">Avg Profit</span></div><span class="card-value" style="color:var(--success)">{{ aiPerf.avgProfit }}</span><span class="card-sub">Per winning trade</span></div>
+                <div class="card"><div class="card-header"><span class="card-label">Total Predictions</span></div><span class="card-value" style="color:var(--muted)">{{ aiPerf.totalPredictions }}</span><span class="card-sub">Last 7 days</span></div>
               </div>
             </div>
             <div class="section">
-              <div class="section-title">Pergerakan Pasar</div>
+              <div class="section-title">Top Movers</div>
               <div class="grid-3">
                 <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--success)">Saham Naik</span></div>
+                  <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
                   <div v-for="item in movers.gainers" :key="item.code" class="mover-item is-up">
                     <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
                     <span class="mover-trend is-up"><span></span><span></span><span></span></span>
@@ -212,7 +210,7 @@
                   </div>
                 </div>
                 <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Saham Turun</span></div>
+                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Top Losers</span></div>
                   <div v-for="item in movers.losers" :key="item.code" class="mover-item is-down">
                     <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
                     <span class="mover-trend is-down"><span></span><span></span><span></span></span>
@@ -220,7 +218,7 @@
                   </div>
                 </div>
                 <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Volume Tertinggi</span></div>
+                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Top Volume</span></div>
                   <div v-for="item in movers.volume" :key="item.code" class="mover-item is-vol">
                     <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
                     <span class="mover-trend is-vol"><span></span><span></span><span></span></span>
@@ -231,8 +229,8 @@
             </div>
             <div class="section">
               <div class="section-head">
-                <div class="section-title">&#127793; Sinyal BPJS Trading Harian</div>
-                <button class="view-all" @click="switchView('daytrading', 'candidates')">Lihat Semua &rarr;</button>
+                <div class="section-title">&#127793; BPJS Day Trading Signals</div>
+                <button class="view-all" @click="switchView('daytrading', 'candidates')">View All &rarr;</button>
               </div>
               <div class="candidate-row">
                 <div v-for="item in bpjsSignals" :key="item.code" class="candidate-card">
@@ -240,17 +238,20 @@
                     <span class="cc-code">{{ item.code }}</span>
                     <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
                   </div>
-                  <div class="cc-detail">Kepercayaan</div>
+                  <div class="cc-detail">Confidence</div>
                   <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                  <div class="cc-detail" style="margin-top:4px">Harga</div>
+                  <div class="cc-detail" style="margin-top:4px">Price</div>
                   <div class="cc-val">{{ item.price }}</div>
+                </div>
+                <div v-if="bpjsSignals.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
+                  ⏳ Memuat data sinyal BPJS... (scan butuh waktu)
                 </div>
               </div>
             </div>
             <div class="section">
               <div class="section-head">
-                <div class="section-title">&#128142; Akumulasi Jangka Panjang</div>
-                <button class="view-all" @click="switchView('longterm', 'accumulation')">Lihat Semua &rarr;</button>
+                <div class="section-title">&#128142; Long Term Accumulation</div>
+                <button class="view-all" @click="switchView('longterm', 'accumulation')">View All &rarr;</button>
               </div>
               <div class="candidate-row">
                 <div v-for="item in longTermSignals" :key="item.code" class="candidate-card">
@@ -258,15 +259,18 @@
                     <span class="cc-code">{{ item.code }}</span>
                     <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
                   </div>
-                  <div class="cc-detail">Kepercayaan</div>
+                  <div class="cc-detail">Confidence</div>
                   <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                  <div class="cc-detail" style="margin-top:4px">Zona Masuk</div>
+                  <div class="cc-detail" style="margin-top:4px">Entry Zone</div>
                   <div class="cc-val">{{ item.entryZone }}</div>
+                </div>
+                <div v-if="longTermSignals.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
+                  ⏳ Memuat data akumulasi jangka panjang...
                 </div>
               </div>
             </div>
             <div class="section">
-              <div class="section-title">Rotasi Sektor</div>
+              <div class="section-title">Sector Rotation</div>
               <div class="card p-4">
                 <div v-for="s in sectors" :key="s.name" class="sector-item">
                   <span class="sector-name">{{ s.name }}</span>
@@ -277,12 +281,12 @@
               </div>
             </div>
             <div class="section">
-              <div class="section-title">Prediksi Terbaru</div>
+              <div class="section-title">Recent Predictions</div>
               <div class="card card-table">
                 <div class="table-wrap">
                   <table>
                     <thead>
-                      <tr><th>Saham</th><th>Sinyal</th><th>Kepercayaan</th><th>Hasil</th><th>Profit %</th><th>Tanggal</th></tr>
+                      <tr><th>Stock</th><th>Signal</th><th>Confidence</th><th>Result</th><th>Profit %</th><th>Date</th></tr>
                     </thead>
                     <tbody>
                       <tr v-for="row in predictions" :key="row.code + row.date">
@@ -301,7 +305,7 @@
           </div>
           <div class="tab-pane" :class="{ active: currentTab === 'aiperf' }">
             <div class="section">
-              <div class="section-title">Detail Performa AI</div>
+              <div class="section-title">AI Performance Details</div>
               <div class="grid-4" style="margin-bottom:24px">
                 <div class="card card-accent"><div class="card-header"><span class="card-label">Accuracy 7d</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.accuracy }}</span><span class="card-sub">&#9650; {{ aiPerf.accuracyChange }}</span></div>
                 <div class="card"><div class="card-header"><span class="card-label">Win Rate</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.winRate }}</span><span class="card-sub">&#9650; {{ aiPerf.winRateChange }}</span></div>
@@ -312,7 +316,7 @@
                 <div class="table-wrap">
                   <table>
                     <thead>
-                      <tr><th>Metrik</th><th>Value</th><th>Trend</th><th>Description</th></tr>
+                      <tr><th>Metric</th><th>Value</th><th>Trend</th><th>Description</th></tr>
                     </thead>
                     <tbody>
                       <tr v-for="row in aiPerfDetails" :key="row.metric">
@@ -329,7 +333,7 @@
           </div>
           <div class="tab-pane" :class="{ active: currentTab === 'movers' }">
             <div class="section">
-              <div class="section-title">Pergerakan Pasar — Daftar Lengkap</div>
+              <div class="section-title">Market Movers — Full List</div>
               <div class="grid-3">
                 <div class="card">
                   <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
@@ -340,7 +344,7 @@
                   </div>
                 </div>
                 <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Saham Turun</span></div>
+                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Top Losers</span></div>
                   <div v-for="item in allLosers" :key="item.code" class="mover-item is-down">
                     <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
                     <span class="mover-trend is-down"><span></span><span></span><span></span></span>
@@ -348,7 +352,7 @@
                   </div>
                 </div>
                 <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Paling Aktif (Volume)</span></div>
+                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Most Active (Volume)</span></div>
                   <div v-for="item in allVolume" :key="item.code" class="mover-item is-vol">
                     <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
                     <span class="mover-trend is-vol"><span></span><span></span><span></span></span>
@@ -370,19 +374,19 @@
                 </div>
               </div>
               <div class="card" style="margin-top:16px;padding:18px 22px">
-                <span class="card-label">Ringkasan Rotasi Sektor</span>
-                <p style="color:var(--muted);margin-top:8px;font-size:13px">Teknologi dan Keuangan memimpin the market dengan arus masuk yang kuat. Energi menunjukkan momentum netral. Kesehatan dan Infrastruktur tertekan dengan arus keluar modal.</p>
+                <span class="card-label">Sector Rotation Summary</span>
+                <p style="color:var(--muted);margin-top:8px;font-size:13px">Technology and Financials leading the market with strong inflows. Energy showing neutral momentum. Healthcare and Infrastructure under pressure with capital outflows.</p>
               </div>
             </div>
           </div>
           <div class="tab-pane" :class="{ active: currentTab === 'preds' }">
             <div class="section">
-              <div class="section-title">Semua Prediksi</div>
+              <div class="section-title">All Predictions</div>
               <div class="card" style="padding:0;overflow:hidden">
                 <div class="table-wrap">
                   <table>
                     <thead>
-                      <tr><th>Saham</th><th>Sinyal</th><th>Kepercayaan</th><th>Hasil</th><th>Profit %</th><th>Tanggal</th></tr>
+                      <tr><th>Stock</th><th>Signal</th><th>Confidence</th><th>Result</th><th>Profit %</th><th>Date</th></tr>
                     </thead>
                     <tbody>
                       <tr v-for="row in allPredictions" :key="row.code + row.date">
@@ -399,34 +403,13 @@
               </div>
             </div>
           </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'treemap' }">
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title">🔥 Market Heatmap</div>
-                <span class="text-xs text-muted">Ukuran = kapitalisasi pasar | Warna = perubahan %</span>
-              </div>
-              <div class="card p-4">
-                <div v-if="treemapLoading" style="text-align:center;padding:60px 0;color:var(--muted)">Memuat data...</div>
-                <div v-else id="treemap-container" style="width:100%;height:640px"></div>
-              </div>
-            </div>
-            <div class="section" v-if="treemapSectors.length">
-              <div class="card p-4" style="display:flex;flex-wrap:wrap;gap:24px;align-items:center">
-                <span style="font-size:13px;color:var(--muted);margin-right:8px">Sectors:</span>
-                <span v-for="s in treemapSectors" :key="s.name" class="badge" :class="s.change_pct >= 0 ? 'badge-success' : 'badge-danger'" style="font-size:12px">
-                  {{ s.name }} {{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%
-                </span>
-                <span class="text-xs text-muted" style="margin-left:auto">📅 {{ treemapDate }}</span>
-              </div>
-            </div>
-          </div>
         </div>
         <div v-else-if="currentView === 'daytrading'">
           <div class="tab-pane" :class="{ active: currentTab === 'signals' }">
             <div class="section">
               <div class="section-head">
                 <div class="section-title">&#127919; BPJS Day Trading — Active Signals</div>
-                <button class="view-all" @click="mockScan" Pindai Sekarang &rarr;</button>
+                <button class="view-all" @click="mockScan">Scan Now &rarr;</button>
               </div>
               <div class="candidate-row">
                 <div v-for="item in dayTradingSignals" :key="item.code" class="candidate-card">
@@ -434,12 +417,15 @@
                     <span class="cc-code">{{ item.code }}</span>
                     <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
                   </div>
-                  <div class="cc-detail">Kepercayaan</div>
+                  <div class="cc-detail">Confidence</div>
                   <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                  <div class="cc-detail" style="margin-top:4px">Harga</div>
+                  <div class="cc-detail" style="margin-top:4px">Price</div>
                   <div class="cc-val">{{ item.price }}</div>
                   <div class="cc-detail" style="margin-top:4px">Entry / Exit</div>
                   <div class="cc-val" style="font-size:13px">{{ item.entry }} / {{ item.exit }}</div>
+                </div>
+                <div v-if="dayTradingSignals.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
+                  ⏳ Memuat data sinyal... Scan butuh waktu beberapa detik. Tekan &quot;Scan Now&quot; untuk refresh.
                 </div>
               </div>
             </div>
@@ -451,7 +437,7 @@
                 <div class="table-wrap">
                   <table>
                     <thead>
-                      <tr><th>Saham</th><th>Sinyal</th><th>Keperc.</th><th>Harga Masuk</th><th>TP</th><th>CL</th><th>Rasio Volume</th><th>Arus Asing</th><th>Aksi</th></tr>
+                      <tr><th>Stock</th><th>Signal</th><th>Conf</th><th>Entry Price</th><th>TP</th><th>CL</th><th>Volume Ratio</th><th>Foreign Flow</th><th>Action</th></tr>
                     </thead>
                     <tbody>
                       <tr v-for="row in dayTradingCandidates" :key="row.stock">
@@ -478,7 +464,7 @@
                 <div class="table-wrap">
                   <table>
                     <thead>
-                      <tr><th>Tanggal</th><th>Saham</th><th>Masuk</th><th>Keluar</th><th>Profit %</th><th>Hasil</th></tr>
+                      <tr><th>Date</th><th>Stock</th><th>Entry</th><th>Exit</th><th>Profit %</th><th>Result</th></tr>
                     </thead>
                     <tbody>
                       <tr v-for="row in dayTradingHistory" :key="row.stock + row.date">
@@ -506,12 +492,15 @@
                     <span class="cc-code">{{ item.code }}</span>
                     <span class="badge" :class="'badge-' + item.signalClass">{{ item.phase }}</span>
                   </div>
-                  <div class="cc-detail">Kepercayaan</div>
+                  <div class="cc-detail">Confidence</div>
                   <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                  <div class="cc-detail" style="margin-top:4px">Zona Masuk</div>
+                  <div class="cc-detail" style="margin-top:4px">Entry Zone</div>
                   <div class="cc-val">{{ item.entryZone }}</div>
-                  <div class="cc-detail" style="margin-top:4px">Hari Akumulasi / RS</div>
+                  <div class="cc-detail" style="margin-top:4px">Accum Days / RS</div>
                   <div class="cc-val" style="font-size:13px">{{ item.accumDays }} days / {{ item.rsStatus }}</div>
+                </div>
+                <div v-if="ltAccumulation.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
+                  ⏳ Memuat data akumulasi... (butuh data foreign flow)
                 </div>
               </div>
             </div>
@@ -519,11 +508,14 @@
           <div class="tab-pane" :class="{ active: currentTab === 'portfolio' }">
             <div class="section">
               <div class="section-title">&#128188; Portfolio</div>
-              <div class="card card-table">
+              <div v-if="ltPortfolio.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted)">
+                Belum ada posisi portfolio. Tambahkan saham ke watchlist untuk mulai tracking.
+              </div>
+              <div v-else class="card card-table">
                 <div class="table-wrap">
                   <table>
                     <thead>
-                      <tr><th>Saham</th><th>Tanggal Masuk</th><th>Harga Rata-rata</th><th>Harga Saat Ini</th><th>Profit %</th><th>Posisi</th><th>Status</th></tr>
+                      <tr><th>Stock</th><th>Entry Date</th><th>Avg Price</th><th>Current Price</th><th>Profit %</th><th>Position</th><th>Status</th></tr>
                     </thead>
                     <tbody>
                       <tr v-for="row in ltPortfolio" :key="row.stock">
@@ -554,8 +546,11 @@
                   <div style="font-size:13px;color:var(--muted)">Volume: {{ item.volume }} &middot; Sector: {{ item.sector }}</div>
                   <div style="margin-top:10px;display:flex;gap:8px">
                     <button class="btn btn-sm btn-primary">Detail</button>
-                    <button class="btn btn-sm btn-outline" @click="item._removed = true">Hapus</button>
+                    <button class="btn btn-sm btn-outline" @click="item._removed = true">Remove</button>
                   </div>
+                </div>
+                <div v-if="ltWatchlist.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
+                  Belum ada saham di watchlist. Tambahkan saham dari menu Analisis.
                 </div>
               </div>
             </div>
@@ -567,11 +562,11 @@
               <div class="section-title">&#128269; Search Stocks</div>
               <div class="card" style="margin-bottom:20px;width:100%">
                 <div style="position:relative">
-                  <input type="text" class="form-control" v-model="analysisQuery" placeholder="Cari kode atau nama saham..." style="padding-left:36px;font-size:15px;width:100%" />
+                  <input type="text" class="form-control" v-model="analysisQuery" placeholder="Search by stock code or name..." style="padding-left:36px;font-size:15px;width:100%" />
                   <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px">&#128269;</span>
                 </div>
                 <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-                  <span style="font-size:12px;color:var(--muted);margin-right:4px">Filter sektor:</span>
+                  <span style="font-size:12px;color:var(--muted);margin-right:4px">Filter sector:</span>
                   <button v-for="s in analysisSectors" :key="s" class="btn btn-sm" :class="analysisSector === s ? 'btn-primary' : 'btn-outline'" @click="analysisSector = s">{{ s }}</button>
                 </div>
               </div>
@@ -599,25 +594,25 @@
                 <span class="badge" :class="'badge-' + selectedStock.signalClass" style="font-size:13px;padding:5px 16px">{{ selectedStock.recommendation }}</span>
               </div>
               <div class="grid-4" style="margin-bottom:20px">
-                <div class="card"><span class="card-label">Harga Saat Ini</span><span class="card-value card-value-sm" style="color:var(--text)">{{ selectedStock.price }}</span><span class="card-sub">Diperbarui {{ dateStr }}</span></div>
-                <div class="card"><span class="card-label">Perubahan</span><span class="card-value card-value-sm" :style="{color: selectedStock.chg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ selectedStock.chg >= 0 ? '+' : '' }}{{ selectedStock.chg }}%</span><span class="card-sub">Hari Ini</span></div>
+                <div class="card"><span class="card-label">Current Price</span><span class="card-value card-value-sm" style="color:var(--text)">{{ selectedStock.price }}</span><span class="card-sub">Updated {{ dateStr }}</span></div>
+                <div class="card"><span class="card-label">Change</span><span class="card-value card-value-sm" :style="{color: selectedStock.chg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ selectedStock.chg >= 0 ? '+' : '' }}{{ selectedStock.chg }}%</span><span class="card-sub">Today</span></div>
                 <div class="card"><span class="card-label">RSI</span><span class="card-value card-value-sm">{{ selectedStock.rsi }}</span><span class="card-sub" :style="{color: selectedStock.rsi > 70 ? 'var(--danger)' : selectedStock.rsi > 60 ? 'var(--warning)' : 'var(--success)'}">{{ selectedStock.rsiLabel }}</span></div>
                 <div class="card card-accent"><span class="card-label">AI Score</span><span class="card-value card-value-sm" style="color:var(--accent)">{{ selectedStock.score }}/100</span><span class="card-sub">Confidence: {{ selectedStock.confidence }}%</span></div>
               </div>
               <div class="grid-2" style="margin-bottom:20px">
                 <div class="card">
-                  <span class="card-label" style="margin-bottom:12px;display:block">Indikator Teknikal</span>
+                  <span class="card-label" style="margin-bottom:12px;display:block">Technical Indicators</span>
                   <div class="detail-grid">
                     <div class="detail-item"><div class="detail-label">RSI (14)</div><div class="detail-value">{{ selectedStock.rsi }}</div></div>
                     <div class="detail-item"><div class="detail-label">MACD</div><div class="detail-value" :style="{color: selectedStock.macd.startsWith('+') ? 'var(--success)' : 'var(--danger)'}">{{ selectedStock.macd }}</div></div>
                     <div class="detail-item"><div class="detail-label">MA 20</div><div class="detail-value">{{ selectedStock.ma20 }}</div></div>
                     <div class="detail-item"><div class="detail-label">MA 50</div><div class="detail-value">{{ selectedStock.ma50 }}</div></div>
-                    <div class="detail-item"><div class="detail-label">Bollinger Atas</div><div class="detail-value">{{ selectedStock.bbUpper }}</div></div>
-                    <div class="detail-item"><div class="detail-label">Bollinger Bawah</div><div class="detail-value">{{ selectedStock.bbLower }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Bollinger Upper</div><div class="detail-value">{{ selectedStock.bbUpper }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Bollinger Lower</div><div class="detail-value">{{ selectedStock.bbLower }}</div></div>
                   </div>
                 </div>
                 <div class="card">
-                  <span class="card-label" style="margin-bottom:12px;display:block">Dukungan &amp; Resistensi</span>
+                  <span class="card-label" style="margin-bottom:12px;display:block">Support &amp; Resistance</span>
                   <div class="detail-grid">
                     <div class="detail-item"><div class="detail-label">Resistance R2</div><div class="detail-value" style="color:var(--danger)">{{ selectedStock.r2 }}</div></div>
                     <div class="detail-item"><div class="detail-label">Resistance R1</div><div class="detail-value" style="color:var(--warning)">{{ selectedStock.r1 }}</div></div>
@@ -629,7 +624,7 @@
                 </div>
               </div>
               <div class="card">
-                <span class="card-label" style="margin-bottom:8px;display:block">Rekomendasi AI</span>
+                <span class="card-label" style="margin-bottom:8px;display:block">AI Recommendation</span>
                 <p style="font-size:14px;line-height:1.7;color:var(--text)">{{ selectedStock.analysis }}</p>
               </div>
             </div>
@@ -642,7 +637,7 @@
                   <table>
                     <thead>
                       <tr>
-                        <th style="width:140px">Metrik</th>
+                        <th style="width:140px">Metric</th>
                         <th v-for="s in comparisonStocks" :key="s.code" style="text-align:center;font-size:14px">{{ s.code }}</th>
                       </tr>
                     </thead>
@@ -656,12 +651,12 @@
                 </div>
               </div>
               <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-                <span style="font-size:13px;color:var(--muted)">Bandingkan dengan:</span>
+                <span style="font-size:13px;color:var(--muted)">Compare with:</span>
                 <select class="form-control" style="width:auto;min-width:120px" v-model="comparisonAddCode">
-                  <option value="">Pilih saham...</option>
+                  <option value="">Select stock...</option>
                   <option v-for="s in comparisonAvailable" :key="s" :value="s">{{ s }}</option>
                 </select>
-                <button class="btn btn-sm btn-primary" @click="addComparison" :disabled="!comparisonAddCode">Tambah</button>
+                <button class="btn btn-sm btn-primary" @click="addComparison" :disabled="!comparisonAddCode">Add</button>
               </div>
             </div>
           </div>
@@ -809,7 +804,7 @@
                         <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
                         <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
                       </tr>
-                      <tr v-if="!mrSortedForeign.length"><td colspan="5" class="text-center text-muted">Tidak ada data</td></tr>
+                      <tr v-if="!mrSortedForeign.length"><td colspan="5" class="text-center text-muted">No data</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -928,7 +923,7 @@
                 <div class="card card-table">
                   <div class="table-wrap">
                     <table>
-                      <thead><tr><th>Saham</th><th>7d Total</th><th>Freq</th><th>Same-Day</th></tr></thead>
+                      <thead><tr><th>Stock</th><th>7d Total</th><th>Freq</th><th>Same-Day</th></tr></thead>
                       <tbody>
                         <tr v-for="s in mrAnalysis.recent_hot" :key="s.stock">
                           <td class="font-semibold text-accent">{{ s.stock }}</td>
@@ -970,8 +965,8 @@
               <div class="card">
                 <div class="setting-row">
                   <div>
-                    <div style="font-weight:600;font-size:14px">Tema</div>
-                    <div style="font-size:12px;color:var(--muted)">Pilih tema favorit Anda</div>
+                    <div style="font-weight:600;font-size:14px">Theme</div>
+                    <div style="font-size:12px;color:var(--muted)">Choose your preferred theme</div>
                   </div>
                   <div class="theme-switcher">
                     <button v-for="t in themes" :key="t.id" class="theme-btn" :class="{ active: currentTheme === t.id }" @click="switchTheme(t.id)" :title="t.label">{{ t.label }}</button>
@@ -979,8 +974,8 @@
                 </div>
                 <div class="setting-row">
                   <div>
-                    <div style="font-weight:600;font-size:14px">Bahasa</div>
-                    <div style="font-size:12px;color:var(--muted)">Bahasa antarmuka</div>
+                    <div style="font-weight:600;font-size:14px">Language</div>
+                    <div style="font-size:12px;color:var(--muted)">Interface language</div>
                   </div>
                   <select class="form-control" style="width:auto;min-width:140px" v-model="settingsLanguage">
                     <option value="en">English</option>
@@ -989,19 +984,19 @@
                 </div>
                 <div class="setting-row">
                   <div>
-                    <div style="font-weight:600;font-size:14px">Toleransi Risiko</div>
-                    <div style="font-size:12px;color:var(--muted)">Tingkat risiko default untuk sinyal</div>
+                    <div style="font-weight:600;font-size:14px">Risk Tolerance</div>
+                    <div style="font-size:12px;color:var(--muted)">Default risk level for signals</div>
                   </div>
                   <select class="form-control" style="width:auto;min-width:140px" v-model="settingsRiskTolerance">
-                    <option value="low">Rendah</option>
-                    <option value="medium">Sedang</option>
-                    <option value="high">Tinggi</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
                   </select>
                 </div>
                 <div class="setting-row">
                   <div>
                     <div style="font-weight:600;font-size:14px">Target Profit %</div>
-                    <div style="font-size:12px;color:var(--muted)">Target take-profit default</div>
+                    <div style="font-size:12px;color:var(--muted)">Default take-profit target</div>
                   </div>
                   <select class="form-control" style="width:auto;min-width:140px" v-model="settingsTargetProfit">
                     <option value="3">3%</option>
@@ -1011,8 +1006,8 @@
                   </select>
                 </div>
                 <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.04);display:flex;gap:12px">
-                  <button class="btn btn-primary" @click="mockSave">Simpan Pengaturan</button>
-                  <button class="btn btn-outline" @click="mockSave">Atur Ulang</button>
+                  <button class="btn btn-primary" @click="mockSave">Save Settings</button>
+                  <button class="btn btn-outline" @click="mockSave">Reset</button>
                 </div>
               </div>
             </div>
@@ -1024,34 +1019,34 @@
                 <div class="setting-row">
                   <div>
                     <div style="font-weight:600;font-size:14px">Telegram ID</div>
-                    <div style="font-size:12px;color:var(--muted)">Akun Telegram terhubung untuk notifikasi</div>
+                    <div style="font-size:12px;color:var(--muted)">Connected Telegram account for alerts</div>
                   </div>
                   <span class="badge badge-success" style="font-size:13px">@dhaby_analyst</span>
                 </div>
                 <div class="setting-row">
                   <div>
-                    <div style="font-weight:600;font-size:14px">Notifikasi Email</div>
-                    <div style="font-size:12px;color:var(--muted)">Terima notifikasi email untuk sinyal</div>
+                    <div style="font-weight:600;font-size:14px">Email Notifications</div>
+                    <div style="font-size:12px;color:var(--muted)">Receive email alerts for signals</div>
                   </div>
                   <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer">
                     <input type="checkbox" v-model="settingsEmailNotif" />
-                    <span>{{ settingsEmailNotif ? 'Aktif' : 'Nonaktif' }}</span>
+                    <span>{{ settingsEmailNotif ? 'Enabled' : 'Disabled' }}</span>
                   </label>
                 </div>
                 <div class="setting-row">
                   <div>
-                    <div style="font-weight:600;font-size:14px">Notifikasi Push</div>
-                    <div style="font-size:12px;color:var(--muted)">Notifikasi push browser</div>
+                    <div style="font-weight:600;font-size:14px">Push Notifications</div>
+                    <div style="font-size:12px;color:var(--muted)">Browser push alerts</div>
                   </div>
                   <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer">
                     <input type="checkbox" v-model="settingsPushNotif" />
-                    <span>{{ settingsPushNotif ? 'Aktif' : 'Nonaktif' }}</span>
+                    <span>{{ settingsPushNotif ? 'Enabled' : 'Disabled' }}</span>
                   </label>
                 </div>
                 <div class="setting-row">
                   <div>
-                    <div style="font-weight:600;font-size:14px">Status API</div>
-                    <div style="font-size:12px;color:var(--muted)">Status koneksi penyedia data</div>
+                    <div style="font-weight:600;font-size:14px">API Status</div>
+                    <div style="font-size:12px;color:var(--muted)">Data provider connection status</div>
                   </div>
                   <span class="badge badge-success">&#9679; Connected</span>
                 </div>
@@ -1072,32 +1067,32 @@
                 </div>
               </div>
               <div v-if="settingsAlerts.length === 0" class="card" style="text-align:center;padding:30px;color:var(--muted)">
-                Tidak ada notifikasi aktif. Buat yang baru di bawah.
+                No active alerts. Create one below.
               </div>
               <div class="card" style="margin-top:16px">
-                <span class="card-label" style="margin-bottom:12px;display:block">Tambah Notifikasi</span>
+                <span class="card-label" style="margin-bottom:12px;display:block">Add Alert</span>
                 <div class="grid-2">
                   <div>
                     <label>Stock</label>
                     <select class="form-control" v-model="newAlertStock">
-                      <option value="">Pilih saham...</option>
+                      <option value="">Select stock...</option>
                       <option v-for="s in allStocks" :key="s.code" :value="s.code">{{ s.code }}</option>
                     </select>
                   </div>
                   <div>
-                    <label>Jenis Notifikasi</label>
+                    <label>Alert Type</label>
                     <select class="form-control" v-model="newAlertType">
-                      <option value="Price Alert">Notifikasi Harga</option>
-                      <option value="RSI Alert">Notifikasi RSI</option>
-                      <option value="Volume Alert">Notifikasi Volume</option>
+                      <option value="Price Alert">Price Alert</option>
+                      <option value="RSI Alert">RSI Alert</option>
+                      <option value="Volume Alert">Volume Alert</option>
                     </select>
                   </div>
                   <div>
-                    <label>Kondisi</label>
-                    <input type="text" class="form-control" v-model="newAlertCondition" placeholder="contoh: Di atas 10.000" />
+                    <label>Condition</label>
+                    <input type="text" class="form-control" v-model="newAlertCondition" placeholder="e.g. Above 10,000" />
                   </div>
                   <div style="display:flex;align-items:flex-end">
-                    <button class="btn btn-primary w-full" @click="addAlert" :disabled="!newAlertStock || !newAlertCondition">Tambah Notifikasi</button>
+                    <button class="btn btn-primary w-full" @click="addAlert" :disabled="!newAlertStock || !newAlertCondition">Add Alert</button>
                   </div>
                 </div>
               </div>

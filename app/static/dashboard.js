@@ -94,52 +94,51 @@
         let foreignChartInstance = null;
 
         const themes = [
-          { id: 'neumorphism', label: 'Terang' },
-          { id: 'dark', label: 'Gelap' },
-          { id: 'classy', label: 'Klasik' },
+          { id: 'neumorphism', label: 'Light' },
+          { id: 'dark', label: 'Dark' },
+          { id: 'classy', label: 'Classy' },
         ];
 
         const navItems = [
-          { view: 'dashboard',  icon: '&#9751;', label: 'Beranda' },
-          { view: 'daytrading', icon: '&#8644;', label: 'Trading Harian' },
-          { view: 'longterm',   icon: '&#9670;', label: 'Jangka Panjang' },
-          { view: 'analysis',   icon: '&#9776;', label: 'Analisis' },
-          { view: 'settings',   icon: '&#9881;', label: 'Pengaturan' },
-          { view: 'marketreports', icon: '📊', label: 'Laporan Pasar' },
+          { view: 'dashboard',  icon: '&#9751;', label: 'Dashboard' },
+          { view: 'daytrading', icon: '&#8644;', label: 'Day Trading' },
+          { view: 'longterm',   icon: '&#9670;', label: 'Long Term' },
+          { view: 'analysis',   icon: '&#9776;', label: 'Analysis' },
+          { view: 'settings',   icon: '&#9881;', label: 'Settings' },
+          { view: 'marketreports', icon: '📊', label: 'Market Reports' },
         ];
 
         const headerTitle = computed(() => {
-          const map = { dashboard: 'Beranda', daytrading: 'Trading Harian', longterm: 'Jangka Panjang', analysis: 'Analisis', settings: 'Pengaturan', marketreports: 'Laporan Pasar' };
-          return map[currentView.value] || 'Beranda';
+          const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', settings: 'Settings', marketreports: 'Market Reports' };
+          return map[currentView.value] || 'Dashboard';
         });
 
         const dashboardTabs = [
-          { id: 'overview', label: 'Ringkasan' },
-          { id: 'aiperf', label: 'Performa AI' },
-          { id: 'movers', label: 'Pergerakan Pasar' },
-          { id: 'sectors', label: 'Sektor' },
-          { id: 'preds', label: 'Prediksi' },
-          { id: 'treemap', label: 'Peta Panas' },
+          { id: 'overview', label: 'Overview' },
+          { id: 'aiperf', label: 'AI Performance' },
+          { id: 'movers', label: 'Market Movers' },
+          { id: 'sectors', label: 'Sectors' },
+          { id: 'preds', label: 'Predictions' },
         ];
         const daytradingTabs = [
-          { id: 'signals', label: 'Sinyal' },
-          { id: 'candidates', label: 'Kandidat' },
-          { id: 'history', label: 'Riwayat' },
+          { id: 'signals', label: 'Signals' },
+          { id: 'candidates', label: 'Candidates' },
+          { id: 'history', label: 'History' },
         ];
         const longtermTabs = [
-          { id: 'accumulation', label: 'Akumulasi' },
-          { id: 'portfolio', label: 'Portofolio' },
-          { id: 'watchlist', label: 'Daftar Pantau' },
+          { id: 'accumulation', label: 'Accumulation' },
+          { id: 'portfolio', label: 'Portfolio' },
+          { id: 'watchlist', label: 'Watchlist' },
         ];
         const analysisTabs = [
-          { id: 'search', label: 'Cari' },
+          { id: 'search', label: 'Search' },
           { id: 'detail', label: 'Detail' },
-          { id: 'comparison', label: 'Perbandingan' },
+          { id: 'comparison', label: 'Comparison' },
         ];
         const settingsTabs = [
-          { id: 'general', label: 'Umum' },
-          { id: 'account', label: 'Akun' },
-          { id: 'alerts', label: 'Notifikasi' },
+          { id: 'general', label: 'General' },
+          { id: 'account', label: 'Account' },
+          { id: 'alerts', label: 'Alerts' },
         ];
 
         const watchlist = ref([]);
@@ -184,10 +183,6 @@
         const sectors = ref([]);
         const predictions = ref([]);
         const allPredictions = ref([]);
-        const treemapLoading = ref(false);
-        const treemapData = ref(null);
-        const treemapSectors = ref([]);
-        const treemapDate = ref("");
         const dayTradingSignals = ref([]);
         const dayTradingCandidates = ref([]);
         const dayTradingHistory = ref([]);
@@ -197,7 +192,7 @@
 
         const analysisQuery = ref('');
         const analysisSector = ref('All');
-        const analysisSectors = ['Semua', 'Keuangan', 'Teknologi', 'Energi', 'Konsumen Siklik', 'Kesehatan'];
+        const analysisSectors = ['All', 'Financials', 'Technology', 'Energy', 'Consumer Cycl.', 'Healthcare'];
 
         const analysisStocks = ref([]);
 
@@ -271,13 +266,13 @@
         const comparisonAddCode = ref('');
 
         const comparisonRows = computed(() => [
-          { label: 'Harga', getValue: s => s.price },
-          { label: 'Perubahan %', getValue: s => s.chg, getClass: s => s.chg && s.chg.startsWith('+') ? 'profit-positive' : 'profit-negative' },
+          { label: 'Price', getValue: s => s.price },
+          { label: 'Change %', getValue: s => s.chg, getClass: s => s.chg && s.chg.startsWith('+') ? 'profit-positive' : 'profit-negative' },
           { label: 'RSI (14)', getValue: s => s.rsi },
           { label: 'MACD', getValue: s => s.macd, getClass: s => s.macd && s.macd.startsWith('+') ? 'profit-positive' : 'profit-negative' },
           { label: 'Volume', getValue: s => s.volume },
-          { label: 'Skor AI', getValue: s => s.score, getClass: s => parseInt(s.score) >= 80 ? 'profit-positive' : parseInt(s.score) >= 60 ? '' : 'profit-negative' },
-          { label: 'Rekomendasi', getValue: s => s.rec, getClass: s => s.rec === 'BUY' ? 'profit-positive' : s.rec === 'SELL' ? 'profit-negative' : '' },
+          { label: 'AI Score', getValue: s => s.score, getClass: s => parseInt(s.score) >= 80 ? 'profit-positive' : parseInt(s.score) >= 60 ? '' : 'profit-negative' },
+          { label: 'Recommendation', getValue: s => s.rec, getClass: s => s.rec === 'BUY' ? 'profit-positive' : s.rec === 'SELL' ? 'profit-negative' : '' },
         ]);
 
         const comparisonAvailable = computed(() => {
@@ -445,20 +440,23 @@
         function applyForeignData(data) {
           if (data.status === 'ok' && data.data) {
             const items = [];
-            (data.data.top_accumulating || []).forEach(item => {
+            // Support both new shape (top_accumulating) and old shape (history)
+            const accumulating = data.data.top_accumulating || [];
+            const distributing = data.data.top_distributing || [];
+            accumulating.forEach(item => {
               items.push({
-                code: item.code,
+                code: item.stock_code || item.code,
                 phase: 'Active Accum',
                 signalClass: 'accent',
                 confidence: item.confidence || 0,
                 entryZone: item.entry_zone || 'N/A',
-                accumDays: item.accum_days || 0,
-                rsStatus: item.rs_status || 'Neutral'
+                accumDays: item.accumulation_days || item.accum_days || 0,
+                rsStatus: item.strength || item.rs_status || 'Neutral'
               });
             });
-            (data.data.top_distributing || []).forEach(item => {
+            distributing.forEach(item => {
               items.push({
-                code: item.code,
+                code: item.stock_code || item.code,
                 phase: 'Distribution',
                 signalClass: 'danger',
                 confidence: item.confidence || 0,
@@ -471,6 +469,15 @@
           }
         }
 
+        // Helper: fetch with timeout
+        function fetchWithTimeout(url, timeoutMs = 8000) {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), timeoutMs);
+          return fetch(url, { signal: controller.signal })
+            .then(r => { clearTimeout(timer); return r.json(); })
+            .catch(e => { clearTimeout(timer); return null; });
+        }
+
         async function loadAllData() {
           const [marketRes, gainersRes, losersRes, volumeRes, sectorsRes, daytradeRes, longtermRes, foreignRes] = await Promise.allSettled([
             fetch('/api/market-summary').then(r => r.json()),
@@ -478,18 +485,18 @@
             fetch('/api/top-losers?limit=5').then(r => r.json()),
             fetch('/api/top-volume?limit=5').then(r => r.json()),
             fetch('/api/sector-performance').then(r => r.json()),
-            fetch('/api/day-trade/candidates').then(r => r.json()),
-            fetch('/api/long-term/candidates').then(r => r.json()),
-            fetch('/api/foreign-flow/summary').then(r => r.json())
+            fetchWithTimeout('/api/day-trade/candidates', 15000),
+            fetchWithTimeout('/api/long-term/candidates', 15000),
+            fetch('/api/foreign-flow/summary').then(r => r.json()),
           ]);
-          if (marketRes.status === 'fulfilled') applyMarketData(marketRes.value);
-          if (gainersRes.status === 'fulfilled') applyGainersData(gainersRes.value);
-          if (losersRes.status === 'fulfilled') applyLosersData(losersRes.value);
-          if (volumeRes.status === 'fulfilled') applyVolumeData(volumeRes.value);
-          if (sectorsRes.status === 'fulfilled') applySectorsData(sectorsRes.value);
-          if (daytradeRes.status === 'fulfilled') applyDaytradeData(daytradeRes.value);
-          if (longtermRes.status === 'fulfilled') applyLongtermData(longtermRes.value);
-          if (foreignRes.status === 'fulfilled') applyForeignData(foreignRes.value);
+          if (marketRes.status === 'fulfilled' && marketRes.value) applyMarketData(marketRes.value);
+          if (gainersRes.status === 'fulfilled' && gainersRes.value) applyGainersData(gainersRes.value);
+          if (losersRes.status === 'fulfilled' && losersRes.value) applyLosersData(losersRes.value);
+          if (volumeRes.status === 'fulfilled' && volumeRes.value) applyVolumeData(volumeRes.value);
+          if (sectorsRes.status === 'fulfilled' && sectorsRes.value) applySectorsData(sectorsRes.value);
+          if (daytradeRes.status === 'fulfilled' && daytradeRes.value) applyDaytradeData(daytradeRes.value);
+          if (longtermRes.status === 'fulfilled' && longtermRes.value) applyLongtermData(longtermRes.value);
+          if (foreignRes.status === 'fulfilled' && foreignRes.value) applyForeignData(foreignRes.value);
         }
 
         function renderMrCharts(full) {
@@ -653,9 +660,6 @@
         function switchView(view, tab) {
           currentView.value = view;
           if (view === 'marketreports') loadMarketReports();
-          if (view === 'daytrading') loadDayTradingData();
-          if (view === 'longterm') loadForeignFlowData();
-          if (view === 'analysis') loadStocks();
           const firstTabs = {
             dashboard: 'overview',
             daytrading: 'signals',
@@ -691,7 +695,7 @@
         }
 
         function mockSave() {
-          alert('Pengaturan tersimpan (lokal).');
+          alert('Settings saved (local only).');
         }
 
         // ── Data Loaders ──
@@ -773,13 +777,13 @@
             const data = await res.json();
             // Minimal sector map for analysis filtering
             const SECTOR_GUESS = {
-              BBCA:'Keuangan', BBRI:'Keuangan', BMRI:'Keuangan', BBNI:'Keuangan',
-              TLKM:'Teknologi', EXCL:'Teknologi', TOWR:'Teknologi',
-              ASII:'Konsumen Siklik', UNVR:'Konsumen Siklik', INDF:'Konsumen Siklik', ICBP:'Konsumen Siklik', HMSP:'Konsumen Siklik', GGRM:'Konsumen Siklik',
-              ADRO:'Energi', ITMG:'Energi', PTBA:'Energi', MEDC:'Energi',
-              CPIN:'Kesehatan', KLBF:'Kesehatan',
-              JSMR:'Infrastruktur', PGAS:'Infrastruktur', SMGR:'Infrastruktur', INTP:'Infrastruktur', SMMA:'Infrastruktur', AKRA:'Infrastruktur',
-              GOTO:'Teknologi',
+              BBCA:'Financials', BBRI:'Financials', BMRI:'Financials', BBNI:'Financials',
+              TLKM:'Technology', EXCL:'Technology', TOWR:'Technology',
+              ASII:'Consumer Cycl.', UNVR:'Consumer Cycl.', INDF:'Consumer Cycl.', ICBP:'Consumer Cycl.', HMSP:'Consumer Cycl.', GGRM:'Consumer Cycl.',
+              ADRO:'Energy', ITMG:'Energy', PTBA:'Energy', MEDC:'Energy',
+              CPIN:'Healthcare', KLBF:'Healthcare',
+              JSMR:'Infrastructure', PGAS:'Infrastructure', SMGR:'Infrastructure', INTP:'Infrastructure', SMMA:'Infrastructure', AKRA:'Infrastructure',
+              GOTO:'Technology',
             };
             allStocks.value = (data.stocks || []).map(s => ({
               code: s.code, name: s.name || '',
@@ -823,8 +827,8 @@
 
         async function loadDayTradingData() {
           try {
-            const res = await fetch('/api/day-trade/candidates');
-            const json = await res.json();
+            const json = await fetchWithTimeout('/api/day-trade/candidates', 15000);
+            if (!json) { console.warn('Day trade load timeout'); return; }
             const candidates = (json.data && json.data.candidates) || [];
             const signalMap = { ENTER: { cls: 'success' }, WAIT: { cls: 'warning' }, AVOID: { cls: 'danger' }, HOLD: { cls: 'accent' } };
             dayTradingSignals.value = candidates.map(c => {
@@ -858,8 +862,8 @@
 
         async function loadForeignFlowData() {
           try {
-            const res = await fetch('/api/foreign-flow/summary');
-            const json = await res.json();
+            const json = await fetchWithTimeout('/api/foreign-flow/summary', 8000);
+            if (!json) { console.warn('Foreign flow load timeout'); return; }
             const acc = (json.data && json.data.top_accumulating) || [];
             longTermSignals.value = acc.map(a => ({
               code: a.stock_code,
@@ -963,7 +967,6 @@
               history.replaceState(null, '', hash);
             }
           }
-          if (tab === 'treemap') fetchTreemapData();
         });
 
         function navigateFromHash() {
@@ -1006,228 +1009,6 @@
           }
         }
 
-        async function fetchTreemapData() {
-          if (treemapLoading.value) return;
-          treemapLoading.value = true;
-          try {
-            const res = await fetch('/api/treemap');
-            const data = await res.json();
-            treemapData.value = data;
-            treemapSectors.value = data.sectors || [];
-            treemapDate.value = data.date || '';
-          } catch (e) {
-            console.error('Treemap fetch error:', e);
-            return;
-          } finally {
-            treemapLoading.value = false;
-          }
-          // Wait for DOM to render container, then draw treemap
-          await Vue.nextTick();
-          renderTreemap(treemapData.value);
-        }
-
-        function renderTreemap(data) {
-          const el = document.getElementById('treemap-container');
-          if (!el || !data || !data.sectors || !data.sectors.length) {
-            console.warn('Treemap: no data or container');
-            return;
-          }
-          console.log('Treemap render start, sectors:', data.sectors.length);
-          el.innerHTML = '';
-          el.style.position = 'relative';
-
-          const W = el.clientWidth || 900;
-          const H = el.clientHeight || 640;
-
-          const svg = d3.select(el).append('svg')
-            .attr('width', W)
-            .attr('height', H)
-            .style('background', '#1a1a2e');
-
-          // Color scale: red→gray→green
-          const c = d3.scaleLinear()
-            .domain([-8, -2, 0, 2, 8])
-            .range(['#ef4444', '#a05252', '#6b7280', '#16a34a', '#22c55e'])
-            .clamp(true);
-
-          // Build proper nested hierarchy: root → sectors → stocks
-          // d3.hierarchy needs {children: [...]} — rename stocks→children
-          const treemapInput = {
-            children: data.sectors.map(function(sector) {
-              return {
-                name: sector.name,
-                stock_count: sector.stock_count,
-                change_pct: sector.change_pct,
-                total_size: sector.total_size,
-                children: sector.stocks.map(function(stock) {
-                  return {
-                    code: stock.code,
-                    change_pct: stock.change_pct,
-                    close: stock.close,
-                    volume: stock.volume,
-                    size: stock.size,
-                    sector: sector.name,
-                  };
-                }),
-              };
-            }),
-          };
-
-          const root = d3.hierarchy(treemapInput)
-            .sum(function(d) { return d.size || d.total_size || 0; })
-            .sort(function(a, b) { return (b.value || 0) - (a.value || 0); });
-
-          console.log('Hierarchy leaves:', root.leaves().length);
-
-          var layout = d3.treemap()
-            .size([W, H - 40])
-            .paddingOuter(3)
-            .paddingTop(20)
-            .paddingInner(2)
-            .round(true);
-
-          layout(root);
-
-          // Draw sector group background rects — fill allocated area with subtle color
-          svg.selectAll('g.sector-bg')
-            .data(root.children || [])
-            .enter().append('rect')
-            .attr('x', function(d) { return d.x0; })
-            .attr('y', function(d) { return d.y0; })
-            .attr('width', function(d) { return d.x1 - d.x0; })
-            .attr('height', function(d) { return d.y1 - d.y0; })
-            .attr('fill', function(d) {
-              var pct = d.data.change_pct || 0;
-              return pct >= 0 ? '#162b1a' : '#2b1616';
-            })
-            .attr('rx', 3)
-            .attr('stroke', '#2a2a4e')
-            .attr('stroke-width', 1);
-
-          // Draw leaves (stocks)
-          var leaf = svg.selectAll('g.leaf')
-            .data(root.leaves())
-            .enter().append('g')
-            .attr('transform', function(d) {
-              return 'translate(' + d.x0 + ',' + d.y0 + ')';
-            });
-
-          leaf.append('rect')
-            .attr('width', function(d) { return d.x1 - d.x0; })
-            .attr('height', function(d) { return d.y1 - d.y0; })
-            .attr('fill', function(d) { return c(d.data.change_pct || 0); })
-            .attr('rx', 2)
-            .attr('stroke', '#1a1a2e')
-            .attr('stroke-width', 1);
-
-          leaf.append('text')
-            .attr('x', 4)
-            .attr('y', 14)
-            .attr('fill', '#fff')
-            .attr('font-size', '10px')
-            .attr('font-weight', 'bold')
-            .style('pointer-events', 'none')
-            .style('text-shadow', '0 1px 3px rgba(0,0,0,0.8)')
-            .text(function(d) { return d.data.code || ''; });
-
-          leaf.append('text')
-            .attr('x', 4)
-            .attr('y', 26)
-            .attr('fill', '#fff')
-            .attr('font-size', '9px')
-            .style('pointer-events', 'none')
-            .style('text-shadow', '0 1px 3px rgba(0,0,0,0.8)')
-            .text(function(d) {
-              var pct = d.data.change_pct || 0;
-              return (pct >= 0 ? '+' : '') + pct + '%';
-            });
-
-          // Sector group labels
-          svg.selectAll('g.slabel')
-            .data(root.children || [])
-            .enter().append('text')
-            .attr('x', function(d) { return d.x0 + 6; })
-            .attr('y', function(d) { return d.y0 + 14; })
-            .attr('fill', '#94a3b8')
-            .attr('font-size', '10px')
-            .attr('font-weight', 'bold')
-            .style('pointer-events', 'none')
-            .style('text-shadow', '0 1px 3px rgba(0,0,0,0.8)')
-            .text(function(d) {
-              return d.data.name + ' (' + (d.data.stock_count || 0) + ')';
-            });
-
-          // Tooltip
-          var tt = d3.select(el).append('div')
-            .attr('class', 'treemap-tooltip')
-            .style('position', 'absolute')
-            .style('background', 'rgba(15,15,35,0.95)')
-            .style('color', '#fff')
-            .style('padding', '8px 12px')
-            .style('border-radius', '6px')
-            .style('border', '1px solid #333')
-            .style('font-size', '12px')
-            .style('pointer-events', 'none')
-            .style('opacity', '0')
-            .style('z-index', '1000');
-
-          leaf.on('mouseover', function(event, d) {
-            var s = d.data;
-            var pct = s.change_pct || 0;
-            var sign = pct >= 0 ? '+' : '';
-            var formattedClose = (s.close || 0).toLocaleString();
-            var formattedVol = ((s.volume || 0) / 1e6).toFixed(1);
-            tt.html(
-              '<b style="color:#7C3AED">' + s.code + '</b><br/>' +
-              'Change: <b>' + sign + pct + '%</b><br/>' +
-              'Price: ' + formattedClose + '<br/>' +
-              'Vol: ' + formattedVol + 'M<br/>' +
-              '<span style="color:#94a3b8">' + s.sector + '</span>'
-            )
-            .style('opacity', '1')
-            .style('left', (event.offsetX + 12) + 'px')
-            .style('top', (event.offsetY - 10) + 'px');
-          })
-          .on('mousemove', function(event) {
-            tt.style('left', (event.offsetX + 12) + 'px')
-              .style('top', (event.offsetY - 10) + 'px');
-          })
-          .on('mouseleave', function() {
-            tt.style('opacity', '0');
-          });
-
-          // Color legend bar at bottom
-          var lx = (W / 2) - 100;
-          var ly = H - 18;
-
-          var grad = svg.append('defs').append('linearGradient')
-            .attr('id', 'tm-grad');
-
-          grad.selectAll('stop')
-            .data([-8, -5, -2, 0, 2, 5, 8])
-            .enter().append('stop')
-            .attr('offset', function(d) { return ((d + 8) / 16 * 100) + '%'; })
-            .attr('stop-color', function(d) { return c(d); });
-
-          svg.append('rect')
-            .attr('x', lx)
-            .attr('y', ly)
-            .attr('width', 200)
-            .attr('height', 8)
-            .attr('rx', 3)
-            .style('fill', 'url(#tm-grad)');
-
-          var ls = d3.scaleLinear().domain([-8, 8]).range([0, 200]);
-          svg.append('g')
-            .attr('transform', 'translate(' + lx + ',' + (ly + 8) + ')')
-            .attr('color', '#94a3b8')
-            .style('font-size', '9px')
-            .call(d3.axisBottom(ls).ticks(5).tickFormat(function(d) { return d + '%'; }))
-            .call(function(g) { g.select('.domain').attr('stroke', 'none'); });
-
-          console.log('Treemap rendered:', root.leaves().length, 'stocks');
-        }
-
         onMounted(() => {
           const saved = localStorage.getItem('dashboard-theme');
           if (saved) {
@@ -1260,7 +1041,6 @@
           market, aiPerf, aiPerfDetails, movers,
           allGainers, allLosers, allVolume,
           bpjsSignals, longTermSignals, sectors, predictions, allPredictions,
-          treemapLoading, treemapData, treemapSectors, treemapDate,
           dayTradingSignals, dayTradingCandidates, dayTradingHistory,
           ltAccumulation, ltPortfolio, ltWatchlist,
           analysisQuery, analysisSector, analysisSectors, analysisStocks, filteredAnalysis,

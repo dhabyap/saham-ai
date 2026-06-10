@@ -5,6 +5,9 @@ from typing import Optional, List
 from dataclasses import asdict
 from datetime import datetime
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 from app.services.stock_service import (
     get_latest_data,
@@ -297,16 +300,28 @@ async def foreign_flow(code: str, days: int = Query(30, ge=1, le=365)):
 
 @router.get("/day-trade/candidates")
 async def day_trade_candidates():
-    from app.ai.strategies.bpjs_strategy import BPJSStrategy
-    candidates = BPJSStrategy().scan_candidates()
-    return {
-        "status": "ok",
-        "data": {
-            "candidates": candidates,
-            "count": len(candidates),
-            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        },
-    }
+    try:
+        from app.ai.strategies.bpjs_strategy import BPJSStrategy
+        candidates = BPJSStrategy().scan_candidates()
+        return {
+            "status": "ok",
+            "data": {
+                "candidates": candidates,
+                "count": len(candidates),
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            },
+        }
+    except Exception as e:
+        logger.warning("Day trade candidates error: %s", e)
+        return {
+            "status": "ok",
+            "data": {
+                "candidates": [],
+                "count": 0,
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "error": str(e),
+            },
+        }
 
 
 @router.get("/day-trade/{code}")
@@ -358,17 +373,29 @@ async def long_term_analysis(code: str):
 
 @router.get("/long-term/candidates")
 async def long_term_candidates():
-    from app.ai.strategies.creative_trader_strategy import CreativeTraderStrategy
-    strategy = CreativeTraderStrategy()
-    candidates = strategy.scan_for_long_term_candidates()
-    return {
-        "status": "ok",
-        "data": {
-            "candidates": candidates,
-            "count": len(candidates),
-            "last_updated": __import__("datetime").datetime.now().isoformat(),
-        },
-    }
+    try:
+        from app.ai.strategies.creative_trader_strategy import CreativeTraderStrategy
+        strategy = CreativeTraderStrategy()
+        candidates = strategy.scan_for_long_term_candidates()
+        return {
+            "status": "ok",
+            "data": {
+                "candidates": candidates,
+                "count": len(candidates),
+                "last_updated": datetime.now().isoformat(),
+            },
+        }
+    except Exception as e:
+        logger.warning("Long-term candidates error: %s", e)
+        return {
+            "status": "ok",
+            "data": {
+                "candidates": [],
+                "count": 0,
+                "last_updated": datetime.now().isoformat(),
+                "error": str(e),
+            },
+        }
 
 
 @router.get("/market-reports")

@@ -35,6 +35,94 @@ KNOWN_FOREIGN_BROKERS = {
     "TRIMEGAH": "Trimegah Sekuritas",
 }
 
+# IDX 2-letter broker codes → full name + is_foreign flag
+# Sumber: kode anggota bursa BEI
+BROKER_CODE_MAP = {
+    "AG": ("Anugerah Sekuritas", False),
+    "AK": ("Ajaib Sekuritas", False),
+    "AP": ("Aspac Sekuritas", False),
+    "AR": ("Artha Sekuritas", False),
+    "AZ": ("Alfa Sekuritas", False),
+    "BB": ("BCA Sekuritas", True),
+    "BK": ("Barclays Capital", True),
+    "BN": ("BNI Sekuritas", False),
+    "BP": ("Bank Panin Sekuritas", False),
+    "BR": ("BRI Danareksa", False),
+    "BS": ("Binaartha Sekuritas", False),
+    "CC": ("CLSA Sekuritas", True),
+    "CG": ("CGS-CIMB Sekuritas", True),
+    "CI": ("Citigroup Sekuritas", True),
+    "CP": ("Ciptadana Sekuritas", False),
+    "CS": ("Credit Suisse", True),
+    "DB": ("Deutsche Bank", True),
+    "DG": ("DWG Sekuritas", False),
+    "DR": ("Danareksa Sekuritas", False),
+    "DS": ("DBS Vickers", True),
+    "DX": ("Dxchange Sekuritas", False),
+    "ER": ("Erdikha Elit Sekuritas", False),
+    "FB": ("Firman Bima Sekuritas", False),
+    "FG": ("Fauzan Gani Sekuritas", False),
+    "FP": ("Fortis Asia", False),
+    "GR": ("Graham Reksa", False),
+    "GS": ("Goldman Sachs", True),
+    "HD": ("HD Capital", False),
+    "HS": ("HSBC Sekuritas", True),
+    "IF": ("Indo Premier Sekuritas", False),
+    "IG": ("Indo Ganeca Sekuritas", False),
+    "IP": ("Indopremier Sekuritas", False),
+    "JD": ("JD Bower", False),
+    "JP": ("JP Morgan", True),
+    "KG": ("KGI Sekuritas", False),
+    "KI": ("Kim Eng Sekuritas", True),
+    "KP": ("Kresna Graha Sekuritas", False),
+    "KZ": ("Macquarie Sekuritas", True),
+    "MA": ("Mandiri Sekuritas", False),
+    "MB": ("Maybank Sekuritas", True),
+    "MC": ("Macquarie Sekuritas", True),
+    "MG": ("Mega Capital", False),
+    "MH": ("Mandiri Sekuritas", False),
+    "MI": ("Mirae Asset", True),
+    "MN": ("MNC Sekuritas", False),
+    "MP": ("MNC Kapital", False),
+    "MR": ("Merrill Lynch", True),
+    "MS": ("Morgan Stanley", True),
+    "NC": ("NC Sekuritas", False),
+    "NH": ("NH Korindo", False),
+    "NM": ("Nomura Sekuritas", True),
+    "NS": ("Nusantara Sekuritas", False),
+    "OC": ("OCBC Sekuritas", True),
+    "OD": ("Oscar Dharma", False),
+    "OK": ("Oto Kredit", False),
+    "OP": ("Optima Kharya", False),
+    "OS": ("OSK Nusadana", False),
+    "PD": ("Mandiri Sekuritas", False),
+    "PG": ("Panin Sekuritas", False),
+    "PH": ("Phillip Sekuritas", True),
+    "RB": ("Royal Bank", True),
+    "RG": ("RHB OSK", True),
+    "RX": ("RHB Sekuritas Indonesia", True),
+    "SA": ("Samuel Sekuritas", False),
+    "SB": ("Sinarmas Sekuritas", False),
+    "SG": ("Sugeng Santoso", False),
+    "SM": ("Semesta Indovest", False),
+    "SQ": ("Sucor Sekuritas", False),
+    "ST": ("Standard Chartered", True),
+    "TP": ("Trimegah Sekuritas", False),
+    "UA": ("UAB Sekuritas", False),
+    "UB": ("UOB Kay Hian", True),
+    "UF": ("UFO Sekuritas", False),
+    "UO": ("UOB Kay Hian", True),
+    "VP": ("Valbury Sekuritas", False),
+    "XA": ("XAsia Sekuritas", False),
+    "XC": ("Xcelencia", False),
+    "XL": ("XL Sekuritas", False),
+    "YA": ("Yuanta Sekuritas", True),
+    "YJ": ("Yujin Sekuritas", False),
+    "YP": ("YP Sekuritas", False),
+    "YU": ("Citigroup Sekuritas", True),
+    "ZP": ("ZPA Sekuritas", False),
+}
+
 
 def _sql():
     return """
@@ -76,6 +164,17 @@ def _seed_brokers(conn):
                 "INSERT OR IGNORE INTO known_brokers (broker_code, broker_name, is_foreign) VALUES (?, ?, 1)",
                 (code, name),
             )
+        except Exception:
+            pass
+    # Also seed IDX 2-letter codes
+    for code, (name, is_foreign) in BROKER_CODE_MAP.items():
+        try:
+            existing = conn.execute("SELECT id FROM known_brokers WHERE broker_code = ?", (code,)).fetchone()
+            if not existing:
+                conn.execute(
+                    "INSERT INTO known_brokers (broker_code, broker_name, is_foreign) VALUES (?, ?, ?)",
+                    (code, name, 1 if is_foreign else 0),
+                )
         except Exception:
             pass
 

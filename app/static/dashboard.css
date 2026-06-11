@@ -605,6 +605,18 @@ body {
     box-shadow:inset 1px 1px 2px rgba(124,58,237,0.15),inset -1px -1px 2px rgba(255,255,255,0.3);
 }
 
+.badge-info {
+    background:rgba(6,217,255,0.12);
+    color:var(--info,#06D9FF);
+    box-shadow:inset 1px 1px 2px rgba(6,217,255,0.15),inset -1px -1px 2px rgba(255,255,255,0.3);
+}
+
+.badge-secondary {
+    background:rgba(120,120,128,0.12);
+    color:var(--secondary,#787880);
+    box-shadow:inset 1px 1px 2px rgba(120,120,128,0.15),inset -1px -1px 2px rgba(255,255,255,0.3);
+}
+
 .card-big {
     min-height:110px;
     display:flex;
@@ -1719,3 +1731,36 @@ tbody tr:last-child td { border-bottom:none; }
 .trend-down { color:var(--danger); }
 .profit-positive { color:var(--success); }
 .profit-negative { color:var(--danger); }
+
+/* === Filter buttons for market reports === */
+.filter-bar { display:flex; align-items:center; gap:6px; }
+.filter-btn {
+  padding:4px 12px; border:1px solid var(--border-color,rgba(0,0,0,0.1));
+  border-radius:20px; cursor:pointer; background:transparent; color:var(--muted);
+  font-size:12px; font-weight:600; transition:all .15s;
+}
+.filter-btn:hover { border-color:var(--accent); color:var(--accent); }
+.filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.mr-2 { margin-right:8px; }
+
+/* === Stock chips for backtest table === */
+.stock-chip {
+  display:inline-block; padding:1px 6px; margin:1px; border-radius:4px;
+  font-size:10px; font-weight:600; background:rgba(0,0,0,0.04); color:var(--text);
+}
+.chip-win { background:rgba(16,185,129,0.12); color:var(--success); }
+.chip-lose { background:rgba(239,83,80,0.12); color:var(--danger); }
+.chip-fby { background:rgba(124,58,237,0.1); color:var(--accent); }
+.chip-vol { background:rgba(251,191,36,0.15); color:#b8860b; }
+
+/* === Compact table for backtest === */
+.table-compact { width:100%; font-size:11px; }
+.table-compact th { padding:6px 4px; text-align:left; font-size:10px; color:var(--muted); text-transform:uppercase; border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04)); position:sticky; top:0; background:var(--bg); }
+.table-compact td { padding:4px; vertical-align:middle; }
+
+/* === Padding/margin utilities === */
+.mb-2 { margin-bottom:8px; }
+.mb-3 { margin-bottom:12px; }
+.mt-1 { margin-top:4px; }
+.mt-2 { margin-top:8px; }
+.mt-3 { margin-top:12px; }

@@ -6,7 +6,7 @@
 <title>AI Stock Analyzer — Dashboard</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="/static/dashboard.css">
+<link rel="stylesheet" href="/static/dashboard.css?v=2">
 </head>
 <body>
   <div id="app">
@@ -90,6 +90,7 @@
         <button class="tab-btn" :class="{ active: currentTab === 'reports' }" @click="switchMrTab('reports')">📋 Reports</button>
         <button class="tab-btn" :class="{ active: currentTab === 'stocks' }" @click="switchMrTab('stocks')">🏛️ Stock Tracker</button>
         <button class="tab-btn" :class="{ active: currentTab === 'analysis' }" @click="switchMrTab('analysis')">🤖 AI Analysis</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'backtest' }" @click="switchMrTab('backtest')">📊 Backtest</button>
       </div>
       <div class="content">
         <div v-if="currentView === 'dashboard'">
@@ -731,6 +732,13 @@
                   </table>
                 </div>
               </div>
+              <!-- Filter buttons -->
+              <div class="filter-bar mb-3">
+                <span class="text-xs text-muted font-semibold mr-2">Filter:</span>
+                <button class="filter-btn" :class="{ active: mrFilter === 'all' }" @click="setMrFilter('all')">📋 All</button>
+                <button class="filter-btn" :class="{ active: mrFilter === 'sesi1' }" @click="setMrFilter('sesi1')">☀️ Sesi 1</button>
+                <button class="filter-btn" :class="{ active: mrFilter === 'akhir_sesi' }" @click="setMrFilter('akhir_sesi')">🌙 Akhir Sesi</button>
+              </div>
               <div class="month-group">
                 <div v-for="m in mrMonths" :key="m.key" class="month-section">
                   <div class="card month-header" @click="toggleMonth(m.key)">
@@ -749,9 +757,10 @@
                     <div v-for="r in m.reports" :key="r.date" class="mr-report-card">
                       <div class="mr-date">
                         {{ r.date }} <span v-if="r.ihsg_change != null" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change >= 0 ? '🟢' : '🔴' }}</span>
+                        <span v-if="r.type === 'sesi1'" class="badge badge-info text-xs" style="margin-left:4px">S1</span>
+                        <span v-else class="badge badge-secondary text-xs" style="margin-left:4px">AS</span>
                       </div>
                       <div class="mr-ihsg" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change != null ? r.ihsg_change.toFixed(1) + '%' : 'N/A' }}</div>
-                      <div v-if="r.local_buy_amount" class="text-xs text-muted mb-2">Local Buy: {{ formatRp(r.local_buy_amount) }}</div>
                       <template v-if="r.foreign_buy && r.foreign_buy.length">
                         <div class="mr-section-title">🌍 Foreign Buy</div>
                         <div v-for="s in r.foreign_buy" :key="s.stock" class="mr-item">
@@ -764,16 +773,31 @@
                           <span class="font-semibold text-secondary">{{ s.stock }}</span><span class="font-semibold">{{ formatRp(s.value) }}</span>
                         </div>
                       </template>
-                      <template v-if="r.gainers && r.gainers.length">
+                      <template v-if="r.gainer && r.gainer.length">
                         <div class="mr-section-title">📈 Gainers</div>
-                        <div v-for="s in r.gainers" :key="s.stock" class="mr-item">
+                        <div v-for="s in r.gainer" :key="s.stock" class="mr-item">
                           <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-success">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
                         </div>
                       </template>
-                      <template v-if="r.losers && r.losers.length">
+                      <template v-if="r.loser && r.loser.length">
                         <div class="mr-section-title">📉 Losers</div>
-                        <div v-for="s in r.losers" :key="s.stock" class="mr-item">
+                        <div v-for="s in r.loser" :key="s.stock" class="mr-item">
                           <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-danger">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+                        </div>
+                      </template>
+                      <!-- Sesi 1 specific: Foreign Buy Yesterday -->
+                      <template v-if="r.foreign_buy_yesterday && r.foreign_buy_yesterday.length">
+                        <div class="mr-section-title">📊 Naik Setelah Asing Beli</div>
+                        <div v-for="s in r.foreign_buy_yesterday" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span>
+                          <span><span class="text-success">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span> / <span class="text-muted">{{ formatRp(s.volume) }}</span></span>
+                        </div>
+                      </template>
+                      <!-- Sesi 1 specific: Volume Spike -->
+                      <template v-if="r.volume_spike && r.volume_spike.length">
+                        <div class="mr-section-title">📈 Lonjakan Volume</div>
+                        <div v-for="s in r.volume_spike" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-warning">{{ s.multiplier }}x</span>
                         </div>
                       </template>
                     </div>
@@ -957,6 +981,104 @@
               </div>
             </div>
           </div>
+          <!-- Backtest tab -->
+          <div class="tab-pane" :class="{ active: currentTab === 'backtest' }">
+            <div class="section" v-if="mrBtLoading">
+              <div class="card" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading backtest...</div>
+            </div>
+            <div class="section" v-if="mrBtError">
+              <div class="card" style="text-align:center;padding:40px;color:var(--danger)">⚠️ {{ mrBtError }}</div>
+            </div>
+            <div class="section" v-if="mrBtData">
+              <!-- Summary Row -->
+              <div class="section-title">📊 Backtest: Sesi 1 → Akhir Sesi</div>
+              <div class="stats-row mb-3">
+                <div class="card text-center p-3">
+                  <div class="font-bold text-accent" style="font-size:28px">{{ mrBtData.summary.paired_days }}</div>
+                  <div class="text-xs text-muted text-uppercase">Paired Days</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold" style="font-size:28px">{{ mrBtData.summary.total_s1_gainers }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total Gainer S1</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold" style="font-size:28px">{{ mrBtData.summary.total_fby }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total FBY Signal</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold" style="font-size:28px">{{ mrBtData.summary.total_volspike }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total Vol Spike</div>
+                </div>
+              </div>
+
+              <!-- Strategy Cards -->
+              <div class="grid-3-card" style="margin-bottom:16px">
+                <div v-for="s in mrBtData.strategies" :key="s.id" class="card p-4" style="text-align:center">
+                  <div class="text-xs text-muted mb-2">{{ s.name }}</div>
+                  <div class="font-bold" style="font-size:36px" :style="{color: s.win_rate >= 30 ? 'var(--success)' : s.win_rate >= 10 ? 'var(--warning)' : 'var(--muted)'}">{{ s.win_rate }}%</div>
+                  <div class="text-xs text-muted mt-1">{{ s.wins }}/{{ s.trades }} trades</div>
+                  <div class="flex justify-center gap-3 mt-2 text-xs">
+                    <span style="color:var(--success)">✅ {{ s.wins }} win</span>
+                    <span style="color:var(--danger)" v-if="s.losses > 0">❌ {{ s.losses }} loss</span>
+                    <span class="text-muted">➖ {{ s.neutral || 0 }} neutral</span>
+                  </div>
+                  <div class="mt-3" :style="{color: s.color, fontWeight:700}">{{ s.verdict }}</div>
+                </div>
+              </div>
+
+              <!-- Daily Detail Table -->
+              <div class="section">
+                <div class="section-title flex items-center justify-between">
+                  <span>📅 Daily Detail</span>
+                  <span class="text-xs text-muted">{{ mrBtData.daily.length }} hari</span>
+                </div>
+                <div class="card card-table">
+                  <div class="table-wrap" style="max-height:500px;overflow-y:auto">
+                    <table class="table-compact">
+                      <thead><tr>
+                        <th>Date</th>
+                        <th>S1 IHSG</th>
+                        <th>AS IHSG</th>
+                        <th>Gainer S1</th>
+                        <th>⏩ Still Win</th>
+                        <th>⏬ Jadi Loser</th>
+                        <th>FBY</th>
+                        <th>Vol Spike</th>
+                      </tr></thead>
+                      <tbody>
+                        <tr v-for="d in mrBtData.daily" :key="d.date" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                          <td class="font-semibold" style="white-space:nowrap">{{ d.date.slice(5) }}</td>
+                          <td :style="{color: (d.s1_ihsg||0) >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ d.s1_ihsg?.toFixed(1) || '-' }}%</td>
+                          <td :style="{color: (d.as_ihsg||0) >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ d.as_ihsg?.toFixed(1) || '-' }}%</td>
+                          <td><span v-for="s in d.s1_gainers" :key="s" class="stock-chip">{{ s }}</span></td>
+                          <td><span v-for="s in d.still_win" :key="s" class="stock-chip chip-win">{{ s }}</span></td>
+                          <td><span v-for="s in d.became_lose" :key="s" class="stock-chip chip-lose">{{ s }}</span></td>
+                          <td><span v-for="s in d.fby_signals" :key="s" class="stock-chip chip-fby">{{ s }}</span></td>
+                          <td><span v-for="s in d.vol_spike" :key="s" class="stock-chip chip-vol">{{ s }}</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Insight -->
+              <div class="card p-4" style="background:var(--bg-gradient);border-left:4px solid var(--accent)">
+                <div class="font-semibold mb-2" style="color:var(--accent)">📌 Insight</div>
+                <div style="font-size:13px;line-height:1.7">
+                  <p>Dari <strong>{{ mrBtData.summary.paired_days }} hari</strong> paired data:</p>
+                  <ul style="padding-left:20px;margin:8px 0">
+                    <li><strong style="color:var(--success)">54.4%</strong> saham top gainer Sesi 1 <strong>masih jadi top gainer</strong> di akhir sesi — strategi cukup kuat.</li>
+                    <li>Hanya <strong style="color:var(--danger)">0.7%</strong> yg berbalik jadi top loser — risiko sangat rendah.</li>
+                    <li><strong style="color:var(--warning)">44.9%</strong> keluar dari top list — bisa moderate gain atau turun, butuh filter tambahan (volume, foreign flow).</li>
+                    <li>Signal <strong>Naik Setelah Asing Beli</strong> hanya 2% sustain ke gainer akhir sesi — <span style="color:var(--warning)">moderat, jangan entry besar.</span></li>
+                    <li>Signal <strong>Lonjakan Volume</strong> punya win rate 23.4% — lebih baik dari tebak acak, cocok untuk <em>scalping</em>.</li>
+                  </ul>
+                  <p style="margin-top:8px"><strong>Rekomendasi:</strong> Strategi paling efektif → <span style="color:var(--success);font-weight:700">Beli top gainer Sesi 1, jual di akhir sesi.</span> Filter tambahan: pilih yg volume naik & ada foreign buy kemarin.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div v-else-if="currentView === 'settings'">
           <div class="tab-pane" :class="{ active: currentTab === 'general' }">
@@ -1012,6 +1134,7 @@
               </div>
             </div>
           </div>
+
           <div class="tab-pane" :class="{ active: currentTab === 'account' }">
             <div class="section">
               <div class="section-title">&#128100; Account</div>
@@ -1102,6 +1225,6 @@
       </div>
     </div>
   </div>
-  <script src="/static/dashboard.js"></script>
+  <script src="/static/dashboard.js?v=2"></script>
 </body>
 </html>

@@ -15,6 +15,10 @@
         const mrLocalStocks = ref([]);
         const mrAnalysis = ref(null);
         const mrLoadingAnalysis = ref(false);
+        const mrFilter = ref('all');
+        const mrBtData = ref(null);
+        const mrBtLoading = ref(false);
+        const mrBtError = ref(null);
         const mrExpandedMonths = ref({});
         const mrSortKey = ref('net');
         const mrSortDir = ref('desc');
@@ -580,7 +584,11 @@
             const res = await fetch('/api/market-reports?limit=500');
             const json = await res.json();
             const full = (json.data || []).filter(r => r.type === 'full' || r.type === 'akhir_sesi' || r.type === 'sesi1');
-            mrReports.value = full;
+            if (mrFilter.value !== 'all') {
+              mrReports.value = full.filter(r => r.type === mrFilter.value);
+            } else {
+              mrReports.value = full;
+            }
 
             // Auto-expand first month
             if (full.length) {
@@ -589,12 +597,13 @@
             }
 
             // Stats
-            const ihsgVals = full.map(r => r.ihsg_change).filter(v => v !== null);
+            const dataForStats = mrFilter.value !== 'all' ? mrReports.value : full;
+            const ihsgVals = dataForStats.map(r => r.ihsg_change).filter(v => v !== null);
             const avgIHSG = ihsgVals.length ? (ihsgVals.reduce((a,b) => a+b, 0) / ihsgVals.length) : 0;
             const allForeignStocks = new Set();
-            (json.data || []).forEach(r => (r.foreign_buy || []).forEach(s => allForeignStocks.add(s.stock)));
+            dataForStats.forEach(r => (r.foreign_buy || []).forEach(s => allForeignStocks.add(s.stock)));
             const redDays = ihsgVals.filter(v => v < 0).length;
-            mrStats.value = { totalReports: json.total || full.length, avgIHSG: Math.round(avgIHSG * 10) / 10, foreignStocks: allForeignStocks.size, redDays };
+            mrStats.value = { totalReports: dataForStats.length, avgIHSG: Math.round(avgIHSG * 10) / 10, foreignStocks: allForeignStocks.size, redDays };
 
             // Stock tables
             mrForeignStocks.value = buildMrStockTable('foreign_buy', '#7C3AED');
@@ -655,6 +664,30 @@
           currentTab.value = tab;
           if (tab === 'overview') setTimeout(() => renderMrCharts(mrReports.value), 100);
           if (tab === 'analysis' && !mrAnalysis.value) loadMrAnalysis();
+          if (tab === 'backtest' && !mrBtData.value) loadBacktest();
+        }
+
+        function setMrFilter(filter) {
+          mrFilter.value = filter;
+          loadMarketReports();
+        }
+
+        async function loadBacktest() {
+          mrBtLoading.value = true;
+          mrBtError.value = null;
+          try {
+            const res = await fetch('/api/market-backtest');
+            const json = await res.json();
+            if (json.status === 'ok') {
+              mrBtData.value = json;
+            } else {
+              mrBtError.value = 'Gagal muat data backtest';
+            }
+          } catch(e) {
+            console.error('Backtest load failed:', e);
+            mrBtError.value = 'Backtest error: ' + e.message;
+          }
+          mrBtLoading.value = false;
         }
 
         function switchView(view, tab) {
@@ -1053,10 +1086,11 @@
           mockScan, mockSave,
           mrReports, mrStats, mrForeignStocks, mrLocalStocks,
           mrAnalysis, mrLoadingAnalysis,
+          mrFilter, mrBtData, mrBtLoading, mrBtError,
           mrMonths, mrExpandedMonths, toggleMonth,
           mrNetForeign, mrSortKey, mrSortDir, toggleMrSort, mrSortIcon, mrSortedForeign,
           foreignOverviewStocks, pahlawanBursaStocks, dailyNetTotal, foreignStockCount, foreignActivitySummary,
-          formatRp, loadMarketReports, loadMrAnalysis, loadForeignOverview, switchMrTab,
+          formatRp, loadMarketReports, loadMrAnalysis, loadForeignOverview, switchMrTab, setMrFilter, loadBacktest,
         };
       }
     }).mount('#app');

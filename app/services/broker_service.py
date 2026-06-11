@@ -8,6 +8,7 @@ from app.database.broker_models import (
     get_broker_transactions,
     get_broker_accumulation_summary,
     KNOWN_FOREIGN_BROKERS,
+    BROKER_CODE_MAP,
 )
 
 
@@ -134,12 +135,18 @@ def save_and_analyze_broker_data(stock_code: str, raw_text: str) -> dict:
     foreign_total = 0
     domestic_total = 0
     for r in rows:
+        code = r['broker_code']
+        # Cari nama broker dari IDX code map atau known_brokers di DB
+        name = BROKER_CODE_MAP.get(code, (None, None))[0]
+        if not name:
+            name = r.get("broker_name", "") or KNOWN_FOREIGN_BROKERS.get(code, "")
         label = "🌍 ASING" if r.get("is_foreign") else "🏠 DOMESTIK"
         net_val = r.get("buy_value", 0) - r.get("sell_value", 0)
         sign = "+" if net_val > 0 else ""
+        code_display = f"{code}" + (f" ({name})" if name else "")
         detail_lines.append(
-            f"{label} {r['broker_code']}: Buy Rp{r['buy_value']:,.0f} | "
-            f"Sell Rp{r['sell_value']:,.0f} | Net {sign}Rp{net_val:,.0f}"
+            f"{label} {code_display}\n"
+            f"  Buy Rp{r['buy_value']:,.0f} | Sell Rp{r['sell_value']:,.0f} | Net {sign}Rp{net_val:,.0f}"
         )
         if r.get("is_foreign"):
             foreign_total += net_val

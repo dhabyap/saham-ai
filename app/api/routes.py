@@ -6,6 +6,7 @@ from dataclasses import asdict
 from datetime import datetime
 import os
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -401,28 +402,23 @@ async def long_term_candidates():
 @router.get("/market-reports")
 async def get_market_reports(limit: int = Query(500, description="Max reports to return", le=1000)):
     """Get parsed market reports from @creativetrader."""
-    import json, os
-    reports_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "market_reports.json")
-    if not os.path.exists(reports_file):
+    from app.database.database import get_market_reports
+    reports = get_market_reports(limit)
+    if not reports:
         return {"status": "ok", "data": [], "message": "No reports yet. Run market_report_scraper.py first."}
-    with open(reports_file) as f:
-        all_reports = json.load(f)
-    return {"status": "ok", "data": all_reports[:limit], "total": len(all_reports)}
+    return {"status": "ok", "data": reports, "total": len(reports)}
 
 
 @router.get("/market-report-analysis")
 async def get_market_report_analysis():
     """AI analysis + backtest of market reports from @creativetrader."""
-    import json, os
     from collections import Counter, defaultdict
-    from datetime import datetime, timezone
+    from datetime import datetime
+    from app.database.database import get_market_reports
 
-    base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    reports_file = os.path.join(base, "market_reports.json")
-    if not os.path.exists(reports_file):
+    reports = get_market_reports(1000)
+    if not reports:
         return {"status": "ok", "analysis": None, "message": "No reports yet."}
-    with open(reports_file) as f:
-        reports = json.load(f)
 
     # ── Basic Stats ──
     dates = sorted(set(r["date"] for r in reports))
@@ -629,3 +625,127 @@ async def get_market_report_analysis():
 def treemap_data():
     """Market heatmap treemap — stocks grouped by sector."""
     return get_treemap_data()
+
+
+@router.get("/market-backtest")
+def market_backtest():
+    """Backtest: beli saham yg naik di Sesi 1 → tahan sampai akhir sesi."""
+    from app.database.database import get_market_reports
+    from collections import defaultdict
+
+    reports = get_market_reports(limit=1000)
+    by_date = defaultdict(list)
+    for r in reports:
+        by_date[r['date']].append(r)
+
+    paired_dates = {k: v for k, v in by_date.items()
+                    if any(x['type']=='sesi1' for x in v) and any(x['type']=='akhir_sesi' for x in v)}
+
+    total_s1_gainers = 0
+    total_still_win = 0
+    total_became_lose = 0
+    total_fby = 0
+    total_fby_win = 0
+    total_fby_lose = 0
+    total_volspike = 0
+    total_volspike_win = 0
+    total_volspike_lose = 0
+    daily_details = []
+
+    for date in sorted(paired_dates.keys()):
+        reports_list = paired_dates[date]
+        s1 = next(r for r in reports_list if r['type']=='sesi1')
+        as_ = next(r for r in reports_list if r['type']=='akhir_sesi')
+
+        s1_g = {s['stock'] for s in s1.get('gainer', [])}
+        s1_f = {s['stock'] for s in s1.get('foreign_buy_yesterday', [])}
+        s1_v = {s['stock'] for s in s1.get('volume_spike', [])}
+        as_g = {s['stock'] for s in as_.get('gainer', [])}
+        as_l = {s['stock'] for s in as_.get('loser', [])}
+
+        still_win = s1_g & as_g
+        became_lose = s1_g & as_l
+        fby_win = s1_f & as_g
+        fby_lose = s1_f & as_l
+        vol_win = s1_v & as_g
+        vol_lose = s1_v & as_l
+
+        total_s1_gainers += len(s1_g)
+        total_still_win += len(still_win)
+        total_became_lose += len(became_lose)
+        total_fby += len(s1_f)
+        total_fby_win += len(fby_win)
+        total_fby_lose += len(fby_lose)
+        total_volspike += len(s1_v)
+        total_volspike_win += len(vol_win)
+        total_volspike_lose += len(vol_lose)
+
+        daily_details.append({
+            'date': date,
+            's1_ihsg': s1.get('ihsg_change'),
+            'as_ihsg': as_.get('ihsg_change'),
+            's1_gainers': list(s1_g),
+            'still_win': list(still_win),
+            'became_lose': list(became_lose),
+            'disappeared': list(s1_g - still_win - became_lose),
+            'fby_signals': list(s1_f),
+            'fby_win': list(fby_win),
+            'vol_spike': list(s1_v),
+            'vol_win': list(vol_win),
+        })
+
+    g_win_rate = round(total_still_win / max(total_s1_gainers, 1) * 100, 1)
+    g_lose_rate = round(total_became_lose / max(total_s1_gainers, 1) * 100, 1)
+    g_neutral = total_s1_gainers - total_still_win - total_became_lose
+    g_neutral_rate = round(g_neutral / max(total_s1_gainers, 1) * 100, 1)
+
+    fby_win_rate = round(total_fby_win / max(total_fby, 1) * 100, 1)
+    vol_win_rate = round(total_volspike_win / max(total_volspike, 1) * 100, 1)
+
+    return {
+        'status': 'ok',
+        'summary': {
+            'paired_days': len(paired_dates),
+            'total_s1_gainers': total_s1_gainers,
+            'total_fby': total_fby,
+            'total_volspike': total_volspike,
+        },
+        'strategies': [
+            {
+                'id': 's1_gainers',
+                'name': 'Beli Top Gainer Sesi 1 → Tahan ke Akhir Sesi',
+                'trades': total_s1_gainers,
+                'wins': total_still_win,
+                'losses': total_became_lose,
+                'neutral': g_neutral,
+                'win_rate': g_win_rate,
+                'loss_rate': g_lose_rate,
+                'neutral_rate': g_neutral_rate,
+                'verdict': 'REKOMENDASI' if g_win_rate > 50 else 'HINDAKI',
+                'color': 'var(--success)' if g_win_rate > 50 else 'var(--danger)',
+            },
+            {
+                'id': 'fby',
+                'name': 'Beli Sesi 1 Naik Setelah Asing Beli → Tahan ke Akhir Sesi',
+                'trades': total_fby,
+                'wins': total_fby_win,
+                'losses': total_fby_lose,
+                'neutral': total_fby - total_fby_win - total_fby_lose,
+                'win_rate': fby_win_rate,
+                'verdict': 'MODERAT' if fby_win_rate > 10 else 'LEMAH',
+                'color': 'var(--warning)' if fby_win_rate > 10 else 'var(--muted)',
+            },
+            {
+                'id': 'volspike',
+                'name': 'Beli Sesi 1 Lonjakan Volume → Tahan ke Akhir Sesi',
+                'trades': total_volspike,
+                'wins': total_volspike_win,
+                'losses': total_volspike_lose,
+                'neutral': total_volspike - total_volspike_win - total_volspike_lose,
+                'win_rate': vol_win_rate,
+                'verdict': 'MODERAT' if vol_win_rate > 10 else 'LEMAH',
+                'color': 'var(--warning)' if vol_win_rate > 10 else 'var(--muted)',
+            },
+        ],
+        'daily': daily_details[-30:],  # last 30 days
+    }

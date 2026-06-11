@@ -173,8 +173,8 @@ marketreports view (default)
 ## Status
 
 - [ ] Buat rencana ini (✅ SELESAI)
-- [ ] Edit `dashboard_vue.html` — hapus menu & content selain Market Reports
-- [ ] Edit `dashboard.js` — simplifikasi navItems, routing, switchView
-- [ ] Edit `dashboard.css` — optional cleanup
-- [ ] Testing — pastikan semua 5 tab Market Reports berfungsi
+- [x] Edit `dashboard_vue.html` — hapus menu & content selain Market Reports
+- [x] Edit `dashboard.js` — simplifikasi navItems, routing, switchView
+- [x] Edit `dashboard.css` — optional cleanup (skip, minor)
+- [x] Testing — pastikan semua 5 tab Market Reports berfungsi
 - [ ] Cleanup optional routes di `routes.py`

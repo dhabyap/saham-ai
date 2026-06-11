@@ -96,9 +96,6 @@ class TelegramBot:
                 "/toploser - Top loser hari ini\n"
                 "/topvolume - Top volume perdagangan\n"
                 "/market - Overview market IDX\n\n"
-                "*Dashboard:*\n"
-                "/overview - Overview market IDX\n"
-                "/movers - Top gainers/losers/volume\n\n"
                 "*Strategi:*\n"
                 "/daytrade BBCA - BPJS Day Trade signal\n"
                 "/bpjs - Kandidat BPJS hari ini\n"
@@ -1130,8 +1127,6 @@ class TelegramBot:
             BotCommand("longtermcandidates", "Kandidat long term"),
             BotCommand("broker", "Input data broker asing (contoh: /broker BBCA)"),
             BotCommand("brokerhelp", "Panduan input data broker"),
-            BotCommand("overview", "Overview market IDX"),
-            BotCommand("movers", "Top gainers/losers/volume"),
         ]
         await app.bot.set_my_commands(commands)
 
@@ -1185,8 +1180,7 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("broker", self.broker_cmd))
         self.app.add_handler(CommandHandler("brokerhelp", self.brokerhelp_cmd))
         self.app.add_handler(CommandHandler("marketreport", self.marketreport_cmd))  # hidden
-        self.app.add_handler(CommandHandler("overview", self.overview_cmd))
-        self.app.add_handler(CommandHandler("movers", self.movers_cmd))
+
         self.app.add_error_handler(self.error_handler)
 
         print("🤖 Telegram Bot started...")

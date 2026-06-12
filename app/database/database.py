@@ -712,3 +712,126 @@ def init_db():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
+
+def get_market_reports(limit: int = 500) -> list:
+    """Load market reports from MySQL or SQLite based on DB_TYPE."""
+    import json
+
+    if DB_TYPE == "mysql":
+        conn = _get_mysql_connection()
+        cur = conn.cursor(dictionary=True)
+        ph = "%s"
+    else:
+        db_path = Config.DATABASE_PATH
+        if not os.path.exists(db_path):
+            return []
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        ph = "?"
+
+    try:
+        cur.execute(f'''
+            SELECT date, type, ihsg_change, gainer, loser, foreign_buy, local_buy,
+                   foreign_buy_yesterday, volume_spike, content
+            FROM market_reports
+            ORDER BY date DESC
+            LIMIT {ph}
+        ''', (limit,))
+        rows = cur.fetchall()
+        reports = []
+        for r in rows:
+            report = {
+                'date': r['date'],
+                'type': r['type'],
+                'ihsg_change': r['ihsg_change'],
+                'gainer': json.loads(r['gainer']) if r['gainer'] else [],
+                'loser': json.loads(r['loser']) if r['loser'] else [],
+                'foreign_buy': json.loads(r['foreign_buy']) if r['foreign_buy'] else [],
+                'local_buy': json.loads(r['local_buy']) if r['local_buy'] else [],
+                'foreign_buy_yesterday': json.loads(r['foreign_buy_yesterday']) if r['foreign_buy_yesterday'] else [],
+                'volume_spike': json.loads(r['volume_spike']) if r['volume_spike'] else [],
+                'content': r['content'],
+            }
+            reports.append(report)
+        return reports
+    finally:
+        conn.close()
+
+
+def save_market_reports_to_db(reports: list):
+    """Insert or replace market reports into MySQL or SQLite based on DB_TYPE."""
+    import json
+
+    if DB_TYPE == "mysql":
+        conn = _get_mysql_connection()
+        cur = conn.cursor()
+        ph = "%s"
+        replace_sql = "REPLACE INTO"
+        create_sql = '''
+            CREATE TABLE IF NOT EXISTS market_reports (
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                date VARCHAR(10) NOT NULL,
+                type VARCHAR(20) NOT NULL DEFAULT 'akhir_sesi',
+                ihsg_change DOUBLE,
+                gainer TEXT,
+                loser TEXT,
+                foreign_buy TEXT,
+                local_buy TEXT,
+                foreign_buy_yesterday TEXT,
+                volume_spike TEXT,
+                content TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(date, type)
+            )
+        '''
+    else:
+        db_path = Config.DATABASE_PATH
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        ph = "?"
+        replace_sql = "INSERT OR REPLACE INTO"
+        create_sql = '''
+            CREATE TABLE IF NOT EXISTS market_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT NOT NULL,
+                type TEXT NOT NULL DEFAULT 'akhir_sesi',
+                ihsg_change REAL,
+                gainer TEXT,
+                loser TEXT,
+                foreign_buy TEXT,
+                local_buy TEXT,
+                foreign_buy_yesterday TEXT,
+                volume_spike TEXT,
+                content TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(date, type)
+            )
+        '''
+
+    try:
+        cur.execute(create_sql)
+        for r in reports:
+            cur.execute(f'''
+                {replace_sql} market_reports
+                (date, type, ihsg_change, gainer, loser, foreign_buy, local_buy,
+                 foreign_buy_yesterday, volume_spike, content)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+            ''', (
+                r.get('date'),
+                r.get('type', 'akhir_sesi'),
+                r.get('ihsg_change'),
+                json.dumps(r.get('gainer', [])),
+                json.dumps(r.get('loser', [])),
+                json.dumps(r.get('foreign_buy', [])),
+                json.dumps(r.get('local_buy', [])),
+                json.dumps(r.get('foreign_buy_yesterday', [])),
+                json.dumps(r.get('volume_spike', [])),
+                r.get('content', '')
+            ))
+        conn.commit()
+    except Exception as e:
+        print(f'DB save error: {e}')
+        conn.rollback()
+    finally:
+        conn.close()

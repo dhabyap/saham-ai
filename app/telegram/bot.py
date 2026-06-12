@@ -55,7 +55,6 @@ class TelegramBot:
                 f"/toploser - Top loser hari ini\n"
                 f"/topvolume - Top volume\n"
                 f"/market - Ringkasan market\n"
-                f"/sentiment - Sentimen market\n"
                 f"/rekomendasi - Rekomendasi beli besok\n"
                 f"/daytrade BBCA - BPJS Day Trade signal\n"
                 f"/bpjs - Kandidat BPJS hari ini\n"
@@ -66,7 +65,6 @@ class TelegramBot:
                 f"/feedback benar BBCA - Beri feedback\n"
                 f"/accuracy - Skor AI\n"
                 f"/performance - Performa AI\n"
-                f"/strategy - Mode strategi\n"
                 f"/help - Bantuan\n\n"
                 f"Contoh: /analyze BBCA",
                 parse_mode="Markdown",
@@ -97,13 +95,7 @@ class TelegramBot:
                 "/topgainer - Top gainer hari ini\n"
                 "/toploser - Top loser hari ini\n"
                 "/topvolume - Top volume perdagangan\n"
-                "/market - Overview market IDX\n"
-                "/sentiment - Sentimen market\n\n"
-                "*Dashboard:*\n"
-                "/overview - Overview market IDX\n"
-                "/movers - Top gainers/losers/volume\n"
-                "/sectors - Performa sektor\n"
-                "/predictions - Prediksi & alert terbaru\n\n"
+                "/market - Overview market IDX\n\n"
                 "*Strategi:*\n"
                 "/daytrade BBCA - BPJS Day Trade signal\n"
                 "/bpjs - Kandidat BPJS hari ini\n"
@@ -115,8 +107,7 @@ class TelegramBot:
                 "*AI & Feedback:*\n"
                 "/feedback benar BBCA - Kirim feedback\n"
                 "/accuracy - Akurasi prediksi AI\n"
-                "/performance - Performa prediksi\n"
-                "/strategy - Mode strategi aktif\n\n"
+                "/performance - Performa prediksi\n\n"
                 "*Saham tersedia:*\n"
                 f"{', '.join(sorted(STOCK_LIST.keys())[:10])}\n"
                 "dan lainnya..."
@@ -132,11 +123,17 @@ class TelegramBot:
         """Handle /analyze command - analyze single stock."""
         try:
             if not context.args:
-                await update.message.reply_text("Gunakan: /analyze BBCA")
-                return
-
-            code = context.args[0].upper()
-            await update.message.reply_text(f"🔍 Menganalisa {code}...")
+                # Auto-pilih top gainer pertama
+                await update.message.reply_text("📈 Ambil saham trending...")
+                gainers = get_top_gainers(1)
+                if not gainers:
+                    await update.message.reply_text("📈 Gak ada data trending. Coba /analyze BBCA manual.")
+                    return
+                code = gainers[0]["code"]
+                await update.message.reply_text(f"🔍 Analisa {code} (top gainer)...")
+            else:
+                code = context.args[0].upper()
+                await update.message.reply_text(f"🔍 Menganalisa {code}...")
 
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
@@ -494,30 +491,6 @@ class TelegramBot:
                 "❌ Error: /performance tidak tersedia saat ini"
             )
 
-    async def strategy_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /strategy command - list active strategies."""
-        try:
-            strategies = ai_crud.get_strategies(active_only=True)
-            if not strategies:
-                await update.message.reply_text("Belum ada strategi dikonfigurasi.")
-                return
-
-            message = "🎯 *Strategy Modes:*\n\n"
-            for s in strategies:
-                message += (
-                    f"• {s.get('display_name', s.get('strategy_name', s['name']))}\n"
-                    f"  {s.get('description', '')}\n"
-                    f"  Risk: {s.get('risk_profile', '-')} | "
-                    f"Period: {s.get('holding_period', '-')}\n\n"
-                )
-
-            await update.message.reply_text(message, parse_mode="Markdown")
-        except Exception as e:
-            print(f"Error in strategy: {e}")
-            await update.message.reply_text(
-                "❌ Error: /strategy tidak tersedia saat ini"
-            )
-
     async def rekomendasi_cmd(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /rekomendasi command - AI stock recommendations."""
         try:
@@ -569,11 +542,18 @@ class TelegramBot:
         """Handle /daytrade command - BPJS single stock analysis."""
         try:
             if not context.args:
-                await update.message.reply_text("Gunakan: /daytrade BBCA")
-                return
-
-            code = context.args[0].upper()
-            await update.message.reply_text(f"🔍 Scanning BPJS untuk {code}...")
+                # Auto-pilih kandidat BPJS pertama
+                await update.message.reply_text("🔍 Cari kandidat BPJS...")
+                candidates, _ = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda: BPJSStrategy().scan_candidates())
+                if not candidates:
+                    await update.message.reply_text("📭 Gak ada kandidat BPJS. Coba /daytrade BBCA manual.")
+                    return
+                code = candidates[0]["stock_code"]
+                await update.message.reply_text(f"🔍 Scanning BPJS {code}...")
+            else:
+                code = context.args[0].upper()
+                await update.message.reply_text(f"🔍 Scanning BPJS untuk {code}...")
 
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(None, lambda: BPJSStrategy().analyze(code))
@@ -660,11 +640,18 @@ class TelegramBot:
         """Handle /longterm command - long term single stock analysis."""
         try:
             if not context.args:
-                await update.message.reply_text("Gunakan: /longterm BBCA")
-                return
-
-            code = context.args[0].upper()
-            await update.message.reply_text(f"🔍 Analisis akumulasi untuk {code}...")
+                # Auto-pilih kandidat LT pertama
+                await update.message.reply_text("🔍 Cari kandidat long term...")
+                candidates = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda: CreativeTraderStrategy().scan_for_long_term_candidates())
+                if not candidates:
+                    await update.message.reply_text("📭 Gak ada kandidat LT. Coba /longterm BBCA manual.")
+                    return
+                code = candidates[0]["stock_code"]
+                await update.message.reply_text(f"🔍 Analisa {code}...")
+            else:
+                code = context.args[0].upper()
+                await update.message.reply_text(f"🔍 Analisis akumulasi untuk {code}...")
 
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(None, lambda: CreativeTraderStrategy().analyze(code))
@@ -1130,23 +1117,16 @@ class TelegramBot:
             BotCommand("toploser", "Top loser hari ini"),
             BotCommand("topvolume", "Top volume perdagangan"),
             BotCommand("market", "Ringkasan market IDX"),
-            BotCommand("sentiment", "Sentimen market"),
             BotCommand("feedback", "Kirim feedback"),
             BotCommand("accuracy", "Akurasi prediksi"),
             BotCommand("performance", "Performa portofolio"),
-            BotCommand("strategy", "Strategi rekomendasi"),
             BotCommand("rekomendasi", "Rekomendasi saham beli besok"),
             BotCommand("daytrade", "BPJS Day Trade (contoh: /daytrade BBCA)"),
             BotCommand("bpjs", "Kandidat BPJS hari ini"),
-            BotCommand("daytradecandidates", "Kandidat BPJS (alias /bpjs)"),
             BotCommand("longterm", "Long term akumulasi (contoh: /longterm BBCA)"),
             BotCommand("longtermcandidates", "Kandidat long term"),
             BotCommand("broker", "Input data broker asing (contoh: /broker BBCA)"),
             BotCommand("brokerhelp", "Panduan input data broker"),
-            BotCommand("overview", "Overview market IDX"),
-            BotCommand("movers", "Top gainers/losers/volume"),
-            BotCommand("sectors", "Performa sektor"),
-            BotCommand("predictions", "Prediksi & alert terbaru"),
         ]
         await app.bot.set_my_commands(commands)
 
@@ -1189,24 +1169,18 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("toploser", self.top_loser))
         self.app.add_handler(CommandHandler("topvolume", self.top_volume))
         self.app.add_handler(CommandHandler("market", self.market))
-        self.app.add_handler(CommandHandler("sentiment", self.sentiment))
         self.app.add_handler(CommandHandler("feedback", self.feedback_cmd))
         self.app.add_handler(CommandHandler("accuracy", self.accuracy_cmd))
         self.app.add_handler(CommandHandler("performance", self.performance_cmd))
-        self.app.add_handler(CommandHandler("strategy", self.strategy_cmd))
         self.app.add_handler(CommandHandler("rekomendasi", self.rekomendasi_cmd))
         self.app.add_handler(CommandHandler("daytrade", self.daytrade_cmd))
         self.app.add_handler(CommandHandler("bpjs", self.daytrade_candidates_cmd))
-        self.app.add_handler(CommandHandler("daytradecandidates", self.daytrade_candidates_cmd))
         self.app.add_handler(CommandHandler("longterm", self.longterm_cmd))
         self.app.add_handler(CommandHandler("longtermcandidates", self.longtermcandidates_cmd))
         self.app.add_handler(CommandHandler("broker", self.broker_cmd))
         self.app.add_handler(CommandHandler("brokerhelp", self.brokerhelp_cmd))
         self.app.add_handler(CommandHandler("marketreport", self.marketreport_cmd))  # hidden
-        self.app.add_handler(CommandHandler("overview", self.overview_cmd))
-        self.app.add_handler(CommandHandler("movers", self.movers_cmd))
-        self.app.add_handler(CommandHandler("sectors", self.sectors_cmd))
-        self.app.add_handler(CommandHandler("predictions", self.predictions_cmd))
+
         self.app.add_error_handler(self.error_handler)
 
         print("🤖 Telegram Bot started...")

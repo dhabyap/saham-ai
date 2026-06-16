@@ -85,6 +85,10 @@
         <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Account</button>
         <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">Alerts</button>
       </div>
+      <div v-else-if="currentView === 'shareholders'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'top' }" @click="currentTab = 'top'">Top Holders</button>
+      </div>
       <div v-else-if="currentView === 'marketreports'" class="tabs">
         <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📈 IHSG Chart</button>
         <button class="tab-btn" :class="{ active: currentTab === 'reports' }" @click="switchMrTab('reports')">📋 Reports</button>
@@ -1113,6 +1117,14 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div v-else-if="currentView === 'shareholders'">
+          <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <div class="card p-4">Shareholders Overview</div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'top' }">
+            <div class="card p-4">Top Holders</div>
           </div>
         </div>
         <div v-else-if="currentView === 'settings'">

@@ -110,12 +110,13 @@
           { view: 'daytrading', icon: '&#8644;', label: 'Day Trading' },
           { view: 'longterm',   icon: '&#9670;', label: 'Long Term' },
           { view: 'analysis',   icon: '&#9776;', label: 'Analysis' },
+          { view: 'shareholders', icon: '👥', label: 'Shareholders' },
           { view: 'settings',   icon: '&#9881;', label: 'Settings' },
           { view: 'marketreports', icon: '📊', label: 'Market Reports' },
         ];
 
         const headerTitle = computed(() => {
-          const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', settings: 'Settings', marketreports: 'Market Reports' };
+          const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', shareholders: 'Shareholders', settings: 'Settings', marketreports: 'Market Reports' };
           return map[currentView.value] || 'Dashboard';
         });
 

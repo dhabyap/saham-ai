@@ -65,6 +65,14 @@ async def startup() -> None:
     except Exception as e:
         logger.warning("⚠ Strategy seed: %s", e)
 
+    # Initialize shareholder table
+    try:
+        from app.services.shareholder_service import get_latest_period
+        get_latest_period()
+        logger.info("✓ Shareholder database initialized")
+    except Exception as e:
+        logger.warning("⚠ Shareholder table: %s", e)
+
     # Start scheduler
     start_scheduler()
 
@@ -102,6 +110,12 @@ async def dashboard_vue() -> FileResponse:
 @app.get("/market-reports")
 async def market_reports_page() -> FileResponse:
     """Market reports page - serves SPA with market view active"""
+    return FileResponse(os.path.join(TEMPLATES_DIR, "dashboard_vue.html"))
+
+
+@app.get("/shareholders")
+async def shareholders_page() -> FileResponse:
+    """Shareholder >1% tracking page"""
     return FileResponse(os.path.join(TEMPLATES_DIR, "dashboard_vue.html"))
 
 

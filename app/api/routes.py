@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List
@@ -34,6 +34,15 @@ from app.database.foreign_flow_models import (
     get_all_accumulation_status,
 )
 from app.services.treemap_service import get_treemap_data
+from app.services.shareholder_service import (
+    get_shareholders_by_stock,
+    get_shareholder_portfolio,
+    get_available_periods,
+    get_top_shareholders,
+    get_latest_period,
+    upsert_shareholder,
+    bulk_import,
+)
 import pandas as pd
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -55,6 +64,198 @@ class WatchlistRequest(BaseModel):
 class AnalyzeRequest(BaseModel):
     stock_code: str
     use_ai: Optional[bool] = True
+
+
+@router.get("/shareholders/periods")
+def shareholder_periods():
+    """List available data periods + stats."""
+    from app.services.shareholder_service import get_db
+    periods = get_available_periods()
+    latest = get_latest_period()
+    # Stats for latest period
+    stats = {"total_records": 0, "total_stocks": 0, "total_holders": 0}
+    if latest:
+        with get_db() as conn:
+            cur = conn.execute("SELECT COUNT(*) FROM shareholders WHERE data_period=?", (latest,))
+            stats["total_records"] = cur.fetchone()[0]
+            cur = conn.execute("SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE data_period=?", (latest,))
+            stats["total_stocks"] = cur.fetchone()[0]
+            cur = conn.execute("SELECT COUNT(DISTINCT shareholder_name) FROM shareholders WHERE data_period=?", (latest,))
+            stats["total_holders"] = cur.fetchone()[0]
+    return {
+        "status": "ok",
+        "periods": periods,
+        "latest": latest,
+        "stats": stats,
+    }
+
+@router.get("/stats/shareholders")
+def shareholder_stats(period: Optional[str] = None):
+    """Get aggregate stats for a period."""
+    from app.services.shareholder_service import get_db
+    with get_db() as conn:
+        cur = conn.execute("SELECT COUNT(*) FROM shareholders WHERE 1=1" + 
+            (" AND data_period=?" if period else ""),
+            (period,) if period else ())
+        total = cur.fetchone()[0]
+        cur = conn.execute("SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE 1=1" + 
+            (" AND data_period=?" if period else ""),
+            (period,) if period else ())
+        stocks = cur.fetchone()[0]
+        cur = conn.execute("SELECT COUNT(DISTINCT shareholder_name) FROM shareholders WHERE 1=1" + 
+            (" AND data_period=?" if period else ""),
+            (period,) if period else ())
+        holders = cur.fetchone()[0]
+        # Top holder name
+        top_sql = """SELECT shareholder_name, SUM(share_percent) as total 
+            FROM shareholders WHERE 1=1"""
+        if period:
+            top_sql += " AND data_period=?"
+        top_sql += " GROUP BY shareholder_name ORDER BY total DESC LIMIT 1"
+        cur = conn.execute(top_sql, (period,) if period else ())
+        top = cur.fetchone()
+    return {
+        "status": "ok",
+        "total_records": total,
+        "total_stocks": stocks,
+        "total_holders": holders,
+        "top_holder": top[0] if top else "-",
+        "period": period or "all",
+    }
+
+
+@router.get("/shareholders/top")
+def shareholder_top(
+    limit: int = Query(20, ge=1, le=100),
+    period: Optional[str] = None,
+    min_pct: float = Query(1.0, ge=0.1, le=100),
+):
+    """Top individual shareholders across all stocks."""
+    return {
+        "status": "ok",
+        "period": period or "latest",
+        "data": get_top_shareholders(limit, period, min_pct),
+    }
+
+
+@router.get("/shareholders/search/{name}")
+def shareholder_search(name: str, period: Optional[str] = None):
+    """Search portfolio of a specific shareholder (e.g. 'LO KHENG HONG')."""
+    return {
+        "status": "ok",
+        "shareholder_name": name,
+        "period": period or "latest",
+        "data": get_shareholder_portfolio(name, period),
+    }
+
+
+@router.get("/shareholders/{stock_code}")
+def shareholder_by_stock(stock_code: str, period: Optional[str] = None):
+    """Get shareholder >1% data for a stock."""
+    return {
+        "status": "ok",
+        "stock_code": stock_code.upper(),
+        "period": period or "latest",
+        "data": get_shareholders_by_stock(stock_code, period),
+    }
+
+
+class ShareholderImportItem(BaseModel):
+    stock_code: str
+    shareholder_name: str
+    share_percent: float
+    share_count: int = 0
+    category: str = ''
+
+
+class ShareholderImportRequest(BaseModel):
+    period: str
+    data: List[ShareholderImportItem]
+    source: str = 'manual'
+
+
+@router.post("/shareholders/import")
+def shareholder_import(req: ShareholderImportRequest):
+    """Import shareholder data (single or batch)."""
+    items = [item.model_dump() for item in req.data]
+    result = bulk_import(items, req.period)
+    return {"status": "ok", "period": req.period, **result}
+
+
+@router.post("/shareholders/upload")
+async def shareholder_upload(
+    file: UploadFile = File(...),
+    period: str = Form(...),
+):
+    """Upload CSV or Excel file to import shareholder data."""
+    if not file.filename:
+        raise HTTPException(400, "No file provided")
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in ('csv', 'xlsx'):
+        raise HTTPException(400, "Only .csv or .xlsx files accepted")
+
+    period = period.strip().upper()
+    if not period:
+        raise HTTPException(400, "Period is required (e.g. JUN2026)")
+
+    import io
+    import csv
+
+    rows = []
+    try:
+        if ext == 'csv':
+            content = await file.read()
+            text = content.decode('utf-8-sig')
+            reader = csv.DictReader(io.StringIO(text))
+            for row in reader:
+                sc = row.get('stock_code', '').strip().upper()
+                nm = row.get('shareholder_name', '').strip().upper()
+                pct_str = row.get('share_percent', '0').strip().replace(',', '.')
+                cnt_str = row.get('share_count', '0').strip()
+                try:
+                    pct = float(pct_str) if pct_str else 0
+                    cnt = int(cnt_str) if cnt_str else 0
+                except ValueError:
+                    continue
+                if not sc or not nm or pct <= 0:
+                    continue
+                rows.append({
+                    'stock_code': sc,
+                    'shareholder_name': nm,
+                    'share_percent': pct,
+                    'share_count': cnt,
+                })
+        elif ext == 'xlsx':
+            content = await file.read()
+            import pandas as pd
+            df = pd.read_excel(io.BytesIO(content), dtype=str)
+            df.columns = [c.strip().lower() for c in df.columns]
+            for _, row in df.iterrows():
+                sc = str(row.get('stock_code', '')).strip().upper()
+                nm = str(row.get('shareholder_name', '')).strip().upper()
+                pct_str = str(row.get('share_percent', '0')).strip().replace(',', '.')
+                cnt_str = str(row.get('share_count', '0')).strip()
+                try:
+                    pct = float(pct_str) if pct_str else 0
+                    cnt = int(float(cnt_str)) if cnt_str else 0
+                except ValueError:
+                    continue
+                if not sc or not nm or pct <= 0:
+                    continue
+                rows.append({
+                    'stock_code': sc,
+                    'shareholder_name': nm,
+                    'share_percent': pct,
+                    'share_count': cnt,
+                })
+    except Exception as e:
+        raise HTTPException(400, f"Failed to parse file: {e}")
+
+    if not rows:
+        raise HTTPException(400, "No valid data found in file")
+
+    result = bulk_import(rows, period)
+    return {"status": "ok", "period": period, **result}
 
 
 @router.get("/health")

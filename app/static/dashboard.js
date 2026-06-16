@@ -3,12 +3,14 @@
     createApp({
       setup() {
         const currentTheme = ref('neumorphism');
-        const currentView = ref('dashboard');
+        const currentView = ref('marketreports');
         const currentTab = ref('overview');
         const searchQuery = ref('');
         const sidebarOpen = ref(true);
         const searchOpen = ref(false);
         const dateStr = ref('');
+        const mrLoading = ref(false);
+        const mrError = ref(null);
         const mrReports = ref([]);
         const mrStats = ref({ totalReports: 0, avgIHSG: 0, foreignStocks: 0, redDays: 0 });
         const mrForeignStocks = ref([]);
@@ -104,17 +106,20 @@
         ];
 
         const navItems = [
-          { view: 'dashboard',  icon: '&#9751;', label: 'Dashboard' },
-          { view: 'daytrading', icon: '&#8644;', label: 'Day Trading' },
-          { view: 'longterm',   icon: '&#9670;', label: 'Long Term' },
-          { view: 'analysis',   icon: '&#9776;', label: 'Analysis' },
-          { view: 'settings',   icon: '&#9881;', label: 'Settings' },
           { view: 'marketreports', icon: '📊', label: 'Market Reports' },
+          { view: 'shareholders', icon: '📋', label: 'Shareholders' },
         ];
 
         const headerTitle = computed(() => {
-          const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', settings: 'Settings', marketreports: 'Market Reports' };
-          return map[currentView.value] || 'Dashboard';
+          const titles = {
+            marketreports: currentTab.value === 'overview' ? 'Dashboard' : 'Market Reports',
+            shareholders: 'Shareholders',
+            daytrading: 'Day Trading',
+            longterm: 'Long Term',
+            analysis: 'Stock Analysis',
+            settings: 'Settings',
+          };
+          return titles[currentView.value] || 'Dashboard';
         });
 
         const dashboardTabs = [
@@ -199,6 +204,22 @@
         const analysisSectors = ['All', 'Financials', 'Technology', 'Energy', 'Consumer Cycl.', 'Healthcare'];
 
         const analysisStocks = ref([]);
+
+        // ── Shareholders State ──
+        const shPeriods = ref([]);
+        const shSelectedPeriod = ref('');
+        const shStats = ref({ totalStock:0, totalHolder:0, topHolderCount:0, periodCount:0 });
+        const shStockQuery = ref('');
+        const shStockResult = ref([]);
+        const shStockLoading = ref(false);
+        const shStockError = ref('');
+        const shHolderQuery = ref('');
+        const shHolderResult = ref([]);
+        const shHolderLoading = ref(false);
+        const shHolderError = ref('');
+        const shTopResult = ref([]);
+        const shTopPreview = ref([]);
+        const shTopLoading = ref(false);
 
         const filteredAnalysis = computed(() => {
           let items = analysisStocks.value;
@@ -580,6 +601,8 @@
         }
 
         async function loadMarketReports() {
+          mrLoading.value = true;
+          mrError.value = null;
           try {
             const res = await fetch('/api/market-reports?limit=500');
             const json = await res.json();
@@ -613,7 +636,9 @@
             setTimeout(() => renderMrCharts(full), 100);
           } catch(e) {
             console.error('Market report load failed:', e);
+            mrError.value = 'Gagal memuat data market report. Coba refresh.';
           }
+          mrLoading.value = false;
         }
 
         async function loadMrAnalysis() {
@@ -662,7 +687,7 @@
 
         function switchMrTab(tab) {
           currentTab.value = tab;
-          if (tab === 'overview') setTimeout(() => renderMrCharts(mrReports.value), 100);
+          if (tab === 'ihsg') setTimeout(() => renderMrCharts(mrReports.value), 100);
           if (tab === 'analysis' && !mrAnalysis.value) loadMrAnalysis();
           if (tab === 'backtest' && !mrBtData.value) loadBacktest();
         }
@@ -692,17 +717,15 @@
 
         function switchView(view, tab) {
           currentView.value = view;
-          if (view === 'marketreports') loadMarketReports();
-          const firstTabs = {
-            dashboard: 'overview',
-            daytrading: 'signals',
-            longterm: 'accumulation',
-            analysis: 'search',
-            settings: 'general',
-            marketreports: 'overview',
-          };
-          _viewChanging = true;
-          currentTab.value = tab || firstTabs[view] || 'overview';
+          currentTab.value = tab || 'overview';
+          if (view === 'marketreports') {
+            if (tab === 'reports' || tab === 'ihsg' || tab === 'analysis' || tab === 'backtest' || tab === 'stocks') {
+              loadMarketReports();
+            }
+          }
+          if (view === 'shareholders') {
+            shLoadAll();
+          }
           if (window.innerWidth <= 768) sidebarOpen.value = false;
         }
 
@@ -969,6 +992,228 @@
           } catch(e) { console.error('Alerts load failed:', e); }
         }
 
+        // ── Shareholders Functions ──
+        function shPctClass(v) {
+          if (v >= 10) return 'text-success';
+          if (v >= 5) return 'text-warning';
+          return 'text-muted';
+        }
+        function shRankClass(i) {
+          if (i === 0) return 'rank-gold';
+          if (i === 1) return 'rank-silver';
+          if (i === 2) return 'rank-bronze';
+          return '';
+        }
+        function shFmtNum(n) {
+          if (!n) return '-';
+          return n.toLocaleString('id-ID');
+        }
+        async function shLoadPeriods() {
+          try {
+            const r = await fetch('/api/shareholders/periods');
+            const d = await r.json();
+            if (d.status === 'ok') {
+              shPeriods.value = d.periods || [];
+              shSelectedPeriod.value = d.latest || '';
+              shStats.value.periodCount = shPeriods.value.length;
+            }
+          } catch(e) { console.error('sh periods', e); }
+        }
+        async function shLoadTop() {
+          shTopLoading.value = true;
+          try {
+            const p = shSelectedPeriod.value ? `&period=${shSelectedPeriod.value}` : '';
+            const r = await fetch(`/api/shareholders/top?limit=50${p}`);
+            const d = await r.json();
+            if (d.status === 'ok') {
+              shTopResult.value = d.data || [];
+              shTopPreview.value = (d.data || []).slice(0, 5);
+              shStats.value.topHolderCount = shTopResult.value.length;
+              shStats.value.totalHolder = shTopResult.value.length;
+              // Estimate stock count from top holders
+              let codes = new Set();
+              shTopResult.value.forEach(h => {
+                const parts = (h.holdings || '').split(',');
+                parts.forEach(part => {
+                  const m = part.trim().match(/^([A-Z]+)/);
+                  if (m) codes.add(m[1]);
+                });
+              });
+              shStats.value.totalStock = codes.size || shTopResult.value.length * 2;
+            }
+          } catch(e) { console.error('sh top', e); }
+          finally { shTopLoading.value = false; }
+        }
+        async function shSearchStock() {
+          const q = shStockQuery.value.trim().toUpperCase();
+          if (!q) return;
+          currentTab.value = 'search';
+          shStockLoading.value = true;
+          shStockError.value = '';
+          try {
+            const p = shSelectedPeriod.value ? `?period=${shSelectedPeriod.value}` : '';
+            const r = await fetch(`/api/shareholders/${q}${p}`);
+            const d = await r.json();
+            if (d.status === 'ok') {
+              shStockResult.value = d.data || [];
+              if (!shStockResult.value.length) shStockError.value = 'Data tidak ditemukan untuk periode ini';
+            }
+          } catch(e) { shStockError.value = 'Gagal memuat data'; }
+          finally { shStockLoading.value = false; }
+        }
+        async function shSearchHolder() {
+          const q = shHolderQuery.value.trim().toUpperCase();
+          if (!q) return;
+          currentTab.value = 'search';
+          shHolderLoading.value = true;
+          shHolderError.value = '';
+          try {
+            const p = shSelectedPeriod.value ? `?period=${shSelectedPeriod.value}` : '';
+            const r = await fetch(`/api/shareholders/search/${encodeURIComponent(q)}${p}`);
+            const d = await r.json();
+            if (d.status === 'ok') {
+              shHolderResult.value = d.data || [];
+              if (!shHolderResult.value.length) shHolderError.value = 'Tidak ditemukan';
+            }
+          } catch(e) { shHolderError.value = 'Gagal memuat data'; }
+          finally { shHolderLoading.value = false; }
+        }
+        function shSelectPeriod(p) {
+          shSelectedPeriod.value = p;
+          shLoadTop();
+          if (shStockQuery.value.trim()) shSearchStock();
+          if (shHolderQuery.value.trim()) shSearchHolder();
+        }
+        // ── Shareholder Import ──
+        const shImportTab = ref('single');
+        const shForm = ref({ stock_code: '', shareholder_name: '', share_percent: '', share_count: '', data_period: '' });
+        const shPendingEntries = ref([]);
+        const shBatchPeriod = ref('');
+        const shJsonText = ref('');
+        const shJsonPeriod = ref('');
+        const shImportResult = ref(null);
+        const shToast = ref({ show: false, msg: '', type: 'success' });
+
+        function shShowToast(msg, type='success') {
+          shToast.value = { show: true, msg, type };
+          setTimeout(() => { shToast.value.show = false; }, 3000);
+        }
+
+        function shAddEntry() {
+          const entry = {
+            stock_code: shForm.value.stock_code.toUpperCase(),
+            shareholder_name: shForm.value.shareholder_name.toUpperCase(),
+            share_percent: parseFloat(shForm.value.share_percent) || 0,
+            share_count: parseInt(shForm.value.share_count) || 0,
+            data_period: shForm.value.data_period.toUpperCase() || shBatchPeriod.value,
+          };
+          if (!entry.stock_code || !entry.shareholder_name || !entry.share_percent) return;
+          shPendingEntries.value.push(entry);
+          shForm.value = { stock_code: '', shareholder_name: '', share_percent: '', share_count: '', data_period: '' };
+        }
+
+        async function shImportBatch() {
+          const period = shBatchPeriod.value.trim().toUpperCase();
+          if (!period) { shImportResult.value = { status: 'error', msg: '⚠️ Isi periode!' }; return; }
+          if (!shPendingEntries.value.length) { shImportResult.value = { status: 'error', msg: '⚠️ Tidak ada data!' }; return; }
+          try {
+            const r = await fetch('/api/shareholders/import', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ period, data: shPendingEntries.value }),
+            });
+            const d = await r.json();
+            if (d.status === 'ok') {
+              shImportResult.value = { status: 'ok', msg: `✅ ${d.imported} data diimpor${d.errors?.length ? ', ' + d.errors.length + ' error' : ''}` };
+              shShowToast(`✅ ${d.imported} data berhasil diimpor!`, 'success');
+              shPendingEntries.value = [];
+              shBatchPeriod.value = '';
+              shLoadAll();
+            } else {
+              shImportResult.value = { status: 'error', msg: '⚠️ Gagal: ' + JSON.stringify(d) };
+              shShowToast('⚠️ Gagal import', 'error');
+            }
+          } catch(e) { shImportResult.value = { status: 'error', msg: '⚠️ Error: ' + e.message }; shShowToast('⚠️ Error: ' + e.message, 'error'); }
+        }
+
+        async function shImportJSON() {
+          const period = shJsonPeriod.value.trim().toUpperCase();
+          if (!period) { shImportResult.value = { status: 'error', msg: '⚠️ Isi periode!' }; return; }
+          let data;
+          try { data = JSON.parse(shJsonText.value); }
+          catch(e) { shImportResult.value = { status: 'error', msg: '⚠️ JSON tidak valid: ' + e.message }; return; }
+          if (!Array.isArray(data) || !data.length) { shImportResult.value = { status: 'error', msg: '⚠️ Array kosong' }; return; }
+          try {
+            const r = await fetch('/api/shareholders/import', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ period, data }),
+            });
+            const d = await r.json();
+            if (d.status === 'ok') {
+              shImportResult.value = { status: 'ok', msg: `✅ ${d.imported} data diimpor${d.errors?.length ? ', ' + d.errors.length + ' error' : ''}` };
+              shShowToast(`✅ ${d.imported} data berhasil diimpor!`, 'success');
+              shJsonText.value = '';
+              shJsonPeriod.value = '';
+              shLoadAll();
+            } else {
+              shImportResult.value = { status: 'error', msg: '⚠️ Gagal: ' + JSON.stringify(d) };
+              shShowToast('⚠️ Gagal import', 'error');
+            }
+          } catch(e) { shImportResult.value = { status: 'error', msg: '⚠️ Error: ' + e.message }; shShowToast('⚠️ Error: ' + e.message, 'error'); }
+        }
+
+        // ── Upload File ──
+        const shUploadFile = ref(null);
+        const shUploadPeriod = ref('');
+        const shUploadLoading = ref(false);
+        const shUploadResult = ref(null);
+        const shDragOver = ref(false);
+
+        function shOnDrop(e) {
+          shDragOver.value = false;
+          const file = e.dataTransfer.files[0];
+          if (file && (file.name.endsWith('.csv') || file.name.endsWith('.xlsx'))) shUploadFile.value = file;
+        }
+        function shOnFileSelected(e) {
+          const file = e.target.files[0];
+          if (file) shUploadFile.value = file;
+        }
+        function shFmtFileSize(bytes) {
+          if (bytes < 1024) return bytes + ' B';
+          if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+          return (bytes/1048576).toFixed(1) + ' MB';
+        }
+        async function shUploadSubmit() {
+          const period = shUploadPeriod.value.trim().toUpperCase();
+          if (!shUploadFile.value || !period) return;
+          shUploadLoading.value = true;
+          shUploadResult.value = null;
+          try {
+            const form = new FormData();
+            form.append('file', shUploadFile.value);
+            form.append('period', period);
+            const r = await fetch('/api/shareholders/upload', { method: 'POST', body: form });
+            const d = await r.json();
+            if (d.status === 'ok') {
+              shUploadResult.value = { status: 'ok', msg: `✅ ${d.imported} data diimpor${d.errors?.length ? ', ' + d.errors.length + ' error' : ''}` };
+              shShowToast(`✅ ${d.imported} data berhasil diimpor!`, 'success');
+              shUploadFile.value = null;
+              shUploadPeriod.value = '';
+              shLoadAll();
+            } else {
+              shUploadResult.value = { status: 'error', msg: '⚠️ Gagal: ' + JSON.stringify(d) };
+              shShowToast('⚠️ Upload gagal', 'error');
+            }
+          } catch(e) { shUploadResult.value = { status: 'error', msg: '⚠️ Error: ' + e.message }; shShowToast('⚠️ Error: ' + e.message, 'error'); }
+          finally { shUploadLoading.value = false; }
+        }
+
+        async function shLoadAll() {
+          await shLoadPeriods();
+          await shLoadTop();
+        }
+
         async function loadAllDashboardData() {
           await Promise.allSettled([
             loadMarketSummary(),
@@ -1006,8 +1251,9 @@
           const hash = window.location.hash.replace('#', '');
           if (!hash) return null;
           const parts = hash.split('/');
-          const validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'settings', 'marketreports'];
+          const validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'settings', 'marketreports', 'shareholders'];
           const view = validViews.includes(parts[0]) ? parts[0] : null;
+          if (view === 'dashboard') return { view: 'marketreports', tab: parts[1] || null };
           const tab = parts[1] || null;
           return { view, tab };
         }
@@ -1018,13 +1264,13 @@
           if (fromHash && fromHash.view) return fromHash;
           // Priority 2: URL pathname (direct server route)
           const path = window.location.pathname.replace(/\/$/, '');
-          const pathMap = { '/market-reports': 'marketreports', '/dashboard': 'dashboard', '/daytrading': 'daytrading', '/longterm': 'longterm', '/analysis': 'analysis', '/settings': 'settings' };
+          const pathMap = { '/market-reports': 'marketreports', '/dashboard': 'marketreports', '/daytrading': 'daytrading', '/longterm': 'longterm', '/analysis': 'analysis', '/settings': 'settings', '/shareholders': 'shareholders' };
           if (pathMap[path]) return { view: pathMap[path], tab: null };
           // Priority 3: Query param (legacy fallback)
           const params = new URLSearchParams(window.location.search);
           const view = params.get('view');
-          const validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'settings', 'marketreports'];
-          if (validViews.includes(view)) return { view, tab: null };
+          const validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'settings', 'marketreports', 'shareholders'];
+          if (validViews.includes(view)) return { view: view === 'dashboard' ? 'marketreports' : view, tab: null };
           return null;
         }
 
@@ -1035,10 +1281,12 @@
             const firstTabs = {
               dashboard: 'overview', daytrading: 'signals', longterm: 'accumulation',
               analysis: 'search', settings: 'general', marketreports: 'overview',
+              shareholders: 'overview',
             };
             _viewChanging = true;
             currentTab.value = result.tab || firstTabs[result.view] || 'overview';
             if (result.view === 'marketreports') loadMarketReports();
+            if (result.view === 'shareholders') shLoadAll();
           }
         }
 
@@ -1084,6 +1332,22 @@
           settingsAlerts, newAlertStock, newAlertType, newAlertCondition, addAlert, removeAlert,
           switchView, switchTheme, toggleSidebar, closeSearch, onSearchInput,
           mockScan, mockSave,
+          // Shareholders
+          shPeriods, shSelectedPeriod, shStats,
+          shStockQuery, shStockResult, shStockLoading, shStockError, shSearchStock,
+          shHolderQuery, shHolderResult, shHolderLoading, shHolderError, shSearchHolder,
+          shTopResult, shTopLoading,
+          shLoadAll, shSelectPeriod, shPctClass, shRankClass, shFmtNum,
+          shTopPreview,
+          // Import
+          shImportTab, shForm, shPendingEntries, shBatchPeriod,
+          shJsonText, shJsonPeriod, shImportResult,
+          shAddEntry, shImportBatch, shImportJSON,
+          // Upload
+          shUploadFile, shUploadPeriod, shUploadLoading, shUploadResult, shDragOver,
+          shOnDrop, shOnFileSelected, shFmtFileSize, shUploadSubmit,
+          // Toast
+          shToast, shShowToast,
           mrReports, mrStats, mrForeignStocks, mrLocalStocks,
           mrAnalysis, mrLoadingAnalysis,
           mrFilter, mrBtData, mrBtLoading, mrBtError,

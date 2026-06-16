@@ -6,7 +6,7 @@
 <title>AI Stock Analyzer — Dashboard</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="/static/dashboard.css?v=2">
+<link rel="stylesheet" href="/static/dashboard.css?v=3">
 </head>
 <body>
   <div id="app">
@@ -25,9 +25,39 @@
           <span>AI Stock Analyzer</span>
         </div>
         <ul class="nav">
-          <li v-for="nav in navItems" :key="nav.view">
-            <a :class="{ active: currentView === nav.view }" @click="switchView(nav.view)">
-              <span class="ico" v-html="nav.icon"></span> {{ nav.label }}
+          <li>
+            <a :class="{ active: currentView === 'marketreports' && currentTab === 'overview' }" @click="switchView('marketreports', 'overview')">
+              <span class="ico">📊</span> Dashboard
+            </a>
+          </li>
+          <li>
+            <a :class="{ active: currentView === 'marketreports' && currentTab !== 'overview' }" @click="switchView('marketreports', 'reports')">
+              <span class="ico">📋</span> Market Reports
+            </a>
+          </li>
+          <li>
+            <a :class="{ active: currentView === 'daytrading' }" @click="switchView('daytrading', 'signals')">
+              <span class="ico">⚡</span> Day Trading
+            </a>
+          </li>
+          <li>
+            <a :class="{ active: currentView === 'longterm' }" @click="switchView('longterm', 'accumulation')">
+              <span class="ico">💰</span> Long Term
+            </a>
+          </li>
+          <li>
+            <a :class="{ active: currentView === 'analysis' }" @click="switchView('analysis', 'search')">
+              <span class="ico">🔍</span> Analysis
+            </a>
+          </li>
+          <li>
+            <a :class="{ active: currentView === 'shareholders' }" @click="switchView('shareholders', 'overview')">
+              <span class="ico">📋</span> Shareholders
+            </a>
+          </li>
+          <li>
+            <a :class="{ active: currentView === 'settings' }" @click="switchView('settings', 'general')">
+              <span class="ico">⚙️</span> Settings
             </a>
           </li>
         </ul>
@@ -58,52 +88,101 @@
         </div>
         <span class="date-display">{{ dateStr }}</span>
       </header>
-      <div v-if="currentView === 'dashboard'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'aiperf' }" @click="currentTab = 'aiperf'">AI Performance</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'movers' }" @click="currentTab = 'movers'">Market Movers</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'sectors' }" @click="currentTab = 'sectors'">Sectors</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'preds' }" @click="currentTab = 'preds'">Predictions</button>
-      </div>
-      <div v-else-if="currentView === 'daytrading'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">Signals</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'candidates' }" @click="currentTab = 'candidates'">Candidates</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">History</button>
-      </div>
-      <div v-else-if="currentView === 'longterm'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'accumulation' }" @click="currentTab = 'accumulation'">Accumulation</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'portfolio' }" @click="currentTab = 'portfolio'">Portfolio</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'watchlist' }" @click="currentTab = 'watchlist'">Watchlist</button>
-      </div>
-      <div v-else-if="currentView === 'analysis'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">Search</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'detail' }" @click="currentTab = 'detail'">Detail</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'comparison' }" @click="currentTab = 'comparison'">Comparison</button>
-      </div>
-      <div v-else-if="currentView === 'settings'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">General</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Account</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">Alerts</button>
-      </div>
-      <div v-else-if="currentView === 'marketreports'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📈 IHSG Chart</button>
+      <div class="tabs" v-if="currentView === 'marketreports'">
+        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📊 Dashboard</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'ihsg' }" @click="switchMrTab('ihsg')">📈 IHSG Chart</button>
         <button class="tab-btn" :class="{ active: currentTab === 'reports' }" @click="switchMrTab('reports')">📋 Reports</button>
         <button class="tab-btn" :class="{ active: currentTab === 'stocks' }" @click="switchMrTab('stocks')">🏛️ Stock Tracker</button>
         <button class="tab-btn" :class="{ active: currentTab === 'analysis' }" @click="switchMrTab('analysis')">🤖 AI Analysis</button>
         <button class="tab-btn" :class="{ active: currentTab === 'backtest' }" @click="switchMrTab('backtest')">📊 Backtest</button>
       </div>
+      <div class="tabs" v-else-if="currentView === 'daytrading'">
+        <button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">📡 Signals</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'candidates' }" @click="currentTab = 'candidates'">📋 Candidates</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">📜 History</button>
+      </div>
+      <div class="tabs" v-else-if="currentView === 'longterm'">
+        <button class="tab-btn" :class="{ active: currentTab === 'accumulation' }" @click="currentTab = 'accumulation'">💰 Accumulation</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'portfolio' }" @click="currentTab = 'portfolio'">📁 Portfolio</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'watchlist' }" @click="currentTab = 'watchlist'">👁 Watchlist</button>
+      </div>
+      <div class="tabs" v-else-if="currentView === 'analysis'">
+        <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">🔍 Search</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'detail' }" @click="currentTab = 'detail'">📄 Detail</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'comparison' }" @click="currentTab = 'comparison'">⚖️ Comparison</button>
+      </div>
+      <div class="tabs" v-else-if="currentView === 'settings'">
+        <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">⚙️ General</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">👤 Account</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">🔔 Alerts</button>
+      </div>
       <div class="content">
-        <div v-if="currentView === 'dashboard'">
-          <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
-            <!-- Foreign Flow Overview -->
-            <div class="section" v-if="foreignActivitySummary">
-              <div class="section-title">🌍 Foreign Flow Overview</div>
+        <div v-if="currentView === 'marketreports'">
+          <!-- Overview -->
+          <div v-if="currentTab === 'overview'">
+            <!-- Market Overview Section -->
+            <div class="section">
+              <div class="section-title">📈 Market Overview</div>
               <div class="grid-6">
-                <div class="card card-accent card-big" style="border-left:4px solid #7C3AED;">
-                  <div class="card-header"><span class="card-label">🌍 Net Foreign Flow</span></div>
-                  <span class="card-value" style="color:#7C3AED">{{ formatRp(dailyNetTotal) }}</span>
-                  <span class="card-sub">Asing beli bersih di {{ foreignStockCount }} saham ({{ foreignActivitySummary.date }})</span>
+                <div class="card card-accent card-big">
+                  <div class="card-header"><span class="card-label">Fear & Greed Index</span></div>
+                  <div><span class="card-value" style="color:var(--warning)">{{ market.fgi.value }}</span><span class="card-sub" style="font-size:14px;font-weight:700;color:var(--warning)"> {{ market.fgi.label }}</span></div>
+                  <div class="fgi-outer"><div class="fgi-fill" :style="{ width: market.fgi.value + '%', background: 'linear-gradient(90deg,var(--danger),var(--warning),var(--success))' }"></div></div>
                 </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">IHSG Change</span></div>
+                  <span class="card-value" :style="{ color: market.avgChange.startsWith('+') ? 'var(--success)' : 'var(--danger)' }">{{ market.avgChange }}</span>
+                </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">Advancing</span></div>
+                  <span class="card-value" style="color:var(--success)">{{ market.advancing.count }}</span>
+                </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">Declining</span></div>
+                  <span class="card-value" style="color:var(--danger)">{{ market.declining.count }}</span>
+                </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">Total Volume</span></div>
+                  <span class="card-value" style="color:var(--accent)">{{ market.totalVolume }}</span>
+                </div>
+                <div class="card card-big">
+                  <div class="card-header"><span class="card-label">Market Status</span></div>
+                  <span class="card-value" style="font-size:24px;color:var(--success)"><span style="color:var(--success)">&#9679;</span> {{ market.status }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="grid-3">
+                <div class="card">
+                  <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
+                  <div v-for="item in movers.gainers" :key="item.code" class="mover-item is-up">
+                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
+                    <span class="mover-val" style="color:var(--success)">{{ item.chg }}</span>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Top Losers</span></div>
+                  <div v-for="item in movers.losers" :key="item.code" class="mover-item is-down">
+                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
+                    <span class="mover-val" style="color:var(--danger)">{{ item.chg }}</span>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Top Volume</span></div>
+                  <div v-for="item in movers.volume" :key="item.code" class="mover-item is-vol">
+                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
+                    <span class="mover-val">{{ item.vol }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- IHSG Chart -->
+            <div class="section">
+              <div class="section-title">IHSG Chart</div>
+              <div class="card p-4" style="height:400px">
+                <canvas id="ihsgChart"></canvas>
               </div>
             </div>
             <div class="section" v-if="foreignOverviewStocks.length">
@@ -304,7 +383,7 @@
               </div>
             </div>
           </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'aiperf' }">
+          <div v-show="currentTab === 'aiperf'">
             <div class="section">
               <div class="section-title">AI Performance Details</div>
               <div class="grid-4" style="margin-bottom:24px">
@@ -332,7 +411,7 @@
               </div>
             </div>
           </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'movers' }">
+          <div v-show="currentTab === 'movers'">
             <div class="section">
               <div class="section-title">Market Movers — Full List</div>
               <div class="grid-3">
@@ -363,7 +442,7 @@
               </div>
             </div>
           </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'sectors' }">
+          <div v-show="currentTab === 'sectors'">
             <div class="section">
               <div class="section-title">Sector Analysis</div>
               <div class="card" style="padding:18px 22px">
@@ -380,7 +459,7 @@
               </div>
             </div>
           </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'preds' }">
+          <div v-show="currentTab === 'preds'">
             <div class="section">
               <div class="section-title">All Predictions</div>
               <div class="card" style="padding:0;overflow:hidden">
@@ -400,6 +479,417 @@
                       </tr>
                     </tbody>
                   </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- IHSG Chart tab -->
+          <div v-show="currentTab === 'ihsg'">
+            <div v-if="mrLoading" class="section">
+              <div class="section-title">IHSG Performance</div>
+              <div class="card p-4" style="height:400px">
+                <div class="skeleton-chart"></div>
+              </div>
+              <div class="section-title">Top Net Foreign Accumulation</div>
+              <div class="card p-4" style="height:300px">
+                <div class="skeleton-chart"></div>
+              </div>
+            </div>
+            <div v-else-if="mrError" class="section">
+              <div class="card text-center p-4" style="padding:60px 20px">
+                <div style="font-size:40px;margin-bottom:12px">⚠️</div>
+                <div class="font-bold text-muted" style="font-size:16px;margin-bottom:8px">{{ mrError }}</div>
+              </div>
+            </div>
+            <div v-else-if="!mrLoading && mrReports.length === 0" class="section">
+              <div class="card text-center p-4">
+                <div class="font-bold text-muted" style="font-size:18px;margin-bottom:8px">📊 Market Reports</div>
+                <div class="text-xs text-muted">Belum ada data market report. Jalankan scraper dulu.</div>
+              </div>
+            </div>
+            <template v-if="mrReports.length > 0">
+            <div class="section">
+              <div class="section-title">IHSG Performance</div>
+              <div class="card p-4">
+                <div class="chart-wrap"><canvas id="ihsgChart"></canvas></div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">Top Net Foreign Accumulation</div>
+              <div class="card p-4">
+                <div class="chart-wrap"><canvas id="foreignChart"></canvas></div>
+              </div>
+            </div>
+            </template>
+          </div>
+
+          <!-- Reports tab -->
+          <div v-show="currentTab === 'reports'">
+            <div class="section">
+              <div class="section-title">Market Report Cards</div>
+              <div class="stats-row">
+                <div class="card text-center p-3">
+                  <div class="font-bold text-accent" style="font-size:28px">{{ mrStats.totalReports }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total Reports</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold" style="font-size:28px" :style="{color: mrStats.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrStats.avgIHSG }}%</div>
+                  <div class="text-xs text-muted text-uppercase">Rata-rata IHSG</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-secondary" style="font-size:28px">{{ mrStats.foreignStocks }}</div>
+                  <div class="text-xs text-muted text-uppercase">Unik Top Foreign</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-danger" style="font-size:28px">{{ mrStats.redDays }}</div>
+                  <div class="text-xs text-muted text-uppercase">Hari Merah</div>
+                </div>
+              </div>
+              <div class="card p-4 mb-4">
+                <div class="font-semibold text-accent mb-3">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hindari yg lokal > asing)</span></div>
+                <div class="overflow-x-auto">
+                  <table class="table-net-foreign" style="width:100%">
+                    <thead><tr>
+                      <th class="text-left p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
+                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('foreignTotal')">🌍 Foreign<span class="sort-icon">{{ mrSortIcon('foreignTotal') }}</span></th>
+                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('localTotal')">🏠 Local<span class="sort-icon">{{ mrSortIcon('localTotal') }}</span></th>
+                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('net')">Net<span class="sort-icon">{{ mrSortIcon('net') }}</span></th>
+                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('lastDate')">Last<span class="sort-icon">{{ mrSortIcon('lastDate') }}</span></th>
+                    </tr></thead>
+                    <tbody>
+                      <tr v-for="s in mrNetForeign" :key="s.stock" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                        <td class="tf-stock p-1" style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
+                        <td class="tf-foreign p-1" style="color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
+                        <td class="tf-local p-1" style="color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
+                        <td class="tf-net p-1" :style="{color: s.net >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ s.net >= 0 ? '+' : '' }}{{ formatRp(Math.abs(s.net)) }}</td>
+                        <td class="tf-last p-1">{{ s.lastDate.slice(5) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="filter-bar mb-3">
+                <span class="text-xs text-muted font-semibold mr-2">Filter:</span>
+                <button class="filter-btn" :class="{ active: mrFilter === 'all' }" @click="setMrFilter('all')">📋 All</button>
+                <button class="filter-btn" :class="{ active: mrFilter === 'sesi1' }" @click="setMrFilter('sesi1')">☀️ Sesi 1</button>
+                <button class="filter-btn" :class="{ active: mrFilter === 'akhir_sesi' }" @click="setMrFilter('akhir_sesi')">🌙 Akhir Sesi</button>
+              </div>
+              <div class="month-group">
+                <div v-for="m in mrMonths" :key="m.key" class="month-section">
+                  <div class="card month-header" @click="toggleMonth(m.key)">
+                    <div>
+                      <span class="month-label">{{ m.label }}</span>
+                      <span class="month-meta">{{ m.count }} report</span>
+                      <span class="month-meta">🌍{{ m.foreignSet.size }} saham</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span v-if="m.avgIHSG !== null" :style="{color: m.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight:700}">{{ m.avgIHSG >= 0 ? '+' : '' }}{{ m.avgIHSG.toFixed(1) }}%</span>
+                      <span class="text-xs text-muted">🔴{{ m.redDays }} 🟢{{ m.greenDays }}</span>
+                      <span class="text-muted" style="font-size:14px;transition:transform .2s" :style="{transform: mrExpandedMonths[m.key] ? 'rotate(180deg)' : 'rotate(0deg)'}">▼</span>
+                    </div>
+                  </div>
+                  <div v-if="mrExpandedMonths[m.key]" class="month-grid">
+                    <div v-for="r in m.reports" :key="r.date" class="mr-report-card">
+                      <div class="mr-date">
+                        {{ r.date }} <span v-if="r.ihsg_change != null" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change >= 0 ? '🟢' : '🔴' }}</span>
+                        <span v-if="r.type === 'sesi1'" class="badge badge-info text-xs" style="margin-left:4px">S1</span>
+                        <span v-else class="badge badge-secondary text-xs" style="margin-left:4px">AS</span>
+                      </div>
+                      <div class="mr-ihsg" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change != null ? r.ihsg_change.toFixed(1) + '%' : 'N/A' }}</div>
+                      <template v-if="r.foreign_buy && r.foreign_buy.length">
+                        <div class="mr-section-title">🌍 Foreign Buy</div>
+                        <div v-for="s in r.foreign_buy" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold">{{ formatRp(s.value) }}</span>
+                        </div>
+                      </template>
+                      <template v-if="r.local_buy && r.local_buy.length">
+                        <div class="mr-section-title">🏠 Local Buy</div>
+                        <div v-for="s in r.local_buy" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-secondary">{{ s.stock }}</span><span class="font-semibold">{{ formatRp(s.value) }}</span>
+                        </div>
+                      </template>
+                      <template v-if="r.gainer && r.gainer.length">
+                        <div class="mr-section-title">📈 Gainers</div>
+                        <div v-for="s in r.gainer" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-success">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+                        </div>
+                      </template>
+                      <template v-if="r.loser && r.loser.length">
+                        <div class="mr-section-title">📉 Losers</div>
+                        <div v-for="s in r.loser" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-danger">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+                        </div>
+                      </template>
+                      <template v-if="r.foreign_buy_yesterday && r.foreign_buy_yesterday.length">
+                        <div class="mr-section-title">📊 Naik Setelah Asing Beli</div>
+                        <div v-for="s in r.foreign_buy_yesterday" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span>
+                          <span><span class="text-success">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span> / <span class="text-muted">{{ formatRp(s.volume) }}</span></span>
+                        </div>
+                      </template>
+                      <template v-if="r.volume_spike && r.volume_spike.length">
+                        <div class="mr-section-title">📈 Lonjakan Volume</div>
+                        <div v-for="s in r.volume_spike" :key="s.stock" class="mr-item">
+                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-warning">{{ s.multiplier }}x</span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock Tracker tab -->
+          <div v-show="currentTab === 'stocks'">
+            <div class="section">
+              <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hanya yg net positif)</span></div>
+              <div class="card card-table">
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr>
+                      <th style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
+                      <th style="cursor:pointer" @click="toggleMrSort('foreignTotal')">🌍 Foreign<span class="sort-icon">{{ mrSortIcon('foreignTotal') }}</span></th>
+                      <th style="cursor:pointer" @click="toggleMrSort('localTotal')">🏠 Local<span class="sort-icon">{{ mrSortIcon('localTotal') }}</span></th>
+                      <th style="cursor:pointer" @click="toggleMrSort('net')">Net<span class="sort-icon">{{ mrSortIcon('net') }}</span></th>
+                      <th style="cursor:pointer" @click="toggleMrSort('lastDate')">Last<span class="sort-icon">{{ mrSortIcon('lastDate') }}</span></th>
+                    </tr></thead>
+                    <tbody>
+                      <tr v-for="s in mrSortedForeign" :key="s.stock">
+                        <td class="font-semibold text-accent">{{ s.stock }}</td>
+                        <td class="text-success">{{ formatRp(s.foreignTotal) }}</td>
+                        <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>
+                        <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
+                        <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
+                      </tr>
+                      <tr v-if="!mrSortedForeign.length"><td colspan="5" class="text-center text-muted">No data</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Analysis tab -->
+          <div v-show="currentTab === 'analysis'">
+            <div class="section" v-if="mrLoadingAnalysis">
+              <div class="card" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading analysis...</div>
+            </div>
+            <div v-if="mrAnalysis">
+              <div class="section">
+                <div class="section-title">📊 Market Report Summary</div>
+                <div class="grid-4-card">
+                  <div class="card text-center p-3">
+                    <div class="font-bold text-accent" style="font-size:24px">{{ mrAnalysis.period.total_reports }}</div>
+                    <div class="text-xs text-muted text-uppercase">Total Reports</div>
+                    <div class="text-xs text-muted">{{ mrAnalysis.period.start }} → {{ mrAnalysis.period.end }}</div>
+                  </div>
+                  <div class="card text-center p-3">
+                    <div class="font-bold" style="font-size:24px" :style="{color: mrAnalysis.ihsg_summary.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrAnalysis.ihsg_summary.avg }}%</div>
+                    <div class="text-xs text-muted text-uppercase">Rata-rata IHSG</div>
+                    <div class="text-xs text-muted">🔴 {{ mrAnalysis.ihsg_summary.red_days }} / 🟢 {{ mrAnalysis.ihsg_summary.green_days }}</div>
+                  </div>
+                  <div class="card text-center p-3">
+                    <div class="font-bold text-secondary" style="font-size:24px">{{ mrAnalysis.period.days }}</div>
+                    <div class="text-xs text-muted text-uppercase">Trading Days</div>
+                  </div>
+                </div>
+              </div>
+              <div class="section">
+                <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, bersih)</span></div>
+                <div class="card card-table">
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr>
+                        <th style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
+                        <th style="cursor:pointer" @click="toggleMrSort('foreignTotal')">🌍 Foreign<span class="sort-icon">{{ mrSortIcon('foreignTotal') }}</span></th>
+                        <th style="cursor:pointer" @click="toggleMrSort('localTotal')">🏠 Local<span class="sort-icon">{{ mrSortIcon('localTotal') }}</span></th>
+                        <th style="cursor:pointer" @click="toggleMrSort('net')">Net<span class="sort-icon">{{ mrSortIcon('net') }}</span></th>
+                        <th style="cursor:pointer" @click="toggleMrSort('lastDate')">Last<span class="sort-icon">{{ mrSortIcon('lastDate') }}</span></th>
+                      </tr></thead>
+                      <tbody>
+                        <tr v-for="s in mrSortedForeign.slice(0,20)" :key="s.stock">
+                          <td class="font-semibold text-accent">{{ s.stock }}</td>
+                          <td class="font-semibold text-success">{{ formatRp(s.foreignTotal) }}</td>
+                          <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>
+                          <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
+                          <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="section">
+                <div class="section-title">📊 Foreign Flow per Bulan</div>
+                <div v-for="m in mrAnalysis.monthly_flow" :key="m.month" class="card p-3 mb-2">
+                  <div class="flex items-center justify-between">
+                    <div><strong>{{ m.month }}</strong> <span class="text-xs text-muted">({{ m.reports }} report)</span></div>
+                    <div class="font-bold text-accent">{{ formatRp(m.total) }}</div>
+                  </div>
+                  <div class="text-xs text-muted mt-1">
+                    {{ m.top.map(t => t.stock + ' ' + formatRp(t.value)).join(' · ') }}
+                  </div>
+                </div>
+              </div>
+              <div class="section">
+                <div class="section-title">🔄 IHSG Trend</div>
+                <div class="grid-3-card">
+                  <div v-for="p in mrAnalysis.ihsg_trend" :key="p.label" class="card text-center p-3">
+                    <div class="text-xs text-muted">{{ p.label }}</div>
+                    <div class="font-bold" style="font-size:22px" :style="{color: p.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ p.avg }}%</div>
+                    <div class="text-xs text-muted">merah {{ p.red }}/{{ p.total }} hari</div>
+                  </div>
+                </div>
+              </div>
+              <div class="section">
+                <div class="section-title">⚡ Backtest Results</div>
+                <div class="grid-3-card">
+                  <div v-for="bt in mrAnalysis.backtest" :key="bt.label" class="card p-3">
+                    <div class="text-xs text-muted mb-2">{{ bt.label }}</div>
+                    <div class="flex items-center justify-between">
+                      <span v-if="bt.win_rate >= 50" class="font-bold text-success" style="font-size:28px">{{ bt.win_rate }}%</span>
+                      <span v-else class="font-bold text-danger" style="font-size:28px">{{ bt.win_rate }}%</span>
+                      <span class="text-xs text-muted">{{ bt.wins }}/{{ bt.trades }} win</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="section" v-if="mrAnalysis.same_day_signals && mrAnalysis.same_day_signals.length">
+                <div class="section-title">🔥 Same-Day Signal (Foreign Buy → langsung Gainer)</div>
+                <div class="card p-3">
+                  <div v-for="s in mrAnalysis.same_day_signals" :key="s.stock" class="flex justify-between font-semibold text-sm p-1" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                    <span class="text-accent">{{ s.stock }}</span>
+                    <span class="text-success">{{ s.count }}x</span>
+                  </div>
+                </div>
+              </div>
+              <div class="section">
+                <div class="section-title">🎯 Hot Pick (Foreign Buy Terbaru)</div>
+                <div class="card card-table">
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>Stock</th><th>7d Total</th><th>Freq</th><th>Same-Day</th></tr></thead>
+                      <tbody>
+                        <tr v-for="s in mrAnalysis.recent_hot" :key="s.stock">
+                          <td class="font-semibold text-accent">{{ s.stock }}</td>
+                          <td>{{ formatRp(s.total) }}</td>
+                          <td>{{ s.freq }}x</td>
+                          <td class="text-success">{{ s.same_day > 0 ? s.same_day + 'x 🔥' : '-' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="section">
+                <div class="section-title">📊 IHSG Outlook</div>
+                <div class="card p-4">
+                  <div class="ihsg-outlook">
+                    <div>
+                      <span class="ihsg-outlook-label">5 report terakhir: </span>
+                      <span v-for="(v, i) in mrAnalysis.ihsg_outlook.latest" :key="i" class="ihsg-outlook-value" :style="{color: v >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ v }}%</span>
+                    </div>
+                    <div>
+                      <span v-if="mrAnalysis.ihsg_outlook.status === 'bearish'" class="ihsg-status-bearish">⚠️ Bearish</span>
+                      <span v-else-if="mrAnalysis.ihsg_outlook.status === 'koreksi'" class="ihsg-status-koreksi">⚡ Koreksi</span>
+                      <span v-else class="ihsg-status-stabil">✅ Stabil</span>
+                    </div>
+                  </div>
+                  <div class="text-xs text-muted">Disclaimer: Backtest berdasarkan data @creativetrader. Bukan saran investasi.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backtest tab -->
+          <div v-show="currentTab === 'backtest'">
+            <div class="section" v-if="mrBtLoading">
+              <div class="card" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading backtest...</div>
+            </div>
+            <div class="section" v-if="mrBtError">
+              <div class="card" style="text-align:center;padding:40px;color:var(--danger)">⚠️ {{ mrBtError }}</div>
+            </div>
+            <div class="section" v-if="mrBtData">
+              <div class="section-title">📊 Backtest: Sesi 1 → Akhir Sesi</div>
+              <div class="stats-row mb-3">
+                <div class="card text-center p-3">
+                  <div class="font-bold text-accent" style="font-size:28px">{{ mrBtData.summary.paired_days }}</div>
+                  <div class="text-xs text-muted text-uppercase">Paired Days</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold" style="font-size:28px">{{ mrBtData.summary.total_s1_gainers }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total Gainer S1</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold" style="font-size:28px">{{ mrBtData.summary.total_fby }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total FBY Signal</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold" style="font-size:28px">{{ mrBtData.summary.total_volspike }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total Vol Spike</div>
+                </div>
+              </div>
+              <div class="grid-3-card" style="margin-bottom:16px">
+                <div v-for="s in mrBtData.strategies" :key="s.id" class="card p-4" style="text-align:center">
+                  <div class="text-xs text-muted mb-2">{{ s.name }}</div>
+                  <div class="font-bold" style="font-size:36px" :style="{color: s.win_rate >= 30 ? 'var(--success)' : s.win_rate >= 10 ? 'var(--warning)' : 'var(--muted)'}">{{ s.win_rate }}%</div>
+                  <div class="text-xs text-muted mt-1">{{ s.wins }}/{{ s.trades }} trades</div>
+                  <div class="flex justify-center gap-3 mt-2 text-xs">
+                    <span style="color:var(--success)">✅ {{ s.wins }} win</span>
+                    <span style="color:var(--danger)" v-if="s.losses > 0">❌ {{ s.losses }} loss</span>
+                    <span class="text-muted">➖ {{ s.neutral || 0 }} neutral</span>
+                  </div>
+                  <div class="mt-3" :style="{color: s.color, fontWeight:700}">{{ s.verdict }}</div>
+                </div>
+              </div>
+              <div class="section">
+                <div class="section-title flex items-center justify-between">
+                  <span>📅 Daily Detail</span>
+                  <span class="text-xs text-muted">{{ mrBtData.daily.length }} hari</span>
+                </div>
+                <div class="card card-table">
+                  <div class="table-wrap" style="max-height:500px;overflow-y:auto">
+                    <table class="table-compact">
+                      <thead><tr>
+                        <th>Date</th>
+                        <th>S1 IHSG</th>
+                        <th>AS IHSG</th>
+                        <th>Gainer S1</th>
+                        <th>⏩ Still Win</th>
+                        <th>⏬ Jadi Loser</th>
+                        <th>FBY</th>
+                        <th>Vol Spike</th>
+                      </tr></thead>
+                      <tbody>
+                        <tr v-for="d in mrBtData.daily" :key="d.date" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                          <td class="font-semibold" style="white-space:nowrap">{{ d.date.slice(5) }}</td>
+                          <td :style="{color: (d.s1_ihsg||0) >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ d.s1_ihsg?.toFixed(1) || '-' }}%</td>
+                          <td :style="{color: (d.as_ihsg||0) >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ d.as_ihsg?.toFixed(1) || '-' }}%</td>
+                          <td><span v-for="s in d.s1_gainers" :key="s" class="stock-chip">{{ s }}</span></td>
+                          <td><span v-for="s in d.still_win" :key="s" class="stock-chip chip-win">{{ s }}</span></td>
+                          <td><span v-for="s in d.became_lose" :key="s" class="stock-chip chip-lose">{{ s }}</span></td>
+                          <td><span v-for="s in d.fby_signals" :key="s" class="stock-chip chip-fby">{{ s }}</span></td>
+                          <td><span v-for="s in d.vol_spike" :key="s" class="stock-chip chip-vol">{{ s }}</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="card p-4" style="background:var(--bg-gradient);border-left:4px solid var(--accent)">
+                <div class="font-semibold mb-2" style="color:var(--accent)">📌 Insight</div>
+                <div style="font-size:13px;line-height:1.7">
+                  <p>Dari <strong>{{ mrBtData.summary.paired_days }} hari</strong> paired data:</p>
+                  <ul style="padding-left:20px;margin:8px 0">
+                    <li><strong style="color:var(--success)">54.4%</strong> saham top gainer Sesi 1 <strong>masih jadi top gainer</strong> di akhir sesi — strategi cukup kuat.</li>
+                    <li>Hanya <strong style="color:var(--danger)">0.7%</strong> yg berbalik jadi top loser — risiko sangat rendah.</li>
+                    <li><strong style="color:var(--warning)">44.9%</strong> keluar dari top list — bisa moderate gain atau turun, butuh filter tambahan (volume, foreign flow).</li>
+                    <li>Signal <strong>Naik Setelah Asing Beli</strong> hanya 2% sustain ke gainer akhir sesi — <span style="color:var(--warning)">moderat, jangan entry besar.</span></li>
+                    <li>Signal <strong>Lonjakan Volume</strong> punya win rate 23.4% — lebih baik dari tebak acak, cocok untuk <em>scalping</em>.</li>
+                  </ul>
+                  <p style="margin-top:8px"><strong>Rekomendasi:</strong> Strategi paling efektif → <span style="color:var(--success);font-weight:700">Beli top gainer Sesi 1, jual di akhir sesi.</span> Filter tambahan: pilih yg volume naik & ada foreign buy kemarin.</p>
                 </div>
               </div>
             </div>
@@ -662,424 +1152,7 @@
             </div>
           </div>
         </div>
-        <div v-else-if="currentView === 'marketreports'">
-          <!-- IHSG Chart tab -->
-          <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
-            <div class="section" v-if="mrReports.length === 0">
-              <div class="card text-center p-4">
-                <div class="font-bold text-muted" style="font-size:18px;margin-bottom:8px">📊 Market Reports</div>
-                <div class="text-xs text-muted">Belum ada data market report. Jalankan scraper dulu.</div>
-              </div>
-            </div>
-            <template v-if="mrReports.length > 0">
-            <div class="section">
-              <div class="section-title">IHSG Performance</div>
-              <div class="card p-4">
-                <div class="chart-wrap"><canvas id="ihsgChart"></canvas></div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-title">Top Net Foreign Accumulation</div>
-              <div class="card p-4">
-                <div class="chart-wrap"><canvas id="foreignChart"></canvas></div>
-              </div>
-            </div>
-            </template>
-          </div>
-          <!-- Reports tab -->
-          <div class="tab-pane" :class="{ active: currentTab === 'reports' }">
-            <div class="section">
-              <div class="section-title">Market Report Cards</div>
-              <div class="stats-row">
-                <div class="card text-center p-3">
-                  <div class="font-bold text-accent" style="font-size:28px">{{ mrStats.totalReports }}</div>
-                  <div class="text-xs text-muted text-uppercase">Total Reports</div>
-                </div>
-                <div class="card text-center p-3">
-                  <div class="font-bold" style="font-size:28px" :style="{color: mrStats.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrStats.avgIHSG }}%</div>
-                  <div class="text-xs text-muted text-uppercase">Rata-rata IHSG</div>
-                </div>
-                <div class="card text-center p-3">
-                  <div class="font-bold text-secondary" style="font-size:28px">{{ mrStats.foreignStocks }}</div>
-                  <div class="text-xs text-muted text-uppercase">Unik Top Foreign</div>
-                </div>
-                <div class="card text-center p-3">
-                  <div class="font-bold text-danger" style="font-size:28px">{{ mrStats.redDays }}</div>
-                  <div class="text-xs text-muted text-uppercase">Hari Merah</div>
-                </div>
-              </div>
-              <!-- Net Foreign Accumulation -->
-              <div class="card p-4 mb-4">
-                <div class="font-semibold text-accent mb-3">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hindari yg lokal > asing)</span></div>
-                <div class="overflow-x-auto">
-                  <table class="table-net-foreign" style="width:100%">
-                    <thead><tr>
-                      <th class="text-left p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
-                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('foreignTotal')">🌍 Foreign<span class="sort-icon">{{ mrSortIcon('foreignTotal') }}</span></th>
-                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('localTotal')">🏠 Local<span class="sort-icon">{{ mrSortIcon('localTotal') }}</span></th>
-                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('net')">Net<span class="sort-icon">{{ mrSortIcon('net') }}</span></th>
-                      <th class="text-right p-2 text-muted" style="cursor:pointer" @click="toggleMrSort('lastDate')">Last<span class="sort-icon">{{ mrSortIcon('lastDate') }}</span></th>
-                    </tr></thead>
-                    <tbody>
-                      <tr v-for="s in mrNetForeign" :key="s.stock" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
-                        <td class="tf-stock p-1" style="font-weight:600;color:var(--accent)">{{ s.stock }}</td>
-                        <td class="tf-foreign p-1" style="color:var(--success)">{{ formatRp(s.foreignTotal) }}</td>
-                        <td class="tf-local p-1" style="color:var(--secondary)">{{ formatRp(s.localTotal) }}</td>
-                        <td class="tf-net p-1" :style="{color: s.net >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ s.net >= 0 ? '+' : '' }}{{ formatRp(Math.abs(s.net)) }}</td>
-                        <td class="tf-last p-1">{{ s.lastDate.slice(5) }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <!-- Filter buttons -->
-              <div class="filter-bar mb-3">
-                <span class="text-xs text-muted font-semibold mr-2">Filter:</span>
-                <button class="filter-btn" :class="{ active: mrFilter === 'all' }" @click="setMrFilter('all')">📋 All</button>
-                <button class="filter-btn" :class="{ active: mrFilter === 'sesi1' }" @click="setMrFilter('sesi1')">☀️ Sesi 1</button>
-                <button class="filter-btn" :class="{ active: mrFilter === 'akhir_sesi' }" @click="setMrFilter('akhir_sesi')">🌙 Akhir Sesi</button>
-              </div>
-              <div class="month-group">
-                <div v-for="m in mrMonths" :key="m.key" class="month-section">
-                  <div class="card month-header" @click="toggleMonth(m.key)">
-                    <div>
-                      <span class="month-label">{{ m.label }}</span>
-                      <span class="month-meta">{{ m.count }} report</span>
-                      <span class="month-meta">🌍{{ m.foreignSet.size }} saham</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                      <span v-if="m.avgIHSG !== null" :style="{color: m.avgIHSG >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight:700}">{{ m.avgIHSG >= 0 ? '+' : '' }}{{ m.avgIHSG.toFixed(1) }}%</span>
-                      <span class="text-xs text-muted">🔴{{ m.redDays }} 🟢{{ m.greenDays }}</span>
-                      <span class="text-muted" style="font-size:14px;transition:transform .2s" :style="{transform: mrExpandedMonths[m.key] ? 'rotate(180deg)' : 'rotate(0deg)'}">▼</span>
-                    </div>
-                  </div>
-                  <div v-if="mrExpandedMonths[m.key]" class="month-grid">
-                    <div v-for="r in m.reports" :key="r.date" class="mr-report-card">
-                      <div class="mr-date">
-                        {{ r.date }} <span v-if="r.ihsg_change != null" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change >= 0 ? '🟢' : '🔴' }}</span>
-                        <span v-if="r.type === 'sesi1'" class="badge badge-info text-xs" style="margin-left:4px">S1</span>
-                        <span v-else class="badge badge-secondary text-xs" style="margin-left:4px">AS</span>
-                      </div>
-                      <div class="mr-ihsg" :style="{color: r.ihsg_change >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ r.ihsg_change != null ? r.ihsg_change.toFixed(1) + '%' : 'N/A' }}</div>
-                      <template v-if="r.foreign_buy && r.foreign_buy.length">
-                        <div class="mr-section-title">🌍 Foreign Buy</div>
-                        <div v-for="s in r.foreign_buy" :key="s.stock" class="mr-item">
-                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold">{{ formatRp(s.value) }}</span>
-                        </div>
-                      </template>
-                      <template v-if="r.local_buy && r.local_buy.length">
-                        <div class="mr-section-title">🏠 Local Buy</div>
-                        <div v-for="s in r.local_buy" :key="s.stock" class="mr-item">
-                          <span class="font-semibold text-secondary">{{ s.stock }}</span><span class="font-semibold">{{ formatRp(s.value) }}</span>
-                        </div>
-                      </template>
-                      <template v-if="r.gainer && r.gainer.length">
-                        <div class="mr-section-title">📈 Gainers</div>
-                        <div v-for="s in r.gainer" :key="s.stock" class="mr-item">
-                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-success">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
-                        </div>
-                      </template>
-                      <template v-if="r.loser && r.loser.length">
-                        <div class="mr-section-title">📉 Losers</div>
-                        <div v-for="s in r.loser" :key="s.stock" class="mr-item">
-                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-danger">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
-                        </div>
-                      </template>
-                      <!-- Sesi 1 specific: Foreign Buy Yesterday -->
-                      <template v-if="r.foreign_buy_yesterday && r.foreign_buy_yesterday.length">
-                        <div class="mr-section-title">📊 Naik Setelah Asing Beli</div>
-                        <div v-for="s in r.foreign_buy_yesterday" :key="s.stock" class="mr-item">
-                          <span class="font-semibold text-accent">{{ s.stock }}</span>
-                          <span><span class="text-success">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span> / <span class="text-muted">{{ formatRp(s.volume) }}</span></span>
-                        </div>
-                      </template>
-                      <!-- Sesi 1 specific: Volume Spike -->
-                      <template v-if="r.volume_spike && r.volume_spike.length">
-                        <div class="mr-section-title">📈 Lonjakan Volume</div>
-                        <div v-for="s in r.volume_spike" :key="s.stock" class="mr-item">
-                          <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-warning">{{ s.multiplier }}x</span>
-                        </div>
-                      </template>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Stock Tracker tab -->
-          <div class="tab-pane" :class="{ active: currentTab === 'stocks' }">
-            <div class="section">
-              <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hanya yg net positif)</span></div>
-              <div class="card card-table">
-                <div class="table-wrap">
-                  <table>
-                    <thead><tr>
-                      <th style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
-                      <th style="cursor:pointer" @click="toggleMrSort('foreignTotal')">🌍 Foreign<span class="sort-icon">{{ mrSortIcon('foreignTotal') }}</span></th>
-                      <th style="cursor:pointer" @click="toggleMrSort('localTotal')">🏠 Local<span class="sort-icon">{{ mrSortIcon('localTotal') }}</span></th>
-                      <th style="cursor:pointer" @click="toggleMrSort('net')">Net<span class="sort-icon">{{ mrSortIcon('net') }}</span></th>
-                      <th style="cursor:pointer" @click="toggleMrSort('lastDate')">Last<span class="sort-icon">{{ mrSortIcon('lastDate') }}</span></th>
-                    </tr></thead>
-                    <tbody>
-                      <tr v-for="s in mrSortedForeign" :key="s.stock">
-                        <td class="font-semibold text-accent">{{ s.stock }}</td>
-                        <td class="text-success">{{ formatRp(s.foreignTotal) }}</td>
-                        <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>
-                        <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
-                        <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
-                      </tr>
-                      <tr v-if="!mrSortedForeign.length"><td colspan="5" class="text-center text-muted">No data</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- AI Analysis tab -->
-          <div class="tab-pane" :class="{ active: currentTab === 'analysis' }">
-            <div class="section" v-if="mrLoadingAnalysis">
-              <div class="card" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading analysis...</div>
-            </div>
-            <div v-if="mrAnalysis">
-              <!-- Summary Row -->
-              <div class="section">
-                <div class="section-title">📊 Market Report Summary</div>
-                <div class="grid-4-card">
-                  <div class="card text-center p-3">
-                    <div class="font-bold text-accent" style="font-size:24px">{{ mrAnalysis.period.total_reports }}</div>
-                    <div class="text-xs text-muted text-uppercase">Total Reports</div>
-                    <div class="text-xs text-muted">{{ mrAnalysis.period.start }} → {{ mrAnalysis.period.end }}</div>
-                  </div>
-                  <div class="card text-center p-3">
-                    <div class="font-bold" style="font-size:24px" :style="{color: mrAnalysis.ihsg_summary.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ mrAnalysis.ihsg_summary.avg }}%</div>
-                    <div class="text-xs text-muted text-uppercase">Rata-rata IHSG</div>
-                    <div class="text-xs text-muted">🔴 {{ mrAnalysis.ihsg_summary.red_days }} / 🟢 {{ mrAnalysis.ihsg_summary.green_days }}</div>
-                  </div>
-                  <div class="card text-center p-3">
-                    <div class="font-bold text-secondary" style="font-size:24px">{{ mrAnalysis.period.days }}</div>
-                    <div class="text-xs text-muted text-uppercase">Trading Days</div>
-                  </div>
-                </div>
-              </div>
 
-              <!-- Net Foreign Accumulation -->
-              <div class="section">
-                <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, bersih)</span></div>
-                <div class="card card-table">
-                  <div class="table-wrap">
-                    <table>
-                      <thead><tr>
-                        <th style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
-                        <th style="cursor:pointer" @click="toggleMrSort('foreignTotal')">🌍 Foreign<span class="sort-icon">{{ mrSortIcon('foreignTotal') }}</span></th>
-                        <th style="cursor:pointer" @click="toggleMrSort('localTotal')">🏠 Local<span class="sort-icon">{{ mrSortIcon('localTotal') }}</span></th>
-                        <th style="cursor:pointer" @click="toggleMrSort('net')">Net<span class="sort-icon">{{ mrSortIcon('net') }}</span></th>
-                        <th style="cursor:pointer" @click="toggleMrSort('lastDate')">Last<span class="sort-icon">{{ mrSortIcon('lastDate') }}</span></th>
-                      </tr></thead>
-                      <tbody>
-                        <tr v-for="s in mrSortedForeign.slice(0,20)" :key="s.stock">
-                          <td class="font-semibold text-accent">{{ s.stock }}</td>
-                          <td class="font-semibold text-success">{{ formatRp(s.foreignTotal) }}</td>
-                          <td class="text-secondary">{{ formatRp(s.localTotal) }}</td>
-                          <td class="font-bold text-success">+{{ formatRp(s.net) }}</td>
-                          <td class="text-xs text-muted">{{ s.lastDate.slice(5) }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Monthly Flow -->
-              <div class="section">
-                <div class="section-title">📊 Foreign Flow per Bulan</div>
-                <div v-for="m in mrAnalysis.monthly_flow" :key="m.month" class="card p-3 mb-2">
-                  <div class="flex items-center justify-between">
-                    <div><strong>{{ m.month }}</strong> <span class="text-xs text-muted">({{ m.reports }} report)</span></div>
-                    <div class="font-bold text-accent">{{ formatRp(m.total) }}</div>
-                  </div>
-                  <div class="text-xs text-muted mt-1">
-                    {{ m.top.map(t => t.stock + ' ' + formatRp(t.value)).join(' · ') }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- IHSG Trend -->
-              <div class="section">
-                <div class="section-title">🔄 IHSG Trend</div>
-                <div class="grid-3-card">
-                  <div v-for="p in mrAnalysis.ihsg_trend" :key="p.label" class="card text-center p-3">
-                    <div class="text-xs text-muted">{{ p.label }}</div>
-                    <div class="font-bold" style="font-size:22px" :style="{color: p.avg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ p.avg }}%</div>
-                    <div class="text-xs text-muted">merah {{ p.red }}/{{ p.total }} hari</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Backtest Results -->
-              <div class="section">
-                <div class="section-title">⚡ Backtest Results</div>
-                <div class="grid-3-card">
-                  <div v-for="bt in mrAnalysis.backtest" :key="bt.label" class="card p-3">
-                    <div class="text-xs text-muted mb-2">{{ bt.label }}</div>
-                    <div class="flex items-center justify-between">
-                      <span v-if="bt.win_rate >= 50" class="font-bold text-success" style="font-size:28px">{{ bt.win_rate }}%</span>
-                      <span v-else class="font-bold text-danger" style="font-size:28px">{{ bt.win_rate }}%</span>
-                      <span class="text-xs text-muted">{{ bt.wins }}/{{ bt.trades }} win</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Same-Day Signals -->
-              <div class="section" v-if="mrAnalysis.same_day_signals && mrAnalysis.same_day_signals.length">
-                <div class="section-title">🔥 Same-Day Signal (Foreign Buy → langsung Gainer)</div>
-                <div class="card p-3">
-                  <div v-for="s in mrAnalysis.same_day_signals" :key="s.stock" class="flex justify-between font-semibold text-sm p-1" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
-                    <span class="text-accent">{{ s.stock }}</span>
-                    <span class="text-success">{{ s.count }}x</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Hot Picks -->
-              <div class="section">
-                <div class="section-title">🎯 Hot Pick (Foreign Buy Terbaru)</div>
-                <div class="card card-table">
-                  <div class="table-wrap">
-                    <table>
-                      <thead><tr><th>Stock</th><th>7d Total</th><th>Freq</th><th>Same-Day</th></tr></thead>
-                      <tbody>
-                        <tr v-for="s in mrAnalysis.recent_hot" :key="s.stock">
-                          <td class="font-semibold text-accent">{{ s.stock }}</td>
-                          <td>{{ formatRp(s.total) }}</td>
-                          <td>{{ s.freq }}x</td>
-                          <td class="text-success">{{ s.same_day > 0 ? s.same_day + 'x 🔥' : '-' }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <!-- IHSG Outlook -->
-              <div class="section">
-                <div class="section-title">📊 IHSG Outlook</div>
-                <div class="card p-4">
-                  <div class="ihsg-outlook">
-                    <div>
-                      <span class="ihsg-outlook-label">5 report terakhir: </span>
-                      <span v-for="(v, i) in mrAnalysis.ihsg_outlook.latest" :key="i" class="ihsg-outlook-value" :style="{color: v >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ v }}%</span>
-                    </div>
-                    <div>
-                      <span v-if="mrAnalysis.ihsg_outlook.status === 'bearish'" class="ihsg-status-bearish">⚠️ Bearish</span>
-                      <span v-else-if="mrAnalysis.ihsg_outlook.status === 'koreksi'" class="ihsg-status-koreksi">⚡ Koreksi</span>
-                      <span v-else class="ihsg-status-stabil">✅ Stabil</span>
-                    </div>
-                  </div>
-                  <div class="text-xs text-muted">Disclaimer: Backtest berdasarkan data @creativetrader. Bukan saran investasi.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Backtest tab -->
-          <div class="tab-pane" :class="{ active: currentTab === 'backtest' }">
-            <div class="section" v-if="mrBtLoading">
-              <div class="card" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading backtest...</div>
-            </div>
-            <div class="section" v-if="mrBtError">
-              <div class="card" style="text-align:center;padding:40px;color:var(--danger)">⚠️ {{ mrBtError }}</div>
-            </div>
-            <div class="section" v-if="mrBtData">
-              <!-- Summary Row -->
-              <div class="section-title">📊 Backtest: Sesi 1 → Akhir Sesi</div>
-              <div class="stats-row mb-3">
-                <div class="card text-center p-3">
-                  <div class="font-bold text-accent" style="font-size:28px">{{ mrBtData.summary.paired_days }}</div>
-                  <div class="text-xs text-muted text-uppercase">Paired Days</div>
-                </div>
-                <div class="card text-center p-3">
-                  <div class="font-bold" style="font-size:28px">{{ mrBtData.summary.total_s1_gainers }}</div>
-                  <div class="text-xs text-muted text-uppercase">Total Gainer S1</div>
-                </div>
-                <div class="card text-center p-3">
-                  <div class="font-bold" style="font-size:28px">{{ mrBtData.summary.total_fby }}</div>
-                  <div class="text-xs text-muted text-uppercase">Total FBY Signal</div>
-                </div>
-                <div class="card text-center p-3">
-                  <div class="font-bold" style="font-size:28px">{{ mrBtData.summary.total_volspike }}</div>
-                  <div class="text-xs text-muted text-uppercase">Total Vol Spike</div>
-                </div>
-              </div>
-
-              <!-- Strategy Cards -->
-              <div class="grid-3-card" style="margin-bottom:16px">
-                <div v-for="s in mrBtData.strategies" :key="s.id" class="card p-4" style="text-align:center">
-                  <div class="text-xs text-muted mb-2">{{ s.name }}</div>
-                  <div class="font-bold" style="font-size:36px" :style="{color: s.win_rate >= 30 ? 'var(--success)' : s.win_rate >= 10 ? 'var(--warning)' : 'var(--muted)'}">{{ s.win_rate }}%</div>
-                  <div class="text-xs text-muted mt-1">{{ s.wins }}/{{ s.trades }} trades</div>
-                  <div class="flex justify-center gap-3 mt-2 text-xs">
-                    <span style="color:var(--success)">✅ {{ s.wins }} win</span>
-                    <span style="color:var(--danger)" v-if="s.losses > 0">❌ {{ s.losses }} loss</span>
-                    <span class="text-muted">➖ {{ s.neutral || 0 }} neutral</span>
-                  </div>
-                  <div class="mt-3" :style="{color: s.color, fontWeight:700}">{{ s.verdict }}</div>
-                </div>
-              </div>
-
-              <!-- Daily Detail Table -->
-              <div class="section">
-                <div class="section-title flex items-center justify-between">
-                  <span>📅 Daily Detail</span>
-                  <span class="text-xs text-muted">{{ mrBtData.daily.length }} hari</span>
-                </div>
-                <div class="card card-table">
-                  <div class="table-wrap" style="max-height:500px;overflow-y:auto">
-                    <table class="table-compact">
-                      <thead><tr>
-                        <th>Date</th>
-                        <th>S1 IHSG</th>
-                        <th>AS IHSG</th>
-                        <th>Gainer S1</th>
-                        <th>⏩ Still Win</th>
-                        <th>⏬ Jadi Loser</th>
-                        <th>FBY</th>
-                        <th>Vol Spike</th>
-                      </tr></thead>
-                      <tbody>
-                        <tr v-for="d in mrBtData.daily" :key="d.date" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
-                          <td class="font-semibold" style="white-space:nowrap">{{ d.date.slice(5) }}</td>
-                          <td :style="{color: (d.s1_ihsg||0) >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ d.s1_ihsg?.toFixed(1) || '-' }}%</td>
-                          <td :style="{color: (d.as_ihsg||0) >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ d.as_ihsg?.toFixed(1) || '-' }}%</td>
-                          <td><span v-for="s in d.s1_gainers" :key="s" class="stock-chip">{{ s }}</span></td>
-                          <td><span v-for="s in d.still_win" :key="s" class="stock-chip chip-win">{{ s }}</span></td>
-                          <td><span v-for="s in d.became_lose" :key="s" class="stock-chip chip-lose">{{ s }}</span></td>
-                          <td><span v-for="s in d.fby_signals" :key="s" class="stock-chip chip-fby">{{ s }}</span></td>
-                          <td><span v-for="s in d.vol_spike" :key="s" class="stock-chip chip-vol">{{ s }}</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Insight -->
-              <div class="card p-4" style="background:var(--bg-gradient);border-left:4px solid var(--accent)">
-                <div class="font-semibold mb-2" style="color:var(--accent)">📌 Insight</div>
-                <div style="font-size:13px;line-height:1.7">
-                  <p>Dari <strong>{{ mrBtData.summary.paired_days }} hari</strong> paired data:</p>
-                  <ul style="padding-left:20px;margin:8px 0">
-                    <li><strong style="color:var(--success)">54.4%</strong> saham top gainer Sesi 1 <strong>masih jadi top gainer</strong> di akhir sesi — strategi cukup kuat.</li>
-                    <li>Hanya <strong style="color:var(--danger)">0.7%</strong> yg berbalik jadi top loser — risiko sangat rendah.</li>
-                    <li><strong style="color:var(--warning)">44.9%</strong> keluar dari top list — bisa moderate gain atau turun, butuh filter tambahan (volume, foreign flow).</li>
-                    <li>Signal <strong>Naik Setelah Asing Beli</strong> hanya 2% sustain ke gainer akhir sesi — <span style="color:var(--warning)">moderat, jangan entry besar.</span></li>
-                    <li>Signal <strong>Lonjakan Volume</strong> punya win rate 23.4% — lebih baik dari tebak acak, cocok untuk <em>scalping</em>.</li>
-                  </ul>
-                  <p style="margin-top:8px"><strong>Rekomendasi:</strong> Strategi paling efektif → <span style="color:var(--success);font-weight:700">Beli top gainer Sesi 1, jual di akhir sesi.</span> Filter tambahan: pilih yg volume naik & ada foreign buy kemarin.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
         <div v-else-if="currentView === 'settings'">
           <div class="tab-pane" :class="{ active: currentTab === 'general' }">
             <div class="section">
@@ -1222,9 +1295,303 @@
             </div>
           </div>
         </div>
+        <div v-else-if="currentView === 'shareholders'">
+          <div class="tabs">
+            <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">📊 Overview</button>
+            <button class="tab-btn" :class="{ active: currentTab === 'import' }" @click="currentTab = 'import'">📥 Import</button>
+            <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">🔍 Cari</button>
+            <button class="tab-btn" :class="{ active: currentTab === 'top' }" @click="currentTab = 'top'">🏆 Top Holders</button>
+          </div>
+          <div v-if="currentTab === 'overview'">
+            <div class="section">
+              <div class="section-title flex items-center justify-between">
+                <span>📋 Shareholder >1% Tracking</span>
+                <span class="text-xs text-muted">IDX/KSEI — {{ shSelectedPeriod || '-' }}</span>
+              </div>
+              <!-- Stat cards -->
+              <div class="stats-row" style="margin-bottom:16px">
+                <div class="sh-card">
+                  <div class="sh-card-icon">📈</div>
+                  <div class="sh-card-body">
+                    <div class="sh-card-num">{{ shStats.totalStock }}</div>
+                    <div class="sh-card-label">Emiten</div>
+                  </div>
+                </div>
+                <div class="sh-card">
+                  <div class="sh-card-icon">👤</div>
+                  <div class="sh-card-body">
+                    <div class="sh-card-num">{{ shStats.totalHolder }}</div>
+                    <div class="sh-card-label">Pemegang Saham</div>
+                  </div>
+                </div>
+                <div class="sh-card">
+                  <div class="sh-card-icon">🏆</div>
+                  <div class="sh-card-body">
+                    <div class="sh-card-num">{{ shStats.topHolderCount }}</div>
+                    <div class="sh-card-label">Top Holder</div>
+                  </div>
+                </div>
+                <div class="sh-card">
+                  <div class="sh-card-icon">📅</div>
+                  <div class="sh-card-body">
+                    <div class="sh-card-num">{{ shStats.periodCount }}</div>
+                    <div class="sh-card-label">Periode</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Period & search row -->
+              <div class="flex items-center gap-2 mb-3" style="flex-wrap:wrap">
+                <span class="text-xs text-muted font-semibold">Periode:</span>
+                <div class="sh-period-bar">
+                  <button v-for="p in shPeriods" :key="p"
+                    class="sh-period-btn" :class="{ active: shSelectedPeriod === p }"
+                    @click="shSelectPeriod(p)">{{ p }}</button>
+                </div>
+                <button class="btn btn-sm btn-primary" @click="shLoadAll" style="margin-left:auto">🔄 Refresh</button>
+              </div>
+              <!-- Quick search cards -->
+              <div class="grid-3" style="margin-bottom:8px">
+                <div class="sh-result-card">
+                  <div class="sh-result-title">🔍 Cari Emiten</div>
+                  <div class="flex gap-2">
+                    <input type="text" class="form-control" v-model="shStockQuery" @keyup.enter="shSearchStock" placeholder="BBCA, CUAN..." />
+                    <button class="btn btn-sm btn-primary" @click="shSearchStock">Cari</button>
+                  </div>
+                  <div class="sh-result-meta" v-if="shStockResult.length">{{ shStockResult.length }} pemegang</div>
+                </div>
+                <div class="sh-result-card">
+                  <div class="sh-result-title">👤 Cari Investor</div>
+                  <div class="flex gap-2">
+                    <input type="text" class="form-control" v-model="shHolderQuery" @keyup.enter="shSearchHolder" placeholder="Nama investor..." />
+                    <button class="btn btn-sm btn-primary" @click="shSearchHolder">Cari</button>
+                  </div>
+                  <div class="sh-result-meta" v-if="shHolderResult.length">{{ shHolderResult.length }} emiten</div>
+                </div>
+                <div class="sh-result-card">
+                  <div class="sh-result-title">📊 Top 5 Pemegang Terbesar</div>
+                  <div v-if="shTopPreview.length">
+                    <div v-for="r in shTopPreview" :key="r.shareholder_name" class="flex items-center justify-between" style="padding:3px 0;font-size:12px">
+                      <span class="font-semibold" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">{{ r.shareholder_name }}</span>
+                      <span class="font-bold">{{ (r.total_pct || 0).toFixed(1) }}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="currentTab === 'import'">
+            <div class="section">
+              <div class="section-title flex items-center justify-between">
+                <span>📥 Import Data >1%</span>
+                <span class="text-xs text-muted">Entry manual atau JSON</span>
+              </div>
+              <div class="card card-table" style="padding:20px">
+                <div class="flex gap-2 mb-2">
+                  <button class="btn btn-sm" :class="{ 'btn-primary': shImportTab === 'single' }" @click="shImportTab='single'">✏️ Entry Manual</button>
+                  <button class="btn btn-sm" :class="{ 'btn-primary': shImportTab === 'json' }" @click="shImportTab='json'">📄 Import JSON</button>
+                  <button class="btn btn-sm" :class="{ 'btn-primary': shImportTab === 'upload' }" @click="shImportTab='upload'">📤 Upload File</button>
+                </div>
+                <div v-if="shImportTab === 'single'">
+                  <div class="flex gap-2" style="flex-wrap:wrap;align-items:center">
+                    <input v-model="shForm.stock_code" placeholder="Emiten (BBCA)" class="form-control" style="width:110px">
+                    <input v-model="shForm.shareholder_name" placeholder="Nama pemegang saham" class="form-control" style="flex:2;min-width:180px">
+                    <input v-model.number="shForm.share_percent" type="number" step="0.01" placeholder="%" class="form-control" style="width:70px">
+                    <input v-model.number="shForm.share_count" type="number" placeholder="Jumlah" class="form-control" style="width:110px">
+                    <input v-model="shForm.data_period" placeholder="Periode (MAR2026)" class="form-control" style="width:110px">
+                    <button class="btn btn-sm btn-primary" @click="shAddEntry">➕ Tambah</button>
+                  </div>
+                </div>
+                <div v-if="shImportTab === 'json'" style="margin-top:8px">
+                  <textarea v-model="shJsonText" rows="4" placeholder='[{ "stock_code": "BBCA", "shareholder_name": "LO KHENG HONG", "share_percent": 5.2 }]' class="form-control" style="width:100%;font-family:monospace;font-size:13px"></textarea>
+                  <div class="flex gap-2 mt-2" style="flex-wrap:wrap;align-items:center">
+                    <input v-model="shJsonPeriod" placeholder="Periode (MAR2026)" class="form-control" style="width:140px">
+                    <button class="btn btn-sm btn-primary" @click="shImportJSON">📤 Import</button>
+                  </div>
+                </div>
+                <div v-if="shImportTab === 'upload'" style="margin-top:12px">
+                  <div class="upload-zone" @dragover.prevent="shDragOver=true" @dragleave="shDragOver=false" @drop.prevent="shOnDrop" :style="{ borderColor: shDragOver ? 'var(--accent)' : 'var(--border-color)' }">
+                    <div v-if="!shUploadFile" class="upload-placeholder">
+                      <span style="font-size:32px">📂</span>
+                      <p>Drag & drop file CSV/Excel disini</p>
+                      <p class="text-xs text-muted">atau klik untuk pilih file</p>
+                      <input type="file" ref="shFileInput" accept=".csv,.xlsx" style="display:none" @change="shOnFileSelected" />
+                    </div>
+                    <div v-else class="upload-preview">
+                      <span style="font-size:24px">📄</span>
+                      <span class="font-semibold">{{ shUploadFile.name }}</span>
+                      <span class="text-xs text-muted">({{ shFmtFileSize(shUploadFile.size) }})</span>
+                      <button class="btn btn-sm" @click="shUploadFile=null; $refs.shFileInput.value=''">✕ Hapus</button>
+                    </div>
+                  </div>
+                  <div class="flex gap-2 mt-2" style="align-items:center;flex-wrap:wrap">
+                    <input v-model="shUploadPeriod" placeholder="Periode (JUN2026)" class="form-control" style="width:140px" />
+                    <button class="btn btn-sm btn-primary" @click="shUploadSubmit" :disabled="!shUploadFile || !shUploadPeriod">📤 Upload & Import</button>
+                    <button class="btn btn-sm" @click="shUploadFile=null; $refs.shFileInput.click()">📁 Pilih File</button>
+                  </div>
+                  <div v-if="shUploadLoading" style="margin-top:8px;color:var(--muted)">⏳ Processing...</div>
+                  <div v-if="shUploadResult" class="mt-2" :style="{ padding:'12px', borderRadius:'8px', fontWeight:600, fontSize:'13px', background: shUploadResult.status === 'ok' ? '#0a2a1a' : '#2a1015', color: shUploadResult.status === 'ok' ? '#4ade80' : '#f87171' }">
+                    {{ shUploadResult.msg }}
+                  </div>
+                </div>
+                <div v-if="shPendingEntries.length" style="margin-top:16px">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-muted">{{ shPendingEntries.length }} entry menunggu</span>
+                    <div class="flex gap-2">
+                      <input v-model="shBatchPeriod" placeholder="Periode" class="form-control" style="width:130px">
+                      <button class="btn btn-sm btn-primary" @click="shImportBatch">📤 Simpan Semua</button>
+                      <button class="btn btn-sm" @click="shPendingEntries=[]">✕ Hapus</button>
+                    </div>
+                  </div>
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>Emiten</th><th>Pemegang</th><th style="text-align:right">%</th><th style="text-align:right">Jumlah</th><th>Periode</th><th></th></tr></thead>
+                      <tbody>
+                        <tr v-for="(e,i) in shPendingEntries" :key="i">
+                          <td class="font-semibold" style="color:var(--accent)">{{ e.stock_code }}</td>
+                          <td class="font-semibold">{{ e.shareholder_name }}</td>
+                          <td class="text-right font-bold">{{ e.share_percent }}%</td>
+                          <td class="text-right text-muted" style="font-size:13px">{{ shFmtNum(e.share_count) }}</td>
+                          <td class="text-muted" style="font-size:13px">{{ e.data_period || shBatchPeriod }}</td>
+                          <td><button class="btn btn-sm" @click="shPendingEntries.splice(i,1)">✕</button></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div v-if="shImportResult" class="mt-2" :style="{ padding:'12px', borderRadius:'8px', fontWeight:600, fontSize:'13px', background: shImportResult.status === 'ok' ? '#0a2a1a' : '#2a1015', color: shImportResult.status === 'ok' ? '#4ade80' : '#f87171' }">
+                  {{ shImportResult.msg }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="currentTab === 'search'">
+            <div class="section">
+              <div class="flex items-center gap-2 mb-2" style="flex-wrap:wrap">
+                <span class="text-xs text-muted font-semibold">Periode:</span>
+                <div class="sh-period-bar">
+                  <button v-for="p in shPeriods" :key="p"
+                    class="sh-period-btn" :class="{ active: shSelectedPeriod === p }"
+                    @click="shSelectPeriod(p)">{{ p }}</button>
+                </div>
+              </div>
+              <div class="section-title">🔍 Per Emiten</div>
+              <div class="card card-table">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                  <div class="flex gap-2">
+                    <input type="text" class="form-control" v-model="shStockQuery" @keyup.enter="shSearchStock" placeholder="Kode emiten (BBCA)" style="flex:1" />
+                    <button class="btn btn-sm btn-primary" @click="shSearchStock">🔍 Cari</button>
+                  </div>
+                </div>
+                <div class="table-wrap" v-if="shStockResult.length">
+                  <table class="sh-table">
+                    <thead><tr><th style="width:36px">#</th><th>Pemegang Saham</th><th style="width:160px">% Kepemilikan</th><th style="width:140px;text-align:right">Jumlah Saham</th></tr></thead>
+                    <tbody>
+                      <tr v-for="(r,i) in shStockResult" :key="i">
+                        <td><span class="sh-rank-badge" :class="'rank-' + Math.min(i+1,3)">{{ i+1 }}</span></td>
+                        <td class="font-semibold">{{ r.shareholder_name }}</td>
+                        <td>
+                          <div class="pct-bar-wrap">
+                            <div class="pct-bar">
+                              <div class="pct-bar-inner" :style="{
+                                width: Math.min(r.share_percent, 100) + '%',
+                                background: r.share_percent >= 10 ? 'var(--success)' : r.share_percent >= 5 ? 'var(--warning)' : 'var(--muted)',
+                              }"></div>
+                            </div>
+                            <span class="pct-text" :style="{color: r.share_percent >= 10 ? 'var(--success)' : r.share_percent >= 5 ? 'var(--warning)' : 'var(--muted)'}">{{ (r.share_percent || 0).toFixed(2) }}%</span>
+                          </div>
+                        </td>
+                        <td class="text-right text-muted" style="font-size:13px;font-family:monospace">{{ shFmtNum(r.share_count) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-else-if="shStockLoading" style="text-align:center;padding:30px;color:var(--muted)">⏳ Loading...</div>
+                <div v-else-if="shStockError" style="text-align:center;padding:30px;color:var(--danger)">{{ shStockError }}</div>
+                <div v-else style="text-align:center;padding:30px;color:var(--muted)">🔍 Cari kode emiten</div>
+              </div>
+              <div class="section-title" style="margin-top:24px">👤 Per Pemegang Saham</div>
+              <div class="card card-table">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                  <div class="flex gap-2">
+                    <input type="text" class="form-control" v-model="shHolderQuery" @keyup.enter="shSearchHolder" placeholder="Nama pemegang (LO KHENG HONG)" style="flex:1" />
+                    <button class="btn btn-sm btn-primary" @click="shSearchHolder">🔍 Cari</button>
+                  </div>
+                </div>
+                <div class="table-wrap" v-if="shHolderResult.length">
+                  <table class="sh-table">
+                    <thead><tr><th style="width:36px">#</th><th>Emiten</th><th style="width:160px">% Kepemilikan</th><th style="width:140px;text-align:right">Jumlah Saham</th></tr></thead>
+                    <tbody>
+                      <tr v-for="(r,i) in shHolderResult" :key="i">
+                        <td><span class="sh-rank-badge" :class="'rank-' + Math.min(i+1,3)">{{ i+1 }}</span></td>
+                        <td><span class="font-semibold" style="color:var(--accent)">{{ r.stock_code }}</span></td>
+                        <td>
+                          <div class="pct-bar-wrap">
+                            <div class="pct-bar">
+                              <div class="pct-bar-inner" :style="{
+                                width: Math.min(r.share_percent, 100) + '%',
+                                background: r.share_percent >= 10 ? 'var(--success)' : r.share_percent >= 5 ? 'var(--warning)' : 'var(--muted)',
+                              }"></div>
+                            </div>
+                            <span class="pct-text" :style="{color: r.share_percent >= 10 ? 'var(--success)' : r.share_percent >= 5 ? 'var(--warning)' : 'var(--muted)'}">{{ (r.share_percent || 0).toFixed(2) }}%</span>
+                          </div>
+                        </td>
+                        <td class="text-right text-muted" style="font-size:13px;font-family:monospace">{{ shFmtNum(r.share_count) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-else-if="shHolderLoading" style="text-align:center;padding:30px;color:var(--muted)">⏳ Loading...</div>
+                <div v-else-if="shHolderError" style="text-align:center;padding:30px;color:var(--danger)">{{ shHolderError }}</div>
+                <div v-else style="text-align:center;padding:30px;color:var(--muted)">🔍 Cari nama pemegang</div>
+              </div>
+            </div>
+          </div>
+          <div v-if="currentTab === 'top'">
+            <div class="section">
+              <div class="section-title flex items-center justify-between">
+                <span>🏆 Top Shareholders</span>
+                <span class="text-xs text-muted">Pemegang saham terbesar di >1%</span>
+              </div>
+              <div class="card card-table" style="padding:0">
+                <table class="sh-table" v-if="shTopResult.length">
+                  <thead>
+                    <tr>
+                      <th style="width:36px">#</th>
+                      <th>Nama Pemegang Saham</th>
+                      <th style="width:120px;text-align:center">Jml Emiten</th>
+                      <th style="width:200px">Total %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(r,i) in shTopResult" :key="i" :style="i===0 ? 'background:color-mix(in srgb, #f59e0b 6%, transparent)' : ''">
+                      <td><span class="sh-rank-badge" :class="'rank-' + Math.min(i+1,3)">{{ i+1 }}</span></td>
+                      <td class="font-semibold">{{ r.shareholder_name }}</td>
+                      <td style="text-align:center">{{ r.stock_count }}</td>
+                      <td>
+                        <div class="pct-bar-wrap">
+                          <div class="pct-bar">
+                            <div class="pct-bar-inner mixed" :style="{ width: Math.min((r.total_pct || 0) / 100, 1) * 100 + '%' }"></div>
+                          </div>
+                          <span class="pct-text" style="min-width:60px">{{ (r.total_pct || 0).toFixed(2) }}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div v-else style="text-align:center;padding:30px;color:var(--muted)">⏳ Loading...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
       </div>
     </div>
   </div>
-  <script src="/static/dashboard.js?v=2"></script>
+  <!-- Toast Notification -->
+  <div v-if="shToast.show" style="position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 24px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,0.15);transition:all 0.3s"
+    :style="{ background: shToast.type === 'success' ? '#065f46' : '#7f1d1d', color: '#fff' }">
+    {{ shToast.msg }}
+  </div>
+  <script src="/static/dashboard.js?v=4"></script>
 </body>
 </html>

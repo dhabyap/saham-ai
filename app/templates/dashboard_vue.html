@@ -6,7 +6,7 @@
 <title>AI Stock Analyzer — Dashboard</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="/static/dashboard.css?v=3">
+<link rel="stylesheet" href="/static/dashboard.css?v=2">
 </head>
 <body>
   <div id="app">
@@ -25,39 +25,9 @@
           <span>AI Stock Analyzer</span>
         </div>
         <ul class="nav">
-          <li>
-            <a :class="{ active: currentView === 'marketreports' && currentTab === 'overview' }" @click="switchView('marketreports', 'overview')">
-              <span class="ico">📊</span> Dashboard
-            </a>
-          </li>
-          <li>
-            <a :class="{ active: currentView === 'marketreports' && currentTab !== 'overview' }" @click="switchView('marketreports', 'reports')">
-              <span class="ico">📋</span> Market Reports
-            </a>
-          </li>
-          <li>
-            <a :class="{ active: currentView === 'daytrading' }" @click="switchView('daytrading', 'signals')">
-              <span class="ico">⚡</span> Day Trading
-            </a>
-          </li>
-          <li>
-            <a :class="{ active: currentView === 'longterm' }" @click="switchView('longterm', 'accumulation')">
-              <span class="ico">💰</span> Long Term
-            </a>
-          </li>
-          <li>
-            <a :class="{ active: currentView === 'analysis' }" @click="switchView('analysis', 'search')">
-              <span class="ico">🔍</span> Analysis
-            </a>
-          </li>
-          <li>
-            <a :class="{ active: currentView === 'shareholders' }" @click="switchView('shareholders', 'overview')">
-              <span class="ico">📋</span> Shareholders
-            </a>
-          </li>
-          <li>
-            <a :class="{ active: currentView === 'settings' }" @click="switchView('settings', 'general')">
-              <span class="ico">⚙️</span> Settings
+          <li v-for="nav in navItems" :key="nav.view">
+            <a :class="{ active: currentView === nav.view }" @click="switchView(nav.view)">
+              <span class="ico" v-html="nav.icon"></span> {{ nav.label }}
             </a>
           </li>
         </ul>
@@ -88,592 +58,29 @@
         </div>
         <span class="date-display">{{ dateStr }}</span>
       </header>
-      <div class="tabs" v-if="currentView === 'marketreports'">
-        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📊 Dashboard</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'ihsg' }" @click="switchMrTab('ihsg')">📈 IHSG Chart</button>
+      <div class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📈 IHSG Chart</button>
         <button class="tab-btn" :class="{ active: currentTab === 'reports' }" @click="switchMrTab('reports')">📋 Reports</button>
         <button class="tab-btn" :class="{ active: currentTab === 'stocks' }" @click="switchMrTab('stocks')">🏛️ Stock Tracker</button>
         <button class="tab-btn" :class="{ active: currentTab === 'analysis' }" @click="switchMrTab('analysis')">🤖 AI Analysis</button>
         <button class="tab-btn" :class="{ active: currentTab === 'backtest' }" @click="switchMrTab('backtest')">📊 Backtest</button>
       </div>
-      <div class="tabs" v-else-if="currentView === 'daytrading'">
-        <button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">📡 Signals</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'candidates' }" @click="currentTab = 'candidates'">📋 Candidates</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">📜 History</button>
-      </div>
-      <div class="tabs" v-else-if="currentView === 'longterm'">
-        <button class="tab-btn" :class="{ active: currentTab === 'accumulation' }" @click="currentTab = 'accumulation'">💰 Accumulation</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'portfolio' }" @click="currentTab = 'portfolio'">📁 Portfolio</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'watchlist' }" @click="currentTab = 'watchlist'">👁 Watchlist</button>
-      </div>
-      <div class="tabs" v-else-if="currentView === 'analysis'">
-        <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">🔍 Search</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'detail' }" @click="currentTab = 'detail'">📄 Detail</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'comparison' }" @click="currentTab = 'comparison'">⚖️ Comparison</button>
-      </div>
-      <div class="tabs" v-else-if="currentView === 'settings'">
-        <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">⚙️ General</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">👤 Account</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">🔔 Alerts</button>
-      </div>
       <div class="content">
-        <div v-if="currentView === 'marketreports'">
-          <!-- Overview -->
-          <div v-if="currentTab === 'overview'">
-            <!-- Market Overview Section -->
-            <div class="section">
-              <div class="section-title">📈 Market Overview</div>
-              <template v-if="overviewLoading">
-                <div class="grid-6">
-                  <div v-for="n in 6" :key="n" class="card skeleton skeleton-card">
-                    <div class="skeleton skeleton-text" style="width:50%"></div>
-                    <div class="skeleton skeleton-value" style="width:40%"></div>
-                  </div>
-                </div>
-              </template>
-              <template v-else>
-              <div class="grid-6">
-                <div class="card card-accent card-big">
-                  <div class="card-header"><span class="card-label">Fear & Greed Index</span></div>
-                  <div><span class="card-value" style="color:var(--warning)">{{ market.fgi.value }}</span><span class="card-sub" style="font-size:14px;font-weight:700;color:var(--warning)"> {{ market.fgi.label }}</span></div>
-                  <div class="fgi-outer"><div class="fgi-fill" :style="{ width: market.fgi.value + '%', background: 'linear-gradient(90deg,var(--danger),var(--warning),var(--success))' }"></div></div>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">IHSG Change</span></div>
-                  <span class="card-value" :style="{ color: market.avgChange.startsWith('+') ? 'var(--success)' : 'var(--danger)' }">{{ market.avgChange }}</span>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Advancing</span></div>
-                  <span class="card-value" style="color:var(--success)">{{ market.advancing.count }}</span>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Declining</span></div>
-                  <span class="card-value" style="color:var(--danger)">{{ market.declining.count }}</span>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Total Volume</span></div>
-                  <span class="card-value" style="color:var(--accent)">{{ market.totalVolume }}</span>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Market Status</span></div>
-                  <span class="card-value" style="font-size:24px;color:var(--success)"><span style="color:var(--success)">&#9679;</span> {{ market.status }}</span>
-                </div>
-              </div>
-              </template>
-            </div>
-
-            <div class="section">
-              <template v-if="overviewLoading">
-              <div class="grid-3">
-                <div v-for="n in 3" :key="n" class="card">
-                  <div class="skeleton skeleton-text" style="width:40%"></div>
-                  <div v-for="m in 5" :key="m" class="mover-item">
-                    <div class="skeleton skeleton-text" style="width:50%"></div>
-                    <div class="skeleton skeleton-text" style="width:20%"></div>
-                  </div>
-                </div>
-              </div>
-              </template>
-              <template v-else>
-              <div class="grid-3">
-                <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
-                  <div v-for="item in movers.gainers" :key="item.code" class="mover-item is-up">
-                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                    <span class="mover-val" style="color:var(--success)">{{ item.chg }}</span>
-                  </div>
-                </div>
-                <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Top Losers</span></div>
-                  <div v-for="item in movers.losers" :key="item.code" class="mover-item is-down">
-                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                    <span class="mover-val" style="color:var(--danger)">{{ item.chg }}</span>
-                  </div>
-                </div>
-                <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Top Volume</span></div>
-                  <div v-for="item in movers.volume" :key="item.code" class="mover-item is-vol">
-                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                    <span class="mover-val">{{ item.vol }}</span>
-                  </div>
-                </div>
-              </div>
-              </template>
-            </div>
-
-            <!-- IHSG Chart -->
-            <div class="section">
-              <div class="section-title">IHSG Chart</div>
-              <template v-if="overviewLoading">
-              <div class="card p-4" style="height:400px">
-                <div class="skeleton-chart"></div>
-              </div>
-              </template>
-              <template v-else>
-              <div class="card p-4" style="height:400px">
-                <canvas id="ihsgChart"></canvas>
-              </div>
-              </template>
-            </div>
-            <!-- Foreign Accumulation skeleton -->
-            <template v-if="overviewLoading">
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title">🌍 Foreign Accumulation — Top 10</div>
-              </div>
-              <div class="card p-4">
-                <table style="width:100%">
-                  <thead><tr>
-                    <th class="text-left p-2 text-muted">Stock</th>
-                    <th class="text-right p-2 text-muted">🌍 Foreign</th>
-                    <th class="text-right p-2 text-muted">🏠 Local</th>
-                    <th class="text-right p-2 text-muted text-success">Net</th>
-                  </tr></thead>
-                  <tbody>
-                    <tr v-for="n in 5" :key="n" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
-                      <td class="p-2"><div class="skeleton skeleton-text" style="width:50%"></div></td>
-                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
-                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
-                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            </template>
-            <template v-else>
-            <div class="section" v-if="foreignOverviewStocks.length">
-              <div class="section-head">
-                <div class="section-title">🌍 Foreign Accumulation — Top 10</div>
-                <span class="text-xs text-muted font-normal">Net foreign > 0 (asing akumulasi, rekomendasi beli)</span>
-              </div>
-              <div class="card p-4">
-                <table style="width:100%">
-                  <thead><tr>
-                    <th class="text-left p-2 text-muted">Stock</th>
-                    <th class="text-right p-2 text-muted">🌍 Foreign</th>
-                    <th class="text-right p-2 text-muted">🏠 Local</th>
-                    <th class="text-right p-2 text-muted text-success">Net</th>
-                  </tr></thead>
-                  <tbody>
-                    <tr v-for="s in foreignOverviewStocks" :key="s.stock" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
-                      <td class="p-2 font-semibold" style="color:#7C3AED">{{ s.stock }}</td>
-                      <td class="p-2 text-right" style="color:var(--success)">{{ formatRp(s.foreignBuy) }}</td>
-                      <td class="p-2 text-right" style="color:var(--secondary)">{{ formatRp(s.localBuy) }}</td>
-                      <td class="p-2 text-right font-bold" style="color:var(--success)">+{{ formatRp(s.net) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            </template>
-            <!-- Pahlawan Bursa skeleton -->
-            <template v-if="overviewLoading">
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title" style="color:#EF5350">⚠️ Pahlawan Bursa Warning</div>
-              </div>
-              <div class="card p-4" style="border-left:4px solid #EF5350;">
-                <table style="width:100%">
-                  <thead><tr>
-                    <th class="text-left p-2 text-muted">Stock</th>
-                    <th class="text-right p-2 text-muted">🏠 Local</th>
-                    <th class="text-right p-2 text-muted">🌍 Foreign</th>
-                    <th class="text-right p-2 text-muted" style="color:#EF5350">Local Surplus</th>
-                  </tr></thead>
-                  <tbody>
-                    <tr v-for="n in 5" :key="n" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
-                      <td class="p-2"><div class="skeleton skeleton-text" style="width:60%"></div></td>
-                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
-                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
-                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            </template>
-            <template v-else>
-            <div class="section" v-if="pahlawanBursaStocks.length">
-              <div class="section-head">
-                <div class="section-title" style="color:#EF5350">⚠️ Pahlawan Bursa Warning</div>
-                <span class="text-xs text-muted font-normal">Local buy >> foreign buy — hindari, bahaya!</span>
-              </div>
-              <div class="card p-4" style="border-left:4px solid #EF5350;">
-                <table style="width:100%">
-                  <thead><tr>
-                    <th class="text-left p-2 text-muted">Stock</th>
-                    <th class="text-right p-2 text-muted">🏠 Local</th>
-                    <th class="text-right p-2 text-muted">🌍 Foreign</th>
-                    <th class="text-right p-2 text-muted" style="color:#EF5350">Local Surplus</th>
-                  </tr></thead>
-                  <tbody>
-                    <tr v-for="s in pahlawanBursaStocks" :key="s.stock" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
-                      <td class="p-2 font-semibold" style="color:#EF5350">{{ s.stock }}</td>
-                      <td class="p-2 text-right" style="color:var(--secondary)">{{ formatRp(s.localBuy) }}</td>
-                      <td class="p-2 text-right" style="color:var(--success)">{{ formatRp(s.foreignBuy) }}</td>
-                      <td class="p-2 text-right font-bold" style="color:#EF5350">{{ formatRp(s.localBuy - s.foreignBuy) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            </template>
-            <template v-if="overviewLoading">
-            <div class="section">
-              <div class="section-title">Market Summary</div>
-              <div class="grid-6">
-                <div v-for="n in 6" :key="n" class="card skeleton skeleton-card">
-                  <div class="skeleton skeleton-text" style="width:50%"></div>
-                  <div class="skeleton skeleton-value" style="width:40%"></div>
-                </div>
-              </div>
-            </div>
-            </template>
-            <template v-else>
-            <div class="section">
-              <div class="section-title">Market Summary</div>
-              <div class="grid-6">
-                <div class="card card-accent card-big">
-                  <div class="card-header"><span class="card-label">Fear &amp; Greed Index</span></div>
-                  <div><span class="card-value" style="color:var(--warning)">{{ market.fgi.value }}</span><span class="card-sub" style="font-size:14px;font-weight:700;color:var(--warning)"> {{ market.fgi.label }}</span></div>
-                  <div class="fgi-outer"><div class="fgi-fill" :style="{ width: market.fgi.value + '%', background: 'linear-gradient(90deg,var(--danger),var(--warning),var(--success))' }"></div></div>
-                  <div class="fgi-labels"><span>Extreme Fear</span><span>Extreme Greed</span></div>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Advancing</span><span class="badge badge-success">+{{ market.advancing.change }}</span></div>
-                  <span class="card-value" style="color:var(--success)">{{ market.advancing.count }}</span>
-                  <span class="card-sub">{{ market.advancing.pct }} of all stocks</span>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Declining</span><span class="badge badge-danger">-{{ market.declining.change }}</span></div>
-                  <span class="card-value" style="color:var(--danger)">{{ market.declining.count }}</span>
-                  <span class="card-sub">{{ market.declining.pct }} of all stocks</span>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Avg Change %</span></div>
-                  <span class="card-value" style="color:var(--success)">{{ market.avgChange }}</span>
-                  <span class="card-sub">Market-wide average</span>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Total Volume</span></div>
-                  <span class="card-value" style="color:var(--accent)">{{ market.totalVolume }}</span>
-                  <span class="card-sub">{{ market.volumeChange }}</span>
-                </div>
-                <div class="card card-big">
-                  <div class="card-header"><span class="card-label">Market Status</span></div>
-                  <span class="card-value" style="font-size:24px;color:var(--success)"><span style="color:var(--success)">&#9679;</span> {{ market.status }}</span>
-                  <span class="card-sub">{{ market.hours }}</span>
-                </div>
-              </div>
-            </div>
-            </template>
-            <!-- === Overview skeleton for rest of overview sections === -->
-            <template v-if="overviewLoading">
-            <div class="section">
-              <div class="section-title">AI Performance</div>
-              <div class="grid-4">
-                <div v-for="n in 4" :key="n" class="card skeleton skeleton-card">
-                  <div class="skeleton skeleton-text" style="width:50%"></div>
-                  <div class="skeleton skeleton-value" style="width:40%"></div>
-                </div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-title">Top Movers</div>
-              <div class="grid-3">
-                <div v-for="n in 3" :key="n" class="card">
-                  <div class="skeleton skeleton-text" style="width:40%"></div>
-                  <div v-for="m in 5" :key="m" class="mover-item">
-                    <div class="skeleton skeleton-text" style="width:50%"></div>
-                    <div class="skeleton skeleton-text" style="width:20%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title">&#127793; BPJS Day Trading Signals</div>
-              </div>
-              <div class="candidate-row">
-                <div v-for="n in 4" :key="n" class="candidate-card">
-                  <div class="skeleton skeleton-text" style="width:40%"></div>
-                  <div class="skeleton skeleton-text" style="width:60%"></div>
-                  <div class="skeleton skeleton-value" style="width:30%"></div>
-                </div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title">&#128142; Long Term Accumulation</div>
-              </div>
-              <div class="candidate-row">
-                <div v-for="n in 4" :key="n" class="candidate-card">
-                  <div class="skeleton skeleton-text" style="width:40%"></div>
-                  <div class="skeleton skeleton-text" style="width:60%"></div>
-                  <div class="skeleton skeleton-value" style="width:30%"></div>
-                </div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-title">Sector Rotation</div>
-              <div class="card p-4">
-                <div v-for="n in 6" :key="n" class="sector-item">
-                  <div class="skeleton skeleton-text" style="width:100px"></div>
-                  <div class="sector-bar-wrap"><div class="skeleton" style="height:22px;width:100%"></div></div>
-                  <div class="skeleton skeleton-text" style="width:50px"></div>
-                  <div class="skeleton skeleton-badge"></div>
-                </div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-title">Recent Predictions</div>
-              <div class="card card-table">
-                <div v-for="n in 5" :key="n" style="padding:12px 14px;border-bottom:1px solid var(--border-color)">
-                  <div class="skeleton-table-row">
-                    <div></div><div></div><div></div><div></div><div></div><div></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            </template>
-            <template v-else>
-            <!-- AI Performance -->
-            <div class="section">
-              <div class="section-title">AI Performance</div>
-              <div class="grid-4">
-                <div class="card card-accent"><div class="card-header"><span class="card-label">Accuracy 7d</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.accuracy }}</span><span class="card-sub">&#9650; {{ aiPerf.accuracyChange }}</span></div>
-                <div class="card"><div class="card-header"><span class="card-label">Win Rate</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.winRate }}</span><span class="card-sub">&#9650; {{ aiPerf.winRateChange }}</span></div>
-                <div class="card"><div class="card-header"><span class="card-label">Avg Profit</span></div><span class="card-value" style="color:var(--success)">{{ aiPerf.avgProfit }}</span><span class="card-sub">Per winning trade</span></div>
-                <div class="card"><div class="card-header"><span class="card-label">Total Predictions</span></div><span class="card-value" style="color:var(--muted)">{{ aiPerf.totalPredictions }}</span><span class="card-sub">Last 7 days</span></div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-title">Top Movers</div>
-              <div class="grid-3">
-                <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
-                  <div v-for="item in movers.gainers" :key="item.code" class="mover-item is-up">
-                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                    <span class="mover-trend is-up"><span></span><span></span><span></span></span>
-                    <span class="mover-val" style="color:var(--success)">{{ item.chg }}</span>
-                  </div>
-                </div>
-                <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Top Losers</span></div>
-                  <div v-for="item in movers.losers" :key="item.code" class="mover-item is-down">
-                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                    <span class="mover-trend is-down"><span></span><span></span><span></span></span>
-                    <span class="mover-val" style="color:var(--danger)">{{ item.chg }}</span>
-                  </div>
-                </div>
-                <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Top Volume</span></div>
-                  <div v-for="item in movers.volume" :key="item.code" class="mover-item is-vol">
-                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                    <span class="mover-trend is-vol"><span></span><span></span><span></span></span>
-                    <span class="mover-val">{{ item.vol }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title">&#127793; BPJS Day Trading Signals</div>
-                <button class="view-all" @click="switchView('daytrading', 'candidates')">View All &rarr;</button>
-              </div>
-              <div class="candidate-row">
-                <div v-for="item in bpjsSignals" :key="item.code" class="candidate-card">
-                  <div class="cc-head">
-                    <span class="cc-code">{{ item.code }}</span>
-                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
-                  </div>
-                  <div class="cc-detail">Confidence</div>
-                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                  <div class="cc-detail" style="margin-top:4px">Price</div>
-                  <div class="cc-val">{{ item.price }}</div>
-                </div>
-                <div v-if="bpjsSignals.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
-                  ⏳ Memuat data sinyal BPJS... (scan butuh waktu)
-                </div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title">&#128142; Long Term Accumulation</div>
-                <button class="view-all" @click="switchView('longterm', 'accumulation')">View All &rarr;</button>
-              </div>
-              <div class="candidate-row">
-                <div v-for="item in longTermSignals" :key="item.code" class="candidate-card">
-                  <div class="cc-head">
-                    <span class="cc-code">{{ item.code }}</span>
-                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
-                  </div>
-                  <div class="cc-detail">Confidence</div>
-                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                  <div class="cc-detail" style="margin-top:4px">Entry Zone</div>
-                  <div class="cc-val">{{ item.entryZone }}</div>
-                </div>
-                <div v-if="longTermSignals.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
-                  ⏳ Memuat data akumulasi jangka panjang...
-                </div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-title">Sector Rotation</div>
-              <div class="card p-4">
-                <div v-for="s in sectors" :key="s.name" class="sector-item">
-                  <span class="sector-name">{{ s.name }}</span>
-                  <div class="sector-bar-wrap"><div class="sector-bar-fill" :style="{ width: s.width, background: s.barColor }"></div></div>
-                  <span class="sector-pct" :style="{ color: s.textColor }">{{ s.change }}</span>
-                  <span class="sector-flow badge" :class="'badge-' + s.flowClass" style="text-transform:uppercase">{{ s.flow }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="section">
-              <div class="section-title">Recent Predictions</div>
-              <div class="card card-table">
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr><th>Stock</th><th>Signal</th><th>Confidence</th><th>Result</th><th>Profit %</th><th>Date</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="row in predictions" :key="row.code + row.date">
-                        <td class="font-semibold">{{ row.code }}</td>
-                        <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
-                        <td>{{ row.confidence }}%</td>
-                        <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
-                        <td :class="row.profitClass">{{ row.profit }}</td>
-                        <td>{{ row.date }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          </template>
-          <div v-show="currentTab === 'aiperf'">
-            <div class="section">
-              <div class="section-title">AI Performance Details</div>
-              <div class="grid-4" style="margin-bottom:24px">
-                <div class="card card-accent"><div class="card-header"><span class="card-label">Accuracy 7d</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.accuracy }}</span><span class="card-sub">&#9650; {{ aiPerf.accuracyChange }}</span></div>
-                <div class="card"><div class="card-header"><span class="card-label">Win Rate</span></div><span class="card-value" style="color:var(--accent)">{{ aiPerf.winRate }}</span><span class="card-sub">&#9650; {{ aiPerf.winRateChange }}</span></div>
-                <div class="card"><div class="card-header"><span class="card-label">Avg Profit</span></div><span class="card-value" style="color:var(--success)">{{ aiPerf.avgProfit }}</span><span class="card-sub">Per winning trade</span></div>
-                <div class="card"><div class="card-header"><span class="card-label">Total Predictions</span></div><span class="card-value" style="color:var(--muted)">{{ aiPerf.totalPredictions }}</span><span class="card-sub">Last 7 days</span></div>
-              </div>
-              <div class="card" style="padding:0;overflow:hidden">
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr><th>Metric</th><th>Value</th><th>Trend</th><th>Description</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="row in aiPerfDetails" :key="row.metric">
-                        <td style="font-weight:600">{{ row.metric }}</td>
-                        <td>{{ row.value }}</td>
-                        <td><span :class="row.trendClass">{{ row.trend }}</span></td>
-                        <td style="color:var(--muted)">{{ row.desc }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-show="currentTab === 'movers'">
-            <div class="section">
-              <div class="section-title">Market Movers — Full List</div>
-              <div class="grid-3">
-                <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
-                  <div v-for="item in allGainers" :key="item.code" class="mover-item is-up">
-                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                    <span class="mover-trend is-up"><span></span><span></span><span></span></span>
-                    <span class="mover-val" style="color:var(--success)">{{ item.chg }}</span>
-                  </div>
-                </div>
-                <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--danger)">Top Losers</span></div>
-                  <div v-for="item in allLosers" :key="item.code" class="mover-item is-down">
-                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                    <span class="mover-trend is-down"><span></span><span></span><span></span></span>
-                    <span class="mover-val" style="color:var(--danger)">{{ item.chg }}</span>
-                  </div>
-                </div>
-                <div class="card">
-                  <div class="card-header"><span class="card-label" style="color:var(--accent)">Most Active (Volume)</span></div>
-                  <div v-for="item in allVolume" :key="item.code" class="mover-item is-vol">
-                    <div class="mover-name"><span class="mover-code">{{ item.code }}</span><span class="mover-full">{{ item.name }}</span></div>
-                    <span class="mover-trend is-vol"><span></span><span></span><span></span></span>
-                    <span class="mover-val">{{ item.vol }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-show="currentTab === 'sectors'">
-            <div class="section">
-              <div class="section-title">Sector Analysis</div>
-              <div class="card" style="padding:18px 22px">
-                <div v-for="s in sectors" :key="s.name" class="sector-item">
-                  <span class="sector-name">{{ s.name }}</span>
-                  <div class="sector-bar-wrap"><div class="sector-bar-fill" :style="{ width: s.width, background: s.barColor }"></div></div>
-                  <span class="sector-pct" :style="{ color: s.textColor }">{{ s.change }}</span>
-                  <span class="sector-flow badge" :class="'badge-' + s.flowClass" style="text-transform:uppercase">{{ s.flow }}</span>
-                </div>
-              </div>
-              <div class="card" style="margin-top:16px;padding:18px 22px">
-                <span class="card-label">Sector Rotation Summary</span>
-                <p style="color:var(--muted);margin-top:8px;font-size:13px">Technology and Financials leading the market with strong inflows. Energy showing neutral momentum. Healthcare and Infrastructure under pressure with capital outflows.</p>
-              </div>
-            </div>
-          </div>
-          <div v-show="currentTab === 'preds'">
-            <div class="section">
-              <div class="section-title">All Predictions</div>
-              <div class="card" style="padding:0;overflow:hidden">
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr><th>Stock</th><th>Signal</th><th>Confidence</th><th>Result</th><th>Profit %</th><th>Date</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="row in allPredictions" :key="row.code + row.date">
-                        <td style="font-weight:600">{{ row.code }}</td>
-                        <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
-                        <td>{{ row.confidence }}%</td>
-                        <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
-                        <td :class="row.profitClass">{{ row.profit }}</td>
-                        <td>{{ row.date }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div>
           <!-- IHSG Chart tab -->
-          <div v-show="currentTab === 'ihsg'">
-            <div v-if="mrLoading" class="section">
-              <div class="section-title">IHSG Performance</div>
-              <div class="card p-4" style="height:400px">
-                <div class="skeleton-chart"></div>
+          <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <template v-if="mrReportsLoading">
+              <div class="section">
+                <div class="skeleton-text" style="width:160px;height:18px;margin-bottom:12px"></div>
+                <div class="card p-4"><div style="height:280px" class="skeleton-chart"></div></div>
               </div>
-              <div class="section-title">Top Net Foreign Accumulation</div>
-              <div class="card p-4" style="height:300px">
-                <div class="skeleton-chart"></div>
+              <div class="section">
+                <div class="skeleton-text" style="width:240px;height:18px;margin-bottom:12px"></div>
+                <div class="card p-4"><div style="height:280px" class="skeleton-chart"></div></div>
               </div>
-            </div>
-            <div v-else-if="mrError" class="section">
-              <div class="card text-center p-4" style="padding:60px 20px">
-                <div style="font-size:40px;margin-bottom:12px">⚠️</div>
-                <div class="font-bold text-muted" style="font-size:16px;margin-bottom:8px">{{ mrError }}</div>
-              </div>
-            </div>
-            <div v-else-if="!mrLoading && mrReports.length === 0" class="section">
+            </template>
+            <template v-else>
+            <div class="section" v-if="mrReports.length === 0">
               <div class="card text-center p-4">
                 <div class="font-bold text-muted" style="font-size:18px;margin-bottom:8px">📊 Market Reports</div>
                 <div class="text-xs text-muted">Belum ada data market report. Jalankan scraper dulu.</div>
@@ -693,12 +100,22 @@
               </div>
             </div>
             </template>
+            </template>
           </div>
-
           <!-- Reports tab -->
-          <div v-show="currentTab === 'reports'">
+          <div class="tab-pane" :class="{ active: currentTab === 'reports' }">
             <div class="section">
               <div class="section-title">Market Report Cards</div>
+              <template v-if="mrReportsLoading">
+                <div class="stats-row">
+                  <div v-for="n in 4" :key="n" class="card text-center p-3"><div class="skeleton-value"></div><div class="skeleton-text" style="width:80px;margin:6px auto 0"></div></div>
+                </div>
+                <div class="card p-4 mb-4" style="margin-top:16px">
+                  <div class="skeleton-text" style="width:220px;height:16px;margin-bottom:12px"></div>
+                  <div v-for="n in 6" :key="n" class="skeleton-table-row" style="grid-template-columns:80px 1fr 1fr 1fr 80px;margin-bottom:6px"><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+              </template>
+              <template v-else>
               <div class="stats-row">
                 <div class="card text-center p-3">
                   <div class="font-bold text-accent" style="font-size:28px">{{ mrStats.totalReports }}</div>
@@ -717,6 +134,7 @@
                   <div class="text-xs text-muted text-uppercase">Hari Merah</div>
                 </div>
               </div>
+              <!-- Net Foreign Accumulation -->
               <div class="card p-4 mb-4">
                 <div class="font-semibold text-accent mb-3">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hindari yg lokal > asing)</span></div>
                 <div class="overflow-x-auto">
@@ -740,6 +158,7 @@
                   </table>
                 </div>
               </div>
+              <!-- Filter buttons -->
               <div class="filter-bar mb-3">
                 <span class="text-xs text-muted font-semibold mr-2">Filter:</span>
                 <button class="filter-btn" :class="{ active: mrFilter === 'all' }" @click="setMrFilter('all')">📋 All</button>
@@ -792,6 +211,7 @@
                           <span class="font-semibold text-accent">{{ s.stock }}</span><span class="font-semibold text-danger">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
                         </div>
                       </template>
+                      <!-- Sesi 1 specific: Foreign Buy Yesterday -->
                       <template v-if="r.foreign_buy_yesterday && r.foreign_buy_yesterday.length">
                         <div class="mr-section-title">📊 Naik Setelah Asing Beli</div>
                         <div v-for="s in r.foreign_buy_yesterday" :key="s.stock" class="mr-item">
@@ -799,6 +219,7 @@
                           <span><span class="text-success">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span> / <span class="text-muted">{{ formatRp(s.volume) }}</span></span>
                         </div>
                       </template>
+                      <!-- Sesi 1 specific: Volume Spike -->
                       <template v-if="r.volume_spike && r.volume_spike.length">
                         <div class="mr-section-title">📈 Lonjakan Volume</div>
                         <div v-for="s in r.volume_spike" :key="s.stock" class="mr-item">
@@ -810,14 +231,19 @@
                 </div>
               </div>
             </div>
+            </template>
           </div>
-
           <!-- Stock Tracker tab -->
-          <div v-show="currentTab === 'stocks'">
+          <div class="tab-pane" :class="{ active: currentTab === 'stocks' }">
             <div class="section">
               <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, hanya yg net positif)</span></div>
               <div class="card card-table">
                 <div class="table-wrap">
+                  <template v-if="mrReportsLoading">
+                    <table><thead><tr><th>Stock</th><th>🌍 Foreign</th><th>🏠 Local</th><th>Net</th><th>Last</th></tr></thead>
+                    <tbody><tr v-for="n in 8" :key="n"><td><div class="skeleton-text" style="width:60px"></div></td><td><div class="skeleton-text" style="width:90px"></div></td><td><div class="skeleton-text" style="width:90px"></div></td><td><div class="skeleton-text" style="width:90px"></div></td><td><div class="skeleton-text" style="width:50px"></div></td></tr></tbody></table>
+                  </template>
+                  <template v-else>
                   <table>
                     <thead><tr>
                       <th style="cursor:pointer" @click="toggleMrSort('stock')">Stock<span class="sort-icon">{{ mrSortIcon('stock') }}</span></th>
@@ -837,25 +263,24 @@
                       <tr v-if="!mrSortedForeign.length"><td colspan="5" class="text-center text-muted">No data</td></tr>
                     </tbody>
                   </table>
+                  </template>
                 </div>
               </div>
             </div>
           </div>
-
           <!-- AI Analysis tab -->
-          <div v-show="currentTab === 'analysis'">
+          <div class="tab-pane" :class="{ active: currentTab === 'analysis' }">
             <div class="section" v-if="mrLoadingAnalysis">
+              <div class="section-title"><div class="skeleton-text" style="width:200px;height:18px"></div></div>
               <div class="grid-4-card">
-                <div v-for="n in 4" :key="n" class="card skeleton skeleton-card" style="min-height:100px">
-                  <div class="skeleton skeleton-text" style="width:50%"></div>
-                  <div class="skeleton skeleton-value" style="width:40%"></div>
-                </div>
+                <div v-for="n in 3" :key="n" class="card text-center p-3"><div class="skeleton-value"></div><div class="skeleton-text" style="width:80px;margin:6px auto 0"></div><div class="skeleton-text" style="width:100px;margin:4px auto 0"></div></div>
               </div>
-              <div class="card mt-3 p-4">
-                <div v-for="n in 4" :key="n" class="skeleton skeleton-text mb-2" style="width:90%"></div>
+              <div class="card card-table" style="margin-top:16px">
+                <div style="padding:16px"><div v-for="n in 8" :key="n" class="skeleton-table-row" style="grid-template-columns:80px 1fr 1fr 1fr 80px;margin-bottom:6px"><div></div><div></div><div></div><div></div><div></div></div></div>
               </div>
             </div>
             <div v-if="mrAnalysis">
+              <!-- Summary Row -->
               <div class="section">
                 <div class="section-title">📊 Market Report Summary</div>
                 <div class="grid-4-card">
@@ -875,6 +300,8 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Net Foreign Accumulation -->
               <div class="section">
                 <div class="section-title">🌍 Net Foreign Accumulation <span class="text-xs text-muted font-normal">(asing — lokal, bersih)</span></div>
                 <div class="card card-table">
@@ -900,6 +327,8 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Monthly Flow -->
               <div class="section">
                 <div class="section-title">📊 Foreign Flow per Bulan</div>
                 <div v-for="m in mrAnalysis.monthly_flow" :key="m.month" class="card p-3 mb-2">
@@ -912,6 +341,8 @@
                   </div>
                 </div>
               </div>
+
+              <!-- IHSG Trend -->
               <div class="section">
                 <div class="section-title">🔄 IHSG Trend</div>
                 <div class="grid-3-card">
@@ -922,6 +353,8 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Backtest Results -->
               <div class="section">
                 <div class="section-title">⚡ Backtest Results</div>
                 <div class="grid-3-card">
@@ -935,6 +368,8 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Same-Day Signals -->
               <div class="section" v-if="mrAnalysis.same_day_signals && mrAnalysis.same_day_signals.length">
                 <div class="section-title">🔥 Same-Day Signal (Foreign Buy → langsung Gainer)</div>
                 <div class="card p-3">
@@ -944,6 +379,8 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Hot Picks -->
               <div class="section">
                 <div class="section-title">🎯 Hot Pick (Foreign Buy Terbaru)</div>
                 <div class="card card-table">
@@ -962,6 +399,8 @@
                   </div>
                 </div>
               </div>
+
+              <!-- IHSG Outlook -->
               <div class="section">
                 <div class="section-title">📊 IHSG Outlook</div>
                 <div class="card p-4">
@@ -981,21 +420,23 @@
               </div>
             </div>
           </div>
-
           <!-- Backtest tab -->
-          <div v-show="currentTab === 'backtest'">
+          <div class="tab-pane" :class="{ active: currentTab === 'backtest' }">
             <div class="section" v-if="mrBtLoading">
-              <div class="stats-row">
-                <div v-for="n in 4" :key="n" class="card skeleton skeleton-card"></div>
+              <div class="section-title"><div class="skeleton-text" style="width:240px;height:18px"></div></div>
+              <div class="stats-row mb-3">
+                <div v-for="n in 4" :key="n" class="card text-center p-3"><div class="skeleton-value"></div><div class="skeleton-text" style="width:80px;margin:6px auto 0"></div></div>
               </div>
-              <div class="grid-3-card">
-                <div v-for="n in 3" :key="n" class="card skeleton" style="height:140px"></div>
+              <div class="grid-3-card" style="margin-bottom:16px">
+                <div v-for="n in 3" :key="n" class="card p-4" style="text-align:center"><div class="skeleton-text" style="width:100px;margin:0 auto 8px"></div><div class="skeleton-value" style="width:60px;margin:0 auto"></div><div class="skeleton-text" style="width:80px;margin:8px auto 0"></div></div>
               </div>
+              <div class="card card-table"><div style="padding:16px"><div v-for="n in 6" :key="n" class="skeleton-table-row" style="grid-template-columns:80px repeat(7, 1fr);margin-bottom:6px"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div></div>
             </div>
             <div class="section" v-if="mrBtError">
               <div class="card" style="text-align:center;padding:40px;color:var(--danger)">⚠️ {{ mrBtError }}</div>
             </div>
             <div class="section" v-if="mrBtData">
+              <!-- Summary Row -->
               <div class="section-title">📊 Backtest: Sesi 1 → Akhir Sesi</div>
               <div class="stats-row mb-3">
                 <div class="card text-center p-3">
@@ -1015,6 +456,8 @@
                   <div class="text-xs text-muted text-uppercase">Total Vol Spike</div>
                 </div>
               </div>
+
+              <!-- Strategy Cards -->
               <div class="grid-3-card" style="margin-bottom:16px">
                 <div v-for="s in mrBtData.strategies" :key="s.id" class="card p-4" style="text-align:center">
                   <div class="text-xs text-muted mb-2">{{ s.name }}</div>
@@ -1028,6 +471,8 @@
                   <div class="mt-3" :style="{color: s.color, fontWeight:700}">{{ s.verdict }}</div>
                 </div>
               </div>
+
+              <!-- Daily Detail Table -->
               <div class="section">
                 <div class="section-title flex items-center justify-between">
                   <span>📅 Daily Detail</span>
@@ -1062,6 +507,8 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Insight -->
               <div class="card p-4" style="background:var(--bg-gradient);border-left:4px solid var(--accent)">
                 <div class="font-semibold mb-2" style="color:var(--accent)">📌 Insight</div>
                 <div style="font-size:13px;line-height:1.7">
@@ -1079,761 +526,14 @@
             </div>
           </div>
         </div>
-        <div v-else-if="currentView === 'daytrading'">
-          <div class="tab-pane" :class="{ active: currentTab === 'signals' }">
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title">&#127919; BPJS Day Trading — Active Signals</div>
-                <button class="view-all" @click="mockScan">Scan Now &rarr;</button>
-              </div>
-              <div class="candidate-row">
-                <div v-for="item in dayTradingSignals" :key="item.code" class="candidate-card">
-                  <div class="cc-head">
-                    <span class="cc-code">{{ item.code }}</span>
-                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
-                  </div>
-                  <div class="cc-detail">Confidence</div>
-                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                  <div class="cc-detail" style="margin-top:4px">Price</div>
-                  <div class="cc-val">{{ item.price }}</div>
-                  <div class="cc-detail" style="margin-top:4px">Entry / Exit</div>
-                  <div class="cc-val" style="font-size:13px">{{ item.entry }} / {{ item.exit }}</div>
-                </div>
-                <div v-if="dayTradingSignals.length === 0" class="candidate-row">
-                  <div v-for="n in 4" :key="n" class="candidate-card">
-                    <div class="skeleton skeleton-text" style="width:40%"></div>
-                    <div class="skeleton skeleton-text" style="width:60%"></div>
-                    <div class="skeleton skeleton-value" style="width:30%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'candidates' }">
-            <div class="section">
-              <div class="section-title">&#128203; BPJS Candidates — Sorted by Confidence</div>
-              <div class="card" style="padding:0;overflow:hidden">
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr><th>Stock</th><th>Signal</th><th>Conf</th><th>Entry Price</th><th>TP</th><th>CL</th><th>Volume Ratio</th><th>Foreign Flow</th><th>Action</th></tr>
-                    </thead>
-                    <tbody v-if="dayTradingCandidates.length === 0">
-                      <tr v-for="n in 5" :key="n">
-                        <td v-for="c in 9" :key="c"><div class="skeleton skeleton-text" style="width:60%"></div></td>
-                      </tr>
-                    </tbody>
-                    <tbody v-else>
-                      <tr v-for="row in dayTradingCandidates" :key="row.stock">
-                        <td style="font-weight:600">{{ row.stock }}</td>
-                        <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
-                        <td>{{ row.conf }}%</td>
-                        <td>{{ row.entry }}</td>
-                        <td>{{ row.tp }}</td>
-                        <td>{{ row.cl }}</td>
-                        <td>{{ row.volRatio }}</td>
-                        <td>{{ row.foreignFlow }}</td>
-                        <td><span class="badge" :class="row.action === 'Buy' ? 'badge-success' : 'badge-warning'">{{ row.action }}</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'history' }">
-            <div class="section">
-              <div class="section-title">&#128214; Day Trading History</div>
-              <div class="card" style="padding:0;overflow:hidden">
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr><th>Date</th><th>Stock</th><th>Entry</th><th>Exit</th><th>Profit %</th><th>Result</th></tr>
-                    </thead>
-                    <tbody v-if="dayTradingHistory.length === 0">
-                      <tr v-for="n in 5" :key="n">
-                        <td v-for="c in 6" :key="c"><div class="skeleton skeleton-text" style="width:50%"></div></td>
-                      </tr>
-                    </tbody>
-                    <tbody v-else>
-                      <tr v-for="row in dayTradingHistory" :key="row.stock + row.date">
-                        <td style="color:var(--muted)">{{ row.date }}</td>
-                        <td style="font-weight:600">{{ row.stock }}</td>
-                        <td>{{ row.entry }}</td>
-                        <td>{{ row.exit }}</td>
-                        <td :class="row.profitClass">{{ row.profit }}</td>
-                        <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-else-if="currentView === 'longterm'">
-          <div class="tab-pane" :class="{ active: currentTab === 'accumulation' }">
-            <div class="section">
-              <div class="section-title">&#128142; Long Term — Accumulation Candidates</div>
-              <div class="candidate-row">
-                <div v-for="item in ltAccumulation" :key="item.code" class="candidate-card">
-                  <div class="cc-head">
-                    <span class="cc-code">{{ item.code }}</span>
-                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.phase }}</span>
-                  </div>
-                  <div class="cc-detail">Confidence</div>
-                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                  <div class="cc-detail" style="margin-top:4px">Entry Zone</div>
-                  <div class="cc-val">{{ item.entryZone }}</div>
-                  <div class="cc-detail" style="margin-top:4px">Accum Days / RS</div>
-                  <div class="cc-val" style="font-size:13px">{{ item.accumDays }} days / {{ item.rsStatus }}</div>
-                </div>
-                <div v-if="ltAccumulation.length === 0" class="candidate-row">
-                  <div v-for="n in 4" :key="n" class="candidate-card">
-                    <div class="skeleton skeleton-text" style="width:40%"></div>
-                    <div class="skeleton skeleton-text" style="width:60%"></div>
-                    <div class="skeleton skeleton-value" style="width:30%"></div>
-                    <div class="skeleton skeleton-text" style="width:50%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'portfolio' }">
-            <div class="section">
-              <div class="section-title">&#128188; Portfolio</div>
-              <div v-if="ltPortfolio.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted)">
-                Belum ada posisi portfolio. Tambahkan saham ke watchlist untuk mulai tracking.
-              </div>
-              <div v-else class="card card-table">
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr><th>Stock</th><th>Entry Date</th><th>Avg Price</th><th>Current Price</th><th>Profit %</th><th>Position</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="row in ltPortfolio" :key="row.stock">
-                        <td class="font-semibold">{{ row.stock }}</td>
-                        <td>{{ row.entryDate }}</td>
-                        <td>{{ row.avgPrice }}</td>
-                        <td>{{ row.currentPrice }}</td>
-                        <td :class="row.profitClass">{{ row.profitPct }}</td>
-                        <td>{{ row.position }}</td>
-                        <td><span class="badge" :class="'badge-' + row.statusClass">{{ row.status }}</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'watchlist' }">
-            <div class="section">
-              <div class="section-title">&#128065; Watchlist — Full Details</div>
-              <div class="grid-2">
-                <div v-for="item in ltWatchlist" :key="item.code" class="card">
-                  <div class="flex-center" style="justify-content:space-between;margin-bottom:8px">
-                    <span style="font-size:17px;font-weight:700">{{ item.code }}</span>
-                    <span class="badge" :class="item.chg >= 0 ? 'badge-success' : 'badge-danger'">{{ item.chg >= 0 ? '+' : '' }}{{ item.chg }}%</span>
-                  </div>
-                  <div style="font-size:12px;color:var(--muted);margin-bottom:4px">{{ item.name }}</div>
-                  <div style="font-size:13px;color:var(--muted)">Volume: {{ item.volume }} &middot; Sector: {{ item.sector }}</div>
-                  <div style="margin-top:10px;display:flex;gap:8px">
-                    <button class="btn btn-sm btn-primary">Detail</button>
-                    <button class="btn btn-sm btn-outline" @click="item._removed = true">Remove</button>
-                  </div>
-                </div>
-                <div v-if="ltWatchlist.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
-                  Belum ada saham di watchlist. Tambahkan saham dari menu Analisis.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-else-if="currentView === 'analysis'" style="width:100%">
-          <div class="tab-pane" :class="{ active: currentTab === 'search' }">
-            <div class="section">
-              <div class="section-title">&#128269; Search Stocks</div>
-              <div class="card" style="margin-bottom:20px;width:100%">
-                <div style="position:relative">
-                  <input type="text" class="form-control" v-model="analysisQuery" placeholder="Search by stock code or name..." style="padding-left:36px;font-size:15px;width:100%" />
-                  <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px">&#128269;</span>
-                </div>
-                <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-                  <span style="font-size:12px;color:var(--muted);margin-right:4px">Filter sector:</span>
-                  <button v-for="s in analysisSectors" :key="s" class="btn btn-sm" :class="analysisSector === s ? 'btn-primary' : 'btn-outline'" @click="analysisSector = s">{{ s }}</button>
-                </div>
-              </div>
-              <template v-if="stocksLoading">
-                <div class="grid-3">
-                  <div v-for="n in 6" :key="n" class="candidate-card">
-                    <div class="skeleton skeleton-text" style="width:40%"></div>
-                    <div class="skeleton skeleton-text" style="width:60%"></div>
-                    <div class="skeleton skeleton-text" style="width:30%"></div>
-                    <div class="skeleton skeleton-value" style="width:20%"></div>
-                  </div>
-                </div>
-              </template>
-              <template v-else-if="filteredAnalysis.length === 0">
-                <div class="card" style="text-align:center;padding:40px;color:var(--muted)">
-                  No stocks found for "{{ analysisQuery }}"
-                </div>
-              </template>
-              <template v-else>
-              <div class="grid-3">
-                <div v-for="item in filteredAnalysis" :key="item.code" class="candidate-card" @click="selectStock(item)" style="cursor:pointer">
-                  <div class="cc-head">
-                    <span class="cc-code">{{ item.code }}</span>
-                    <span class="badge" :class="item.chg >= 0 ? 'badge-success' : 'badge-danger'">{{ item.chg >= 0 ? '+' : '' }}{{ item.chg }}%</span>
-                  </div>
-                  <div class="cc-detail">{{ item.name }}</div>
-                  <div class="cc-detail" style="margin-top:4px">Sector: {{ item.sector }}</div>
-                  <div class="cc-val" style="margin-top:4px">{{ item.price }}</div>
-                  <div class="cc-detail" style="margin-top:4px">Score: <span :style="{color: item.score >= 70 ? 'var(--success)' : item.score >= 50 ? 'var(--warning)' : 'var(--danger)'}">{{ item.score }}/100</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'detail' }">
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title">&#128202; Analysis — {{ selectedStock.code }}</div>
-                <span class="badge" :class="'badge-' + selectedStock.signalClass" style="font-size:13px;padding:5px 16px">{{ selectedStock.recommendation }}</span>
-              </div>
-              <div class="grid-4" style="margin-bottom:20px">
-                <div class="card"><span class="card-label">Current Price</span><span class="card-value card-value-sm" style="color:var(--text)">{{ selectedStock.price }}</span><span class="card-sub">Updated {{ dateStr }}</span></div>
-                <div class="card"><span class="card-label">Change</span><span class="card-value card-value-sm" :style="{color: selectedStock.chg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ selectedStock.chg >= 0 ? '+' : '' }}{{ selectedStock.chg }}%</span><span class="card-sub">Today</span></div>
-                <div class="card"><span class="card-label">RSI</span><span class="card-value card-value-sm">{{ selectedStock.rsi }}</span><span class="card-sub" :style="{color: selectedStock.rsi > 70 ? 'var(--danger)' : selectedStock.rsi > 60 ? 'var(--warning)' : 'var(--success)'}">{{ selectedStock.rsiLabel }}</span></div>
-                <div class="card card-accent"><span class="card-label">AI Score</span><span class="card-value card-value-sm" style="color:var(--accent)">{{ selectedStock.score }}/100</span><span class="card-sub">Confidence: {{ selectedStock.confidence }}%</span></div>
-              </div>
-              <div class="grid-2" style="margin-bottom:20px">
-                <div class="card">
-                  <span class="card-label" style="margin-bottom:12px;display:block">Technical Indicators</span>
-                  <div class="detail-grid">
-                    <div class="detail-item"><div class="detail-label">RSI (14)</div><div class="detail-value">{{ selectedStock.rsi }}</div></div>
-                    <div class="detail-item"><div class="detail-label">MACD</div><div class="detail-value" :style="{color: selectedStock.macd.startsWith('+') ? 'var(--success)' : 'var(--danger)'}">{{ selectedStock.macd }}</div></div>
-                    <div class="detail-item"><div class="detail-label">MA 20</div><div class="detail-value">{{ selectedStock.ma20 }}</div></div>
-                    <div class="detail-item"><div class="detail-label">MA 50</div><div class="detail-value">{{ selectedStock.ma50 }}</div></div>
-                    <div class="detail-item"><div class="detail-label">Bollinger Upper</div><div class="detail-value">{{ selectedStock.bbUpper }}</div></div>
-                    <div class="detail-item"><div class="detail-label">Bollinger Lower</div><div class="detail-value">{{ selectedStock.bbLower }}</div></div>
-                  </div>
-                </div>
-                <div class="card">
-                  <span class="card-label" style="margin-bottom:12px;display:block">Support &amp; Resistance</span>
-                  <div class="detail-grid">
-                    <div class="detail-item"><div class="detail-label">Resistance R2</div><div class="detail-value" style="color:var(--danger)">{{ selectedStock.r2 }}</div></div>
-                    <div class="detail-item"><div class="detail-label">Resistance R1</div><div class="detail-value" style="color:var(--warning)">{{ selectedStock.r1 }}</div></div>
-                    <div class="detail-item"><div class="detail-label">Pivot Point</div><div class="detail-value">{{ selectedStock.pivot }}</div></div>
-                    <div class="detail-item"><div class="detail-label">Support S1</div><div class="detail-value" style="color:var(--success)">{{ selectedStock.s1 }}</div></div>
-                    <div class="detail-item"><div class="detail-label">Support S2</div><div class="detail-value" style="color:var(--success)">{{ selectedStock.s2 }}</div></div>
-                    <div class="detail-item"><div class="detail-label">Volume</div><div class="detail-value">{{ selectedStock.volume }}</div></div>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <span class="card-label" style="margin-bottom:8px;display:block">AI Recommendation</span>
-                <p style="font-size:14px;line-height:1.7;color:var(--text)">{{ selectedStock.analysis }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'comparison' }">
-            <div class="section">
-              <div class="section-title">&#128200; Stock Comparison</div>
-              <div class="card" style="padding:0;overflow:hidden">
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style="width:140px">Metric</th>
-                        <th v-for="s in comparisonStocks" :key="s.code" style="text-align:center;font-size:14px">{{ s.code }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="row in comparisonRows" :key="row.label">
-                        <td style="font-weight:600;color:var(--muted)">{{ row.label }}</td>
-                        <td v-for="s in comparisonStocks" :key="s.code" style="text-align:center" :class="row.getClass ? row.getClass(s) : ''">{{ row.getValue(s) }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-                <span style="font-size:13px;color:var(--muted)">Compare with:</span>
-                <select class="form-control" style="width:auto;min-width:120px" v-model="comparisonAddCode">
-                  <option value="">Select stock...</option>
-                  <option v-for="s in comparisonAvailable" :key="s" :value="s">{{ s }}</option>
-                </select>
-                <button class="btn btn-sm btn-primary" @click="addComparison" :disabled="!comparisonAddCode">Add</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-else-if="currentView === 'settings'">
-          <div class="tab-pane" :class="{ active: currentTab === 'general' }">
-            <div class="section">
-              <div class="section-title">&#9881; General Settings</div>
-              <div class="card">
-                <div class="setting-row">
-                  <div>
-                    <div style="font-weight:600;font-size:14px">Theme</div>
-                    <div style="font-size:12px;color:var(--muted)">Choose your preferred theme</div>
-                  </div>
-                  <div class="theme-switcher">
-                    <button v-for="t in themes" :key="t.id" class="theme-btn" :class="{ active: currentTheme === t.id }" @click="switchTheme(t.id)" :title="t.label">{{ t.label }}</button>
-                  </div>
-                </div>
-                <div class="setting-row">
-                  <div>
-                    <div style="font-weight:600;font-size:14px">Language</div>
-                    <div style="font-size:12px;color:var(--muted)">Interface language</div>
-                  </div>
-                  <select class="form-control" style="width:auto;min-width:140px" v-model="settingsLanguage">
-                    <option value="en">English</option>
-                    <option value="id">Bahasa Indonesia</option>
-                  </select>
-                </div>
-                <div class="setting-row">
-                  <div>
-                    <div style="font-weight:600;font-size:14px">Risk Tolerance</div>
-                    <div style="font-size:12px;color:var(--muted)">Default risk level for signals</div>
-                  </div>
-                  <select class="form-control" style="width:auto;min-width:140px" v-model="settingsRiskTolerance">
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
-                <div class="setting-row">
-                  <div>
-                    <div style="font-weight:600;font-size:14px">Target Profit %</div>
-                    <div style="font-size:12px;color:var(--muted)">Default take-profit target</div>
-                  </div>
-                  <select class="form-control" style="width:auto;min-width:140px" v-model="settingsTargetProfit">
-                    <option value="3">3%</option>
-                    <option value="5">5%</option>
-                    <option value="8">8%</option>
-                    <option value="10">10%</option>
-                  </select>
-                </div>
-                <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.04);display:flex;gap:12px">
-                  <button class="btn btn-primary" @click="mockSave">Save Settings</button>
-                  <button class="btn btn-outline" @click="mockSave">Reset</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="tab-pane" :class="{ active: currentTab === 'account' }">
-            <div class="section">
-              <div class="section-title">&#128100; Account</div>
-              <div class="card">
-                <div class="setting-row">
-                  <div>
-                    <div style="font-weight:600;font-size:14px">Telegram ID</div>
-                    <div style="font-size:12px;color:var(--muted)">Connected Telegram account for alerts</div>
-                  </div>
-                  <span class="badge badge-success" style="font-size:13px">@dhaby_analyst</span>
-                </div>
-                <div class="setting-row">
-                  <div>
-                    <div style="font-weight:600;font-size:14px">Email Notifications</div>
-                    <div style="font-size:12px;color:var(--muted)">Receive email alerts for signals</div>
-                  </div>
-                  <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer">
-                    <input type="checkbox" v-model="settingsEmailNotif" />
-                    <span>{{ settingsEmailNotif ? 'Enabled' : 'Disabled' }}</span>
-                  </label>
-                </div>
-                <div class="setting-row">
-                  <div>
-                    <div style="font-weight:600;font-size:14px">Push Notifications</div>
-                    <div style="font-size:12px;color:var(--muted)">Browser push alerts</div>
-                  </div>
-                  <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer">
-                    <input type="checkbox" v-model="settingsPushNotif" />
-                    <span>{{ settingsPushNotif ? 'Enabled' : 'Disabled' }}</span>
-                  </label>
-                </div>
-                <div class="setting-row">
-                  <div>
-                    <div style="font-weight:600;font-size:14px">API Status</div>
-                    <div style="font-size:12px;color:var(--muted)">Data provider connection status</div>
-                  </div>
-                  <span class="badge badge-success">&#9679; Connected</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'alerts' }">
-            <div class="section">
-              <div class="section-title">&#128276; Active Alerts</div>
-              <div v-for="alert in settingsAlerts" :key="alert.stock + alert.type" class="alert-item">
-                <div>
-                  <div style="font-weight:600;font-size:14px">{{ alert.stock }} — {{ alert.type }}</div>
-                  <div style="font-size:12px;color:var(--muted)">{{ alert.condition }}</div>
-                </div>
-                <div class="flex-center">
-                  <span class="badge" :class="alert.status === 'Active' ? 'badge-success' : 'badge-warning'" style="margin-right:8px">{{ alert.status }}</span>
-                  <button class="btn btn-sm btn-danger" @click="removeAlert(alert)">X</button>
-                </div>
-              </div>
-              <div v-if="settingsAlerts.length === 0" class="card" style="text-align:center;padding:30px;color:var(--muted)">
-                No active alerts. Create one below.
-              </div>
-              <div class="card" style="margin-top:16px">
-                <span class="card-label" style="margin-bottom:12px;display:block">Add Alert</span>
-                <div class="grid-2">
-                  <div>
-                    <label>Stock</label>
-                    <select class="form-control" v-model="newAlertStock">
-                      <option value="">Select stock...</option>
-                      <option v-for="s in allStocks" :key="s.code" :value="s.code">{{ s.code }}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label>Alert Type</label>
-                    <select class="form-control" v-model="newAlertType">
-                      <option value="Price Alert">Price Alert</option>
-                      <option value="RSI Alert">RSI Alert</option>
-                      <option value="Volume Alert">Volume Alert</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label>Condition</label>
-                    <input type="text" class="form-control" v-model="newAlertCondition" placeholder="e.g. Above 10,000" />
-                  </div>
-                  <div style="display:flex;align-items:flex-end">
-                    <button class="btn btn-primary w-full" @click="addAlert" :disabled="!newAlertStock || !newAlertCondition">Add Alert</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-else-if="currentView === 'shareholders'">
-          <div class="tabs">
-            <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">📊 Overview</button>
-            <button class="tab-btn" :class="{ active: currentTab === 'import' }" @click="currentTab = 'import'">📥 Import</button>
-            <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">🔍 Cari</button>
-            <button class="tab-btn" :class="{ active: currentTab === 'top' }" @click="currentTab = 'top'">🏆 Top Holders</button>
-          </div>
-          <div v-if="currentTab === 'overview'">
-            <div class="section">
-              <div class="section-title flex items-center justify-between">
-                <span>📋 Shareholder >1% Tracking</span>
-                <span class="text-xs text-muted">IDX/KSEI — {{ shSelectedPeriod || '-' }}</span>
-              </div>
-              <!-- Stat cards -->
-              <template v-if="shTopLoading">
-              <div class="stats-row" style="margin-bottom:16px">
-                <div v-for="n in 4" :key="n" class="sh-card">
-                  <div class="skeleton skeleton-avatar"></div>
-                  <div class="sh-card-body">
-                    <div class="skeleton skeleton-value" style="width:50%"></div>
-                    <div class="skeleton skeleton-text" style="width:60%"></div>
-                  </div>
-                </div>
-              </div>
-              </template>
-              <template v-else>
-              <div class="stats-row" style="margin-bottom:16px">
-                <div class="sh-card">
-                  <div class="sh-card-icon">📈</div>
-                  <div class="sh-card-body">
-                    <div class="sh-card-num">{{ shStats.totalStock }}</div>
-                    <div class="sh-card-label">Emiten</div>
-                  </div>
-                </div>
-                <div class="sh-card">
-                  <div class="sh-card-icon">👤</div>
-                  <div class="sh-card-body">
-                    <div class="sh-card-num">{{ shStats.totalHolder }}</div>
-                    <div class="sh-card-label">Pemegang Saham</div>
-                  </div>
-                </div>
-                <div class="sh-card">
-                  <div class="sh-card-icon">🏆</div>
-                  <div class="sh-card-body">
-                    <div class="sh-card-num">{{ shStats.topHolderCount }}</div>
-                    <div class="sh-card-label">Top Holder</div>
-                  </div>
-                </div>
-                <div class="sh-card">
-                  <div class="sh-card-icon">📅</div>
-                  <div class="sh-card-body">
-                    <div class="sh-card-num">{{ shStats.periodCount }}</div>
-                    <div class="sh-card-label">Periode</div>
-                  </div>
-                </div>
-              </div>
-              </template>
-              <!-- Period & search row -->
-              <div class="flex items-center gap-2 mb-3" style="flex-wrap:wrap">
-                <span class="text-xs text-muted font-semibold">Periode:</span>
-                <div class="sh-period-bar">
-                  <button v-for="p in shPeriods" :key="p"
-                    class="sh-period-btn" :class="{ active: shSelectedPeriod === p }"
-                    @click="shSelectPeriod(p)">{{ p }}</button>
-                </div>
-                <button class="btn btn-sm btn-primary" @click="shLoadAll" style="margin-left:auto">🔄 Refresh</button>
-              </div>
-              <!-- Quick search cards -->
-              <div class="grid-3" style="margin-bottom:8px">
-                <div class="sh-result-card">
-                  <div class="sh-result-title">🔍 Cari Emiten</div>
-                  <div class="flex gap-2">
-                    <input type="text" class="form-control" v-model="shStockQuery" @keyup.enter="shSearchStock" placeholder="BBCA, CUAN..." />
-                    <button class="btn btn-sm btn-primary" @click="shSearchStock">Cari</button>
-                  </div>
-                  <div class="sh-result-meta" v-if="shStockResult.length">{{ shStockResult.length }} pemegang</div>
-                </div>
-                <div class="sh-result-card">
-                  <div class="sh-result-title">👤 Cari Investor</div>
-                  <div class="flex gap-2">
-                    <input type="text" class="form-control" v-model="shHolderQuery" @keyup.enter="shSearchHolder" placeholder="Nama investor..." />
-                    <button class="btn btn-sm btn-primary" @click="shSearchHolder">Cari</button>
-                  </div>
-                  <div class="sh-result-meta" v-if="shHolderResult.length">{{ shHolderResult.length }} emiten</div>
-                </div>
-                <div class="sh-result-card">
-                  <div class="sh-result-title">📊 Top 5 Pemegang Terbesar</div>
-                  <div v-if="shTopPreview.length">
-                    <div v-for="r in shTopPreview" :key="r.shareholder_name" class="flex items-center justify-between" style="padding:3px 0;font-size:12px">
-                      <span class="font-semibold" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">{{ r.shareholder_name }}</span>
-                      <span class="font-bold">{{ (r.total_pct || 0).toFixed(1) }}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-if="currentTab === 'import'">
-            <div class="section">
-              <div class="section-title flex items-center justify-between">
-                <span>📥 Import Data >1%</span>
-                <span class="text-xs text-muted">Entry manual atau JSON</span>
-              </div>
-              <div class="card card-table" style="padding:20px">
-                <div class="flex gap-2 mb-2">
-                  <button class="btn btn-sm" :class="{ 'btn-primary': shImportTab === 'single' }" @click="shImportTab='single'">✏️ Entry Manual</button>
-                  <button class="btn btn-sm" :class="{ 'btn-primary': shImportTab === 'json' }" @click="shImportTab='json'">📄 Import JSON</button>
-                  <button class="btn btn-sm" :class="{ 'btn-primary': shImportTab === 'upload' }" @click="shImportTab='upload'">📤 Upload File</button>
-                </div>
-                <div v-if="shImportTab === 'single'">
-                  <div class="flex gap-2" style="flex-wrap:wrap;align-items:center">
-                    <input v-model="shForm.stock_code" placeholder="Emiten (BBCA)" class="form-control" style="width:110px">
-                    <input v-model="shForm.shareholder_name" placeholder="Nama pemegang saham" class="form-control" style="flex:2;min-width:180px">
-                    <input v-model.number="shForm.share_percent" type="number" step="0.01" placeholder="%" class="form-control" style="width:70px">
-                    <input v-model.number="shForm.share_count" type="number" placeholder="Jumlah" class="form-control" style="width:110px">
-                    <input v-model="shForm.data_period" placeholder="Periode (MAR2026)" class="form-control" style="width:110px">
-                    <button class="btn btn-sm btn-primary" @click="shAddEntry">➕ Tambah</button>
-                  </div>
-                </div>
-                <div v-if="shImportTab === 'json'" style="margin-top:8px">
-                  <textarea v-model="shJsonText" rows="4" placeholder='[{ "stock_code": "BBCA", "shareholder_name": "LO KHENG HONG", "share_percent": 5.2 }]' class="form-control" style="width:100%;font-family:monospace;font-size:13px"></textarea>
-                  <div class="flex gap-2 mt-2" style="flex-wrap:wrap;align-items:center">
-                    <input v-model="shJsonPeriod" placeholder="Periode (MAR2026)" class="form-control" style="width:140px">
-                    <button class="btn btn-sm btn-primary" @click="shImportJSON">📤 Import</button>
-                  </div>
-                </div>
-                <div v-if="shImportTab === 'upload'" style="margin-top:12px">
-                  <div class="upload-zone" @dragover.prevent="shDragOver=true" @dragleave="shDragOver=false" @drop.prevent="shOnDrop" :style="{ borderColor: shDragOver ? 'var(--accent)' : 'var(--border-color)' }">
-                    <div v-if="!shUploadFile" class="upload-placeholder">
-                      <span style="font-size:32px">📂</span>
-                      <p>Drag & drop file CSV/Excel disini</p>
-                      <p class="text-xs text-muted">atau klik untuk pilih file</p>
-                      <input type="file" ref="shFileInput" accept=".csv,.xlsx" style="display:none" @change="shOnFileSelected" />
-                    </div>
-                    <div v-else class="upload-preview">
-                      <span style="font-size:24px">📄</span>
-                      <span class="font-semibold">{{ shUploadFile.name }}</span>
-                      <span class="text-xs text-muted">({{ shFmtFileSize(shUploadFile.size) }})</span>
-                      <button class="btn btn-sm" @click="shUploadFile=null; $refs.shFileInput.value=''">✕ Hapus</button>
-                    </div>
-                  </div>
-                  <div class="flex gap-2 mt-2" style="align-items:center;flex-wrap:wrap">
-                    <input v-model="shUploadPeriod" placeholder="Periode (JUN2026)" class="form-control" style="width:140px" />
-                    <button class="btn btn-sm btn-primary" @click="shUploadSubmit" :disabled="!shUploadFile || !shUploadPeriod">📤 Upload & Import</button>
-                    <button class="btn btn-sm" @click="shUploadFile=null; $refs.shFileInput.click()">📁 Pilih File</button>
-                  </div>
-                  <div v-if="shUploadLoading" style="margin-top:8px;color:var(--muted)">⏳ Processing...</div>
-                  <div v-if="shUploadResult" class="mt-2" :style="{ padding:'12px', borderRadius:'8px', fontWeight:600, fontSize:'13px', background: shUploadResult.status === 'ok' ? '#0a2a1a' : '#2a1015', color: shUploadResult.status === 'ok' ? '#4ade80' : '#f87171' }">
-                    {{ shUploadResult.msg }}
-                  </div>
-                </div>
-                <div v-if="shPendingEntries.length" style="margin-top:16px">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs text-muted">{{ shPendingEntries.length }} entry menunggu</span>
-                    <div class="flex gap-2">
-                      <input v-model="shBatchPeriod" placeholder="Periode" class="form-control" style="width:130px">
-                      <button class="btn btn-sm btn-primary" @click="shImportBatch">📤 Simpan Semua</button>
-                      <button class="btn btn-sm" @click="shPendingEntries=[]">✕ Hapus</button>
-                    </div>
-                  </div>
-                  <div class="table-wrap">
-                    <table>
-                      <thead><tr><th>Emiten</th><th>Pemegang</th><th style="text-align:right">%</th><th style="text-align:right">Jumlah</th><th>Periode</th><th></th></tr></thead>
-                      <tbody>
-                        <tr v-for="(e,i) in shPendingEntries" :key="i">
-                          <td class="font-semibold" style="color:var(--accent)">{{ e.stock_code }}</td>
-                          <td class="font-semibold">{{ e.shareholder_name }}</td>
-                          <td class="text-right font-bold">{{ e.share_percent }}%</td>
-                          <td class="text-right text-muted" style="font-size:13px">{{ shFmtNum(e.share_count) }}</td>
-                          <td class="text-muted" style="font-size:13px">{{ e.data_period || shBatchPeriod }}</td>
-                          <td><button class="btn btn-sm" @click="shPendingEntries.splice(i,1)">✕</button></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div v-if="shImportResult" class="mt-2" :style="{ padding:'12px', borderRadius:'8px', fontWeight:600, fontSize:'13px', background: shImportResult.status === 'ok' ? '#0a2a1a' : '#2a1015', color: shImportResult.status === 'ok' ? '#4ade80' : '#f87171' }">
-                  {{ shImportResult.msg }}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-if="currentTab === 'search'">
-            <div class="section">
-              <div class="flex items-center gap-2 mb-2" style="flex-wrap:wrap">
-                <span class="text-xs text-muted font-semibold">Periode:</span>
-                <div class="sh-period-bar">
-                  <button v-for="p in shPeriods" :key="p"
-                    class="sh-period-btn" :class="{ active: shSelectedPeriod === p }"
-                    @click="shSelectPeriod(p)">{{ p }}</button>
-                </div>
-              </div>
-              <div class="section-title">🔍 Per Emiten</div>
-              <div class="card card-table">
-                <div style="padding:12px 16px;border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
-                  <div class="flex gap-2">
-                    <input type="text" class="form-control" v-model="shStockQuery" @keyup.enter="shSearchStock" placeholder="Kode emiten (BBCA)" style="flex:1" />
-                    <button class="btn btn-sm btn-primary" @click="shSearchStock">🔍 Cari</button>
-                  </div>
-                </div>
-                <div class="table-wrap" v-if="shStockResult.length">
-                  <table class="sh-table">
-                    <thead><tr><th style="width:36px">#</th><th>Pemegang Saham</th><th style="width:160px">% Kepemilikan</th><th style="width:140px;text-align:right">Jumlah Saham</th></tr></thead>
-                    <tbody>
-                      <tr v-for="(r,i) in shStockResult" :key="i">
-                        <td><span class="sh-rank-badge" :class="'rank-' + Math.min(i+1,3)">{{ i+1 }}</span></td>
-                        <td class="font-semibold">{{ r.shareholder_name }}</td>
-                        <td>
-                          <div class="pct-bar-wrap">
-                            <div class="pct-bar">
-                              <div class="pct-bar-inner" :style="{
-                                width: Math.min(r.share_percent, 100) + '%',
-                                background: r.share_percent >= 10 ? 'var(--success)' : r.share_percent >= 5 ? 'var(--warning)' : 'var(--muted)',
-                              }"></div>
-                            </div>
-                            <span class="pct-text" :style="{color: r.share_percent >= 10 ? 'var(--success)' : r.share_percent >= 5 ? 'var(--warning)' : 'var(--muted)'}">{{ (r.share_percent || 0).toFixed(2) }}%</span>
-                          </div>
-                        </td>
-                        <td class="text-right text-muted" style="font-size:13px;font-family:monospace">{{ shFmtNum(r.share_count) }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div v-else-if="shStockLoading" style="padding:20px">
-                  <div v-for="n in 5" :key="n" class="skeleton-table-row" style="grid-template-columns:40px 1fr 140px 120px">
-                    <div></div><div></div><div></div><div></div>
-                  </div>
-                </div>
-                <div v-else-if="shStockError" style="text-align:center;padding:30px;color:var(--danger)">{{ shStockError }}</div>
-                <div v-else style="text-align:center;padding:30px;color:var(--muted)">🔍 Cari kode emiten</div>
-              </div>
-              <div class="section-title" style="margin-top:24px">👤 Per Pemegang Saham</div>
-              <div class="card card-table">
-                <div style="padding:12px 16px;border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
-                  <div class="flex gap-2">
-                    <input type="text" class="form-control" v-model="shHolderQuery" @keyup.enter="shSearchHolder" placeholder="Nama pemegang (LO KHENG HONG)" style="flex:1" />
-                    <button class="btn btn-sm btn-primary" @click="shSearchHolder">🔍 Cari</button>
-                  </div>
-                </div>
-                <div class="table-wrap" v-if="shHolderResult.length">
-                  <table class="sh-table">
-                    <thead><tr><th style="width:36px">#</th><th>Emiten</th><th style="width:160px">% Kepemilikan</th><th style="width:140px;text-align:right">Jumlah Saham</th></tr></thead>
-                    <tbody>
-                      <tr v-for="(r,i) in shHolderResult" :key="i">
-                        <td><span class="sh-rank-badge" :class="'rank-' + Math.min(i+1,3)">{{ i+1 }}</span></td>
-                        <td><span class="font-semibold" style="color:var(--accent)">{{ r.stock_code }}</span></td>
-                        <td>
-                          <div class="pct-bar-wrap">
-                            <div class="pct-bar">
-                              <div class="pct-bar-inner" :style="{
-                                width: Math.min(r.share_percent, 100) + '%',
-                                background: r.share_percent >= 10 ? 'var(--success)' : r.share_percent >= 5 ? 'var(--warning)' : 'var(--muted)',
-                              }"></div>
-                            </div>
-                            <span class="pct-text" :style="{color: r.share_percent >= 10 ? 'var(--success)' : r.share_percent >= 5 ? 'var(--warning)' : 'var(--muted)'}">{{ (r.share_percent || 0).toFixed(2) }}%</span>
-                          </div>
-                        </td>
-                        <td class="text-right text-muted" style="font-size:13px;font-family:monospace">{{ shFmtNum(r.share_count) }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div v-else-if="shHolderLoading" style="padding:20px">
-                  <div v-for="n in 5" :key="n" class="skeleton-table-row" style="grid-template-columns:40px 1fr 140px 120px">
-                    <div></div><div></div><div></div><div></div>
-                  </div>
-                </div>
-                <div v-else-if="shHolderError" style="text-align:center;padding:30px;color:var(--danger)">{{ shHolderError }}</div>
-                <div v-else style="text-align:center;padding:30px;color:var(--muted)">🔍 Cari nama pemegang</div>
-              </div>
-            </div>
-          </div>
-          <div v-if="currentTab === 'top'">
-            <div class="section">
-              <div class="section-title flex items-center justify-between">
-                <span>🏆 Top Shareholders</span>
-                <span class="text-xs text-muted">Pemegang saham terbesar di >1%</span>
-              </div>
-              <div class="card card-table" style="padding:0">
-                <table class="sh-table" v-if="shTopResult.length">
-                  <thead>
-                    <tr>
-                      <th style="width:36px">#</th>
-                      <th>Nama Pemegang Saham</th>
-                      <th style="width:120px;text-align:center">Jml Emiten</th>
-                      <th style="width:200px">Total %</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(r,i) in shTopResult" :key="i" :style="i===0 ? 'background:color-mix(in srgb, #f59e0b 6%, transparent)' : ''">
-                      <td><span class="sh-rank-badge" :class="'rank-' + Math.min(i+1,3)">{{ i+1 }}</span></td>
-                      <td class="font-semibold">{{ r.shareholder_name }}</td>
-                      <td style="text-align:center">{{ r.stock_count }}</td>
-                      <td>
-                        <div class="pct-bar-wrap">
-                          <div class="pct-bar">
-                            <div class="pct-bar-inner mixed" :style="{ width: Math.min((r.total_pct || 0) / 100, 1) * 100 + '%' }"></div>
-                          </div>
-                          <span class="pct-text" style="min-width:60px">{{ (r.total_pct || 0).toFixed(2) }}%</span>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div v-else-if="shTopLoading" style="padding:20px">
-                  <div v-for="n in 10" :key="n" class="skeleton-table-row" style="grid-template-columns:36px 1fr 120px 200px">
-                    <div></div><div></div><div></div><div></div>
-                  </div>
-                </div>
-                <div v-else style="text-align:center;padding:30px;color:var(--muted)">Belum ada data top shareholders.</div>
-              </div>
-            </div>
-          </div>
-        </div>
         </div>
       </div>
     </div>
   </div>
-  <!-- Toast Notification -->
-  <div v-if="shToast.show" style="position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 24px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,0.15);transition:all 0.3s"
-    :style="{ background: shToast.type === 'success' ? '#065f46' : '#7f1d1d', color: '#fff' }">
-    {{ shToast.msg }}
-  </div>
-  <script src="/static/dashboard.js?v=4"></script>
+  <script src="/static/js/utils.js?v=3"></script>
+  <script src="/static/js/state.js?v=3"></script>
+  <script src="/static/js/charts.js?v=3"></script>
+  <script src="/static/js/loaders.js?v=3"></script>
+  <script src="/static/js/app.js?v=3"></script>
 </body>
 </html>

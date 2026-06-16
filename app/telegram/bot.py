@@ -44,15 +44,29 @@ class TelegramBot:
             db_user = crud.add_user(telegram_id=user.id, username=user.username)
 
             await update.message.reply_text(
-                f"🤖 *AI Stock Analyzer*\n\n"
-                f"Halo {user.first_name}!\n\n"
-                f"*Analisa:* /analyze BBCA\n"
-                f"*Market:* /market\n"
-                f"*Watchlist:* /watchlist\n"
-                f"*Strategi:* /daytrade BBCA\n"
-                f"*Broker:* /broker BBCA\n\n"
-                f"Ketik /help buat daftar lengkap\n"
-                f"Cth: /analyze BBCA",
+                f"🤖 *AI Stock Analyzer Indonesia*\n\n"
+                f"Halo {user.first_name}! Saya adalah bot analisa saham IDX.\n\n"
+                f"*Commands:*\n"
+                f"/analyze BBCA - Analisa saham\n"
+                f"/watchlist - Lihat watchlist\n"
+                f"/add BBCA - Tambah ke watchlist\n"
+                f"/remove BBCA - Hapus dari watchlist\n"
+                f"/topgainer - Top gainer hari ini\n"
+                f"/toploser - Top loser hari ini\n"
+                f"/topvolume - Top volume\n"
+                f"/market - Ringkasan market\n"
+                f"/rekomendasi - Rekomendasi beli besok\n"
+                f"/daytrade BBCA - BPJS Day Trade signal\n"
+                f"/bpjs - Kandidat BPJS hari ini\n"
+                f"/longterm BBCA - Long term akumulasi\n"
+                f"/longtermcandidates - Kandidat long term\n"
+                f"/broker BBCA - Input data broker asing\n"
+                f"/brokerhelp - Panduan input broker\n"
+                f"/feedback benar BBCA - Beri feedback\n"
+                f"/accuracy - Skor AI\n"
+                f"/performance - Performa AI\n"
+                f"/help - Bantuan\n\n"
+                f"Contoh: /analyze BBCA",
                 parse_mode="Markdown",
             )
         except Exception as e:
@@ -66,27 +80,37 @@ class TelegramBot:
         try:
             help_text = (
                 "📚 *Bantuan AI Stock Analyzer*\n\n"
-                "*Analisa:*\n"
-                "/analyze BBCA - Analisa detail + rekomendasi\n"
-                "/rekomendasi - Rekomendasi saham besok\n\n"
-                "*Market:*\n"
-                "/market - IHSG + gainer/loser/volume\n"
-                "/marketreport - Laporan @creativetrader + insight AI\n\n"
+                "*Analisa Saham:*\n"
+                "/analyze BBCA - Analisa detail + chart\n"
+                "/rekomendasi - Rekomendasi saham beli besok\n\n"
                 "*Watchlist:*\n"
-                "/add BBCA - Tambah ke watchlist\n"
-                "/remove BBCA - Hapus dari watchlist\n"
+                "/add BBCA - Tambah saham\n"
+                "/remove BBCA - Hapus saham\n"
                 "/watchlist - Daftar watchlist\n\n"
+                "*Market Report:*\n"
+                "/marketreport - Laporan @creativetrader + AI insights\n"
+                "/market - Overview market IDX\n"
+                "🔍 Cari saham dengan net foreign > 0 (asing akumulasi)\n\n"
+                "*Market:*\n"
+                "/topgainer - Top gainer hari ini\n"
+                "/toploser - Top loser hari ini\n"
+                "/topvolume - Top volume perdagangan\n"
+                "/market - Overview market IDX\n\n"
                 "*Strategi:*\n"
-                "/daytrade BBCA - Sinyal BPJS day trade\n"
+                "/daytrade BBCA - BPJS Day Trade signal\n"
                 "/bpjs - Kandidat BPJS hari ini\n"
-                "/longterm BBCA - Akumulasi long term\n"
+                "/longterm BBCA - Long term akumulasi\n"
                 "/longtermcandidates - Kandidat long term\n\n"
-                "*Broker:*\n"
-                "/broker BBCA - Input data broker\n"
-                "  Format kirim: /broker BBCA [tanggal] [broker] [buy] [sell]\n"
-                "  Cth:\n"
-                "  /broker BBCA 2026-06-12 CGS-CIMB 200000000 100000000\n\n"
-                "Cth: /analyze BBCA"
+                "*Broker Tracking:*\n"
+                "/broker BBCA - Input data broker asing/domestik\n"
+                "/brokerhelp - Panduan format input broker\n\n"
+                "*AI & Feedback:*\n"
+                "/feedback benar BBCA - Kirim feedback\n"
+                "/accuracy - Akurasi prediksi AI\n"
+                "/performance - Performa prediksi\n\n"
+                "*Saham tersedia:*\n"
+                f"{', '.join(sorted(STOCK_LIST.keys())[:10])}\n"
+                "dan lainnya..."
             )
             await update.message.reply_text(help_text, parse_mode="Markdown")
         except Exception as e:
@@ -1086,14 +1110,23 @@ class TelegramBot:
             BotCommand("start", "Mulai bot"),
             BotCommand("help", "Bantuan & daftar perintah"),
             BotCommand("analyze", "Analisa saham (contoh: /analyze BBCA)"),
+            BotCommand("add", "Tambah saham ke watchlist"),
+            BotCommand("remove", "Hapus saham dari watchlist"),
             BotCommand("watchlist", "Lihat watchlist Anda"),
+            BotCommand("topgainer", "Top gainer hari ini"),
+            BotCommand("toploser", "Top loser hari ini"),
+            BotCommand("topvolume", "Top volume perdagangan"),
             BotCommand("market", "Ringkasan market IDX"),
-            BotCommand("rekomendasi", "Rekomendasi saham besok"),
-            BotCommand("daytrade", "Sinyal BPJS (contoh: /daytrade BBCA)"),
+            BotCommand("feedback", "Kirim feedback"),
+            BotCommand("accuracy", "Akurasi prediksi"),
+            BotCommand("performance", "Performa portofolio"),
+            BotCommand("rekomendasi", "Rekomendasi saham beli besok"),
+            BotCommand("daytrade", "BPJS Day Trade (contoh: /daytrade BBCA)"),
             BotCommand("bpjs", "Kandidat BPJS hari ini"),
-            BotCommand("longterm", "Long term (contoh: /longterm BBCA)"),
+            BotCommand("longterm", "Long term akumulasi (contoh: /longterm BBCA)"),
             BotCommand("longtermcandidates", "Kandidat long term"),
-            BotCommand("broker", "Input data broker (contoh: /broker BBCA)"),
+            BotCommand("broker", "Input data broker asing (contoh: /broker BBCA)"),
+            BotCommand("brokerhelp", "Panduan input data broker"),
         ]
         await app.bot.set_my_commands(commands)
 
@@ -1132,18 +1165,26 @@ class TelegramBot:
         self.app.add_handler(CommandHandler("add", self.add_watchlist))
         self.app.add_handler(CommandHandler("remove", self.remove_watchlist))
         self.app.add_handler(CommandHandler("watchlist", self.watchlist))
+        self.app.add_handler(CommandHandler("topgainer", self.top_gainer))
+        self.app.add_handler(CommandHandler("toploser", self.top_loser))
+        self.app.add_handler(CommandHandler("topvolume", self.top_volume))
         self.app.add_handler(CommandHandler("market", self.market))
+        self.app.add_handler(CommandHandler("feedback", self.feedback_cmd))
+        self.app.add_handler(CommandHandler("accuracy", self.accuracy_cmd))
+        self.app.add_handler(CommandHandler("performance", self.performance_cmd))
         self.app.add_handler(CommandHandler("rekomendasi", self.rekomendasi_cmd))
         self.app.add_handler(CommandHandler("daytrade", self.daytrade_cmd))
         self.app.add_handler(CommandHandler("bpjs", self.daytrade_candidates_cmd))
         self.app.add_handler(CommandHandler("longterm", self.longterm_cmd))
         self.app.add_handler(CommandHandler("longtermcandidates", self.longtermcandidates_cmd))
         self.app.add_handler(CommandHandler("broker", self.broker_cmd))
+        self.app.add_handler(CommandHandler("brokerhelp", self.brokerhelp_cmd))
         self.app.add_handler(CommandHandler("marketreport", self.marketreport_cmd))  # hidden
+
         self.app.add_error_handler(self.error_handler)
 
         print("🤖 Telegram Bot started...")
-        self.app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+        self.app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == "__main__":

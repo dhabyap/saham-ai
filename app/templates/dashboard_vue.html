@@ -123,6 +123,15 @@
             <!-- Market Overview Section -->
             <div class="section">
               <div class="section-title">📈 Market Overview</div>
+              <template v-if="overviewLoading">
+                <div class="grid-6">
+                  <div v-for="n in 6" :key="n" class="card skeleton skeleton-card">
+                    <div class="skeleton skeleton-text" style="width:50%"></div>
+                    <div class="skeleton skeleton-value" style="width:40%"></div>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
               <div class="grid-6">
                 <div class="card card-accent card-big">
                   <div class="card-header"><span class="card-label">Fear & Greed Index</span></div>
@@ -150,9 +159,22 @@
                   <span class="card-value" style="font-size:24px;color:var(--success)"><span style="color:var(--success)">&#9679;</span> {{ market.status }}</span>
                 </div>
               </div>
+              </template>
             </div>
 
             <div class="section">
+              <template v-if="overviewLoading">
+              <div class="grid-3">
+                <div v-for="n in 3" :key="n" class="card">
+                  <div class="skeleton skeleton-text" style="width:40%"></div>
+                  <div v-for="m in 5" :key="m" class="mover-item">
+                    <div class="skeleton skeleton-text" style="width:50%"></div>
+                    <div class="skeleton skeleton-text" style="width:20%"></div>
+                  </div>
+                </div>
+              </div>
+              </template>
+              <template v-else>
               <div class="grid-3">
                 <div class="card">
                   <div class="card-header"><span class="card-label" style="color:var(--success)">Top Gainers</span></div>
@@ -176,15 +198,50 @@
                   </div>
                 </div>
               </div>
+              </template>
             </div>
 
             <!-- IHSG Chart -->
             <div class="section">
               <div class="section-title">IHSG Chart</div>
+              <template v-if="overviewLoading">
+              <div class="card p-4" style="height:400px">
+                <div class="skeleton-chart"></div>
+              </div>
+              </template>
+              <template v-else>
               <div class="card p-4" style="height:400px">
                 <canvas id="ihsgChart"></canvas>
               </div>
+              </template>
             </div>
+            <!-- Foreign Accumulation skeleton -->
+            <template v-if="overviewLoading">
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title">🌍 Foreign Accumulation — Top 10</div>
+              </div>
+              <div class="card p-4">
+                <table style="width:100%">
+                  <thead><tr>
+                    <th class="text-left p-2 text-muted">Stock</th>
+                    <th class="text-right p-2 text-muted">🌍 Foreign</th>
+                    <th class="text-right p-2 text-muted">🏠 Local</th>
+                    <th class="text-right p-2 text-muted text-success">Net</th>
+                  </tr></thead>
+                  <tbody>
+                    <tr v-for="n in 5" :key="n" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                      <td class="p-2"><div class="skeleton skeleton-text" style="width:50%"></div></td>
+                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
+                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
+                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            </template>
+            <template v-else>
             <div class="section" v-if="foreignOverviewStocks.length">
               <div class="section-head">
                 <div class="section-title">🌍 Foreign Accumulation — Top 10</div>
@@ -209,6 +266,34 @@
                 </table>
               </div>
             </div>
+            </template>
+            <!-- Pahlawan Bursa skeleton -->
+            <template v-if="overviewLoading">
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title" style="color:#EF5350">⚠️ Pahlawan Bursa Warning</div>
+              </div>
+              <div class="card p-4" style="border-left:4px solid #EF5350;">
+                <table style="width:100%">
+                  <thead><tr>
+                    <th class="text-left p-2 text-muted">Stock</th>
+                    <th class="text-right p-2 text-muted">🏠 Local</th>
+                    <th class="text-right p-2 text-muted">🌍 Foreign</th>
+                    <th class="text-right p-2 text-muted" style="color:#EF5350">Local Surplus</th>
+                  </tr></thead>
+                  <tbody>
+                    <tr v-for="n in 5" :key="n" style="border-bottom:1px solid var(--border-color,rgba(0,0,0,0.04))">
+                      <td class="p-2"><div class="skeleton skeleton-text" style="width:60%"></div></td>
+                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
+                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
+                      <td class="p-2 text-right"><div class="skeleton skeleton-text" style="width:40%;margin-left:auto"></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            </template>
+            <template v-else>
             <div class="section" v-if="pahlawanBursaStocks.length">
               <div class="section-head">
                 <div class="section-title" style="color:#EF5350">⚠️ Pahlawan Bursa Warning</div>
@@ -233,6 +318,19 @@
                 </table>
               </div>
             </div>
+            </template>
+            <template v-if="overviewLoading">
+            <div class="section">
+              <div class="section-title">Market Summary</div>
+              <div class="grid-6">
+                <div v-for="n in 6" :key="n" class="card skeleton skeleton-card">
+                  <div class="skeleton skeleton-text" style="width:50%"></div>
+                  <div class="skeleton skeleton-value" style="width:40%"></div>
+                </div>
+              </div>
+            </div>
+            </template>
+            <template v-else>
             <div class="section">
               <div class="section-title">Market Summary</div>
               <div class="grid-6">
@@ -269,6 +367,78 @@
                 </div>
               </div>
             </div>
+            </template>
+            <!-- === Overview skeleton for rest of overview sections === -->
+            <template v-if="overviewLoading">
+            <div class="section">
+              <div class="section-title">AI Performance</div>
+              <div class="grid-4">
+                <div v-for="n in 4" :key="n" class="card skeleton skeleton-card">
+                  <div class="skeleton skeleton-text" style="width:50%"></div>
+                  <div class="skeleton skeleton-value" style="width:40%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">Top Movers</div>
+              <div class="grid-3">
+                <div v-for="n in 3" :key="n" class="card">
+                  <div class="skeleton skeleton-text" style="width:40%"></div>
+                  <div v-for="m in 5" :key="m" class="mover-item">
+                    <div class="skeleton skeleton-text" style="width:50%"></div>
+                    <div class="skeleton skeleton-text" style="width:20%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title">&#127793; BPJS Day Trading Signals</div>
+              </div>
+              <div class="candidate-row">
+                <div v-for="n in 4" :key="n" class="candidate-card">
+                  <div class="skeleton skeleton-text" style="width:40%"></div>
+                  <div class="skeleton skeleton-text" style="width:60%"></div>
+                  <div class="skeleton skeleton-value" style="width:30%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title">&#128142; Long Term Accumulation</div>
+              </div>
+              <div class="candidate-row">
+                <div v-for="n in 4" :key="n" class="candidate-card">
+                  <div class="skeleton skeleton-text" style="width:40%"></div>
+                  <div class="skeleton skeleton-text" style="width:60%"></div>
+                  <div class="skeleton skeleton-value" style="width:30%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">Sector Rotation</div>
+              <div class="card p-4">
+                <div v-for="n in 6" :key="n" class="sector-item">
+                  <div class="skeleton skeleton-text" style="width:100px"></div>
+                  <div class="sector-bar-wrap"><div class="skeleton" style="height:22px;width:100%"></div></div>
+                  <div class="skeleton skeleton-text" style="width:50px"></div>
+                  <div class="skeleton skeleton-badge"></div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">Recent Predictions</div>
+              <div class="card card-table">
+                <div v-for="n in 5" :key="n" style="padding:12px 14px;border-bottom:1px solid var(--border-color)">
+                  <div class="skeleton-table-row">
+                    <div></div><div></div><div></div><div></div><div></div><div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </template>
+            <template v-else>
+            <!-- AI Performance -->
             <div class="section">
               <div class="section-title">AI Performance</div>
               <div class="grid-4">
@@ -383,6 +553,7 @@
               </div>
             </div>
           </div>
+          </template>
           <div v-show="currentTab === 'aiperf'">
             <div class="section">
               <div class="section-title">AI Performance Details</div>
@@ -674,7 +845,15 @@
           <!-- AI Analysis tab -->
           <div v-show="currentTab === 'analysis'">
             <div class="section" v-if="mrLoadingAnalysis">
-              <div class="card" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading analysis...</div>
+              <div class="grid-4-card">
+                <div v-for="n in 4" :key="n" class="card skeleton skeleton-card" style="min-height:100px">
+                  <div class="skeleton skeleton-text" style="width:50%"></div>
+                  <div class="skeleton skeleton-value" style="width:40%"></div>
+                </div>
+              </div>
+              <div class="card mt-3 p-4">
+                <div v-for="n in 4" :key="n" class="skeleton skeleton-text mb-2" style="width:90%"></div>
+              </div>
             </div>
             <div v-if="mrAnalysis">
               <div class="section">
@@ -806,7 +985,12 @@
           <!-- Backtest tab -->
           <div v-show="currentTab === 'backtest'">
             <div class="section" v-if="mrBtLoading">
-              <div class="card" style="text-align:center;padding:40px;color:var(--muted)">⏳ Loading backtest...</div>
+              <div class="stats-row">
+                <div v-for="n in 4" :key="n" class="card skeleton skeleton-card"></div>
+              </div>
+              <div class="grid-3-card">
+                <div v-for="n in 3" :key="n" class="card skeleton" style="height:140px"></div>
+              </div>
             </div>
             <div class="section" v-if="mrBtError">
               <div class="card" style="text-align:center;padding:40px;color:var(--danger)">⚠️ {{ mrBtError }}</div>
@@ -915,8 +1099,12 @@
                   <div class="cc-detail" style="margin-top:4px">Entry / Exit</div>
                   <div class="cc-val" style="font-size:13px">{{ item.entry }} / {{ item.exit }}</div>
                 </div>
-                <div v-if="dayTradingSignals.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
-                  ⏳ Memuat data sinyal... Scan butuh waktu beberapa detik. Tekan &quot;Scan Now&quot; untuk refresh.
+                <div v-if="dayTradingSignals.length === 0" class="candidate-row">
+                  <div v-for="n in 4" :key="n" class="candidate-card">
+                    <div class="skeleton skeleton-text" style="width:40%"></div>
+                    <div class="skeleton skeleton-text" style="width:60%"></div>
+                    <div class="skeleton skeleton-value" style="width:30%"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -930,7 +1118,12 @@
                     <thead>
                       <tr><th>Stock</th><th>Signal</th><th>Conf</th><th>Entry Price</th><th>TP</th><th>CL</th><th>Volume Ratio</th><th>Foreign Flow</th><th>Action</th></tr>
                     </thead>
-                    <tbody>
+                    <tbody v-if="dayTradingCandidates.length === 0">
+                      <tr v-for="n in 5" :key="n">
+                        <td v-for="c in 9" :key="c"><div class="skeleton skeleton-text" style="width:60%"></div></td>
+                      </tr>
+                    </tbody>
+                    <tbody v-else>
                       <tr v-for="row in dayTradingCandidates" :key="row.stock">
                         <td style="font-weight:600">{{ row.stock }}</td>
                         <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
@@ -957,7 +1150,12 @@
                     <thead>
                       <tr><th>Date</th><th>Stock</th><th>Entry</th><th>Exit</th><th>Profit %</th><th>Result</th></tr>
                     </thead>
-                    <tbody>
+                    <tbody v-if="dayTradingHistory.length === 0">
+                      <tr v-for="n in 5" :key="n">
+                        <td v-for="c in 6" :key="c"><div class="skeleton skeleton-text" style="width:50%"></div></td>
+                      </tr>
+                    </tbody>
+                    <tbody v-else>
                       <tr v-for="row in dayTradingHistory" :key="row.stock + row.date">
                         <td style="color:var(--muted)">{{ row.date }}</td>
                         <td style="font-weight:600">{{ row.stock }}</td>
@@ -990,8 +1188,13 @@
                   <div class="cc-detail" style="margin-top:4px">Accum Days / RS</div>
                   <div class="cc-val" style="font-size:13px">{{ item.accumDays }} days / {{ item.rsStatus }}</div>
                 </div>
-                <div v-if="ltAccumulation.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
-                  ⏳ Memuat data akumulasi... (butuh data foreign flow)
+                <div v-if="ltAccumulation.length === 0" class="candidate-row">
+                  <div v-for="n in 4" :key="n" class="candidate-card">
+                    <div class="skeleton skeleton-text" style="width:40%"></div>
+                    <div class="skeleton skeleton-text" style="width:60%"></div>
+                    <div class="skeleton skeleton-value" style="width:30%"></div>
+                    <div class="skeleton skeleton-text" style="width:50%"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1061,10 +1264,23 @@
                   <button v-for="s in analysisSectors" :key="s" class="btn btn-sm" :class="analysisSector === s ? 'btn-primary' : 'btn-outline'" @click="analysisSector = s">{{ s }}</button>
                 </div>
               </div>
-              <div v-if="filteredAnalysis.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted)">
-                No stocks found for "{{ analysisQuery }}"
-              </div>
-              <div class="grid-3" v-else>
+              <template v-if="stocksLoading">
+                <div class="grid-3">
+                  <div v-for="n in 6" :key="n" class="candidate-card">
+                    <div class="skeleton skeleton-text" style="width:40%"></div>
+                    <div class="skeleton skeleton-text" style="width:60%"></div>
+                    <div class="skeleton skeleton-text" style="width:30%"></div>
+                    <div class="skeleton skeleton-value" style="width:20%"></div>
+                  </div>
+                </div>
+              </template>
+              <template v-else-if="filteredAnalysis.length === 0">
+                <div class="card" style="text-align:center;padding:40px;color:var(--muted)">
+                  No stocks found for "{{ analysisQuery }}"
+                </div>
+              </template>
+              <template v-else>
+              <div class="grid-3">
                 <div v-for="item in filteredAnalysis" :key="item.code" class="candidate-card" @click="selectStock(item)" style="cursor:pointer">
                   <div class="cc-head">
                     <span class="cc-code">{{ item.code }}</span>
@@ -1309,6 +1525,18 @@
                 <span class="text-xs text-muted">IDX/KSEI — {{ shSelectedPeriod || '-' }}</span>
               </div>
               <!-- Stat cards -->
+              <template v-if="shTopLoading">
+              <div class="stats-row" style="margin-bottom:16px">
+                <div v-for="n in 4" :key="n" class="sh-card">
+                  <div class="skeleton skeleton-avatar"></div>
+                  <div class="sh-card-body">
+                    <div class="skeleton skeleton-value" style="width:50%"></div>
+                    <div class="skeleton skeleton-text" style="width:60%"></div>
+                  </div>
+                </div>
+              </div>
+              </template>
+              <template v-else>
               <div class="stats-row" style="margin-bottom:16px">
                 <div class="sh-card">
                   <div class="sh-card-icon">📈</div>
@@ -1339,6 +1567,7 @@
                   </div>
                 </div>
               </div>
+              </template>
               <!-- Period & search row -->
               <div class="flex items-center gap-2 mb-3" style="flex-wrap:wrap">
                 <span class="text-xs text-muted font-semibold">Periode:</span>
@@ -1505,7 +1734,11 @@
                     </tbody>
                   </table>
                 </div>
-                <div v-else-if="shStockLoading" style="text-align:center;padding:30px;color:var(--muted)">⏳ Loading...</div>
+                <div v-else-if="shStockLoading" style="padding:20px">
+                  <div v-for="n in 5" :key="n" class="skeleton-table-row" style="grid-template-columns:40px 1fr 140px 120px">
+                    <div></div><div></div><div></div><div></div>
+                  </div>
+                </div>
                 <div v-else-if="shStockError" style="text-align:center;padding:30px;color:var(--danger)">{{ shStockError }}</div>
                 <div v-else style="text-align:center;padding:30px;color:var(--muted)">🔍 Cari kode emiten</div>
               </div>
@@ -1540,7 +1773,11 @@
                     </tbody>
                   </table>
                 </div>
-                <div v-else-if="shHolderLoading" style="text-align:center;padding:30px;color:var(--muted)">⏳ Loading...</div>
+                <div v-else-if="shHolderLoading" style="padding:20px">
+                  <div v-for="n in 5" :key="n" class="skeleton-table-row" style="grid-template-columns:40px 1fr 140px 120px">
+                    <div></div><div></div><div></div><div></div>
+                  </div>
+                </div>
                 <div v-else-if="shHolderError" style="text-align:center;padding:30px;color:var(--danger)">{{ shHolderError }}</div>
                 <div v-else style="text-align:center;padding:30px;color:var(--muted)">🔍 Cari nama pemegang</div>
               </div>
@@ -1578,7 +1815,12 @@
                     </tr>
                   </tbody>
                 </table>
-                <div v-else style="text-align:center;padding:30px;color:var(--muted)">⏳ Loading...</div>
+                <div v-else-if="shTopLoading" style="padding:20px">
+                  <div v-for="n in 10" :key="n" class="skeleton-table-row" style="grid-template-columns:36px 1fr 120px 200px">
+                    <div></div><div></div><div></div><div></div>
+                  </div>
+                </div>
+                <div v-else style="text-align:center;padding:30px;color:var(--muted)">Belum ada data top shareholders.</div>
               </div>
             </div>
           </div>

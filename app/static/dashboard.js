@@ -11,6 +11,8 @@
         const dateStr = ref('');
         const mrLoading = ref(false);
         const mrError = ref(null);
+        const overviewLoading = ref(true);
+        const stocksLoading = ref(false);
         const mrReports = ref([]);
         const mrStats = ref({ totalReports: 0, avgIHSG: 0, foreignStocks: 0, redDays: 0 });
         const mrForeignStocks = ref([]);
@@ -504,6 +506,7 @@
         }
 
         async function loadAllData() {
+          overviewLoading.value = true;
           const [marketRes, gainersRes, losersRes, volumeRes, sectorsRes, daytradeRes, longtermRes, foreignRes] = await Promise.allSettled([
             fetch('/api/market-summary').then(r => r.json()),
             fetch('/api/top-gainers?limit=5').then(r => r.json()),
@@ -522,6 +525,7 @@
           if (daytradeRes.status === 'fulfilled' && daytradeRes.value) applyDaytradeData(daytradeRes.value);
           if (longtermRes.status === 'fulfilled' && longtermRes.value) applyLongtermData(longtermRes.value);
           if (foreignRes.status === 'fulfilled' && foreignRes.value) applyForeignData(foreignRes.value);
+          overviewLoading.value = false;
         }
 
         function renderMrCharts(full) {
@@ -828,6 +832,7 @@
         }
 
         async function loadStocks() {
+          stocksLoading.value = true;
           try {
             const res = await fetch('/api/stocks');
             const data = await res.json();
@@ -862,6 +867,7 @@
               }).catch(() => {});
             });
           } catch(e) { console.error('Stocks load failed:', e); }
+          stocksLoading.value = false;
         }
 
         async function loadWatchlistData() {
@@ -1315,7 +1321,7 @@
         });
 
         return {
-          currentTheme, currentView, currentTab, searchQuery, sidebarOpen, searchOpen, dateStr,
+          currentTheme, currentView, currentTab, searchQuery, sidebarOpen, searchOpen, dateStr, overviewLoading, stocksLoading,
           themes, navItems, headerTitle,
           dashboardTabs, daytradingTabs, longtermTabs, analysisTabs, settingsTabs,
           watchlist, allStocks, filteredStocks,

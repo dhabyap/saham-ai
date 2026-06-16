@@ -24,11 +24,13 @@ const headerTitle = computed(() => 'Market Reports');
 
 // ── Market Reports State ──
 const mrReports = ref([]);
+const mrReportsLoading = ref(true);
 const mrStats = ref({ totalReports: 0, avgIHSG: 0, foreignStocks: 0, redDays: 0 });
 const mrForeignStocks = ref([]);
 const mrLocalStocks = ref([]);
 const mrAnalysis = ref(null);
 const mrLoadingAnalysis = ref(false);
+const mrStocksLoading = ref(false);
 const mrFilter = ref('all');
 const mrBtData = ref(null);
 const mrBtLoading = ref(false);

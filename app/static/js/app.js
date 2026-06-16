@@ -83,8 +83,8 @@ createApp({
       // Date
       dateStr,
       // Market Reports
-      mrReports, mrStats, mrForeignStocks, mrLocalStocks, mrFilter, setMrFilter,
-      mrAnalysis, mrLoadingAnalysis, loadMrAnalysis,
+      mrReports, mrReportsLoading, mrStats, mrForeignStocks, mrLocalStocks, mrFilter, setMrFilter,
+      mrAnalysis, mrLoadingAnalysis, mrStocksLoading, loadMrAnalysis,
       // Backtest
       mrBtData, mrBtLoading, mrBtError, loadBacktest,
       // Month groups

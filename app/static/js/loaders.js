@@ -2,6 +2,7 @@
 // Depends on: state.js (refs), charts.js (renderMrCharts, buildMrStockTable)
 
 async function loadMarketReports() {
+  mrReportsLoading.value = true;
   try {
     const res = await fetch('/api/market-reports?limit=500');
     const json = await res.json();
@@ -32,6 +33,7 @@ async function loadMarketReports() {
   } catch(e) {
     console.error('Market report load failed:', e);
   }
+  mrReportsLoading.value = false;
 }
 
 async function loadMrAnalysis() {

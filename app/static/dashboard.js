@@ -197,6 +197,30 @@
         const ltPortfolio = ref([]);
         const ltWatchlist = ref([]);
 
+        // Shareholders state
+        const shareholdersStats = ref({
+          total_records: 0,
+          total_stocks: 0,
+          total_holders: 0,
+          top_holder: '-',
+          period: 'all',
+        });
+        const shareholdersPeriods = ref([]);
+        const shareholdersLatestPeriod = ref('');
+        const topShareholders = ref([]);
+        const shareholderSearchQuery = ref('');
+        const shareholderSearchResults = ref([]);
+        const shareholderStockQuery = ref('');
+        const shareholderStockResults = ref([]);
+
+        const filteredTopShareholders = computed(() => {
+          const q = shareholderSearchQuery.value.toLowerCase();
+          if (!q) return topShareholders.value;
+          return topShareholders.value.filter(s =>
+            s.shareholder_name.toLowerCase().includes(q)
+          );
+        });
+
         const analysisQuery = ref('');
         const analysisSector = ref('All');
         const analysisSectors = ['All', 'Financials', 'Technology', 'Energy', 'Consumer Cycl.', 'Healthcare'];
@@ -848,6 +872,25 @@
           stocksLoading.value = false;
         }
 
+        async function loadShareholders() {
+          try {
+            const res = await fetch('/api/shareholders/periods');
+            const data = await res.json();
+            if (data.status === 'ok') {
+              shareholdersPeriods.value = data.periods;
+              shareholdersLatestPeriod.value = data.latest;
+              shareholdersStats.value = data.stats;
+              
+              // Load top shareholders for latest period
+              const topRes = await fetch(`/api/shareholders/top?period=${data.latest}`);
+              const topData = await topRes.json();
+              if (topData.status === 'ok') {
+                topShareholders.value = topData.data;
+              }
+            }
+          } catch(e) { console.error('Shareholders load failed:', e); }
+        }
+
         async function loadWatchlistData() {
           try {
             const res = await fetch('/api/watchlist/1');
@@ -987,6 +1030,7 @@
             loadForeignFlowData(),
             loadAnalysisHistory(),
             loadAlerts(),
+            loadShareholders(),
           ]);
         }
 
@@ -1083,6 +1127,8 @@
           bpjsSignals, longTermSignals, sectors, predictions, allPredictions,
           dayTradingSignals, dayTradingCandidates, dayTradingHistory,
           ltAccumulation, ltPortfolio, ltWatchlist,
+          shareholdersStats, shareholdersPeriods, shareholdersLatestPeriod, topShareholders, filteredTopShareholders,
+          shareholderSearchQuery, shareholderSearchResults, shareholderStockQuery, shareholderStockResults,
           analysisQuery, analysisSector, analysisSectors, analysisStocks, filteredAnalysis,
           selectedStock, selectStock,
           comparisonStocks, comparisonRows, comparisonAddCode, comparisonAvailable, addComparison,
@@ -1097,7 +1143,7 @@
           mrMonths, mrExpandedMonths, toggleMonth,
           mrNetForeign, mrSortKey, mrSortDir, toggleMrSort, mrSortIcon, mrSortedForeign,
           foreignOverviewStocks, pahlawanBursaStocks, dailyNetTotal, foreignStockCount, foreignActivitySummary,
-          formatRp, loadMarketReports, loadMrAnalysis, loadForeignOverview, switchMrTab, setMrFilter, loadBacktest,
+          formatRp, loadMarketReports, loadMrAnalysis, loadForeignOverview, switchMrTab, setMrFilter, loadBacktest, loadShareholders,
         };
       }
     }).mount('#app');

@@ -139,8 +139,17 @@ function setMrFilter(filter) {
 function switchView(view, tab) {
   currentView.value = view;
   if (view === 'marketreports') loadMarketReports();
+  const firstTabs = {
+    dashboard: 'overview',
+    daytrading: 'signals',
+    longterm: 'accumulation',
+    analysis: 'search',
+    settings: 'general',
+    shareholders: 'overview',
+    marketreports: 'overview',
+  };
   _viewChanging = true;
-  currentTab.value = tab || 'overview';
+  currentTab.value = tab || firstTabs[view] || 'overview';
   if (window.innerWidth <= 768) sidebarOpen.value = false;
 }
 

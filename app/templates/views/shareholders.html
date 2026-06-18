@@ -1,0 +1,47 @@
+v-else-if="currentView === 'shareholders'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'top' }" @click="currentTab = 'top'">Top Holders</button>
+      </div>
+
+v-else-if="currentView === 'shareholders'">
+          <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <div class="section">
+              <div class="section-title">👥 Ringkasan Kepemilikan</div>
+              <div class="stats-row">
+                <div class="card text-center p-3">
+                  <div class="font-bold text-accent" style="font-size:24px">{{ shareholdersStats.total_records }}</div>
+                  <div class="text-xs text-muted text-uppercase">Total Data</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-secondary" style="font-size:24px">{{ shareholdersStats.total_stocks }}</div>
+                  <div class="text-xs text-muted text-uppercase">Emiten Terpantau</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-warning" style="font-size:24px">{{ shareholdersStats.total_holders }}</div>
+                  <div class="text-xs text-muted text-uppercase">Pemegang Saham</div>
+                </div>
+              </div>
+              <div class="card p-4 mt-4">
+                <div class="font-semibold mb-2">💡 Info Terkini</div>
+                <p class="text-sm text-muted">Data periode: <strong>{{ shareholdersLatestPeriod }}</strong></p>
+                <p class="text-sm text-muted">Pemegang saham dominan: <strong>{{ shareholdersStats.top_holder }}</strong></p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'top' }">
+            <div class="section">
+              <div class="section-title">🏆 Top Shareholders</div>
+              <div class="card card-table">
+                <table class="table-compact">
+                  <thead><tr><th>Name</th><th>Total %</th></tr></thead>
+                  <tbody>
+                    <tr v-for="s in topShareholders" :key="s.shareholder_name">
+                      <td>{{ s.shareholder_name }}</td>
+                      <td>{{ s.total.toFixed(2) }}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>

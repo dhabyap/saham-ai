@@ -5,24 +5,37 @@ const { createApp, onMounted, watch } = Vue;
 
 let _viewChanging = false;
 
+const VIEW_PATH_MAP = {
+  '/dashboard': 'dashboard',
+  '/daytrading': 'daytrading',
+  '/longterm': 'longterm',
+  '/analysis': 'analysis',
+  '/shareholders': 'shareholders',
+  '/settings': 'settings',
+  '/market-reports': 'marketreports',
+};
+
 function navigateFromHash() {
   const hash = window.location.hash.replace('#', '');
   if (!hash) return null;
   const parts = hash.split('/');
-  const view = parts[0] === 'marketreports' ? 'marketreports' : null;
-  const tab = parts[1] || null;
-  return { view, tab };
+  const view = parts[0] in VIEW_PATH_MAP ? parts[0] : null;
+  if (!view && ['dashboard','daytrading','longterm','analysis','shareholders','settings','marketreports'].includes(parts[0])) {
+    return { view: parts[0], tab: parts[1] || null };
+  }
+  if (view) return { view, tab: parts[1] || null };
+  return null;
 }
 
 function getViewFromUrl() {
   const fromHash = navigateFromHash();
   if (fromHash && fromHash.view) return fromHash;
   const path = window.location.pathname.replace(/\/$/, '');
-  const pathMap = { '/market-reports': 'marketreports' };
-  if (pathMap[path]) return { view: pathMap[path], tab: null };
+  if (VIEW_PATH_MAP[path]) return { view: VIEW_PATH_MAP[path], tab: null };
   const params = new URLSearchParams(window.location.search);
   const view = params.get('view');
-  if (view === 'marketreports') return { view: 'marketreports', tab: null };
+  const validViews = ['dashboard','daytrading','longterm','analysis','shareholders','settings','marketreports'];
+  if (validViews.includes(view)) return { view, tab: null };
   return null;
 }
 

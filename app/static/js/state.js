@@ -17,10 +17,19 @@ const themes = [
 ];
 
 const navItems = [
-  { view: 'marketreports', icon: '📊', label: 'Market Reports' },
+  { view: 'dashboard',    icon: '&#9751;', label: 'Dashboard' },
+  { view: 'daytrading',   icon: '&#8644;', label: 'Day Trading' },
+  { view: 'longterm',     icon: '&#9670;', label: 'Long Term' },
+  { view: 'analysis',     icon: '&#9776;', label: 'Analysis' },
+  { view: 'shareholders', icon: '👥',      label: 'Shareholders' },
+  { view: 'settings',     icon: '&#9881;', label: 'Settings' },
+  { view: 'marketreports',icon: '📊',      label: 'Market Reports' },
 ];
 
-const headerTitle = computed(() => 'Market Reports');
+const headerTitle = computed(() => {
+  const map = { dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term', analysis: 'Analysis', shareholders: 'Shareholders', settings: 'Settings', marketreports: 'Market Reports' };
+  return map[currentView.value] || 'Dashboard';
+});
 
 // ── Market Reports State ──
 const mrReports = ref([]);

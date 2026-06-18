@@ -1,9 +1,9 @@
-<div v-else-if="currentView === 'longterm'" class="tabs">
+v-else-if="currentView === 'longterm'" class="tabs">
         <button class="tab-btn" :class="{ active: currentTab === 'accumulation' }" @click="currentTab = 'accumulation'">Accumulation</button>
         <button class="tab-btn" :class="{ active: currentTab === 'portfolio' }" @click="currentTab = 'portfolio'">Portfolio</button>
         <button class="tab-btn" :class="{ active: currentTab === 'watchlist' }" @click="currentTab = 'watchlist'">Watchlist</button>
       </div>
-currentView === 'longterm'">
+v-else-if="currentView === 'longterm'">
           <div class="tab-pane" :class="{ active: currentTab === 'accumulation' }">
             <div class="section">
               <div class="section-title">&#128142; Long Term — Accumulation Candidates</div>
@@ -77,4 +77,3 @@ currentView === 'longterm'">
             </div>
           </div>
         </div>
-        <div v-else-if="

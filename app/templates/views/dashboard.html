@@ -1,11 +1,11 @@
-<div v-if="currentView === 'dashboard'" class="tabs">
+v-if="currentView === 'dashboard'" class="tabs">
         <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
         <button class="tab-btn" :class="{ active: currentTab === 'aiperf' }" @click="currentTab = 'aiperf'">AI Performance</button>
         <button class="tab-btn" :class="{ active: currentTab === 'movers' }" @click="currentTab = 'movers'">Market Movers</button>
         <button class="tab-btn" :class="{ active: currentTab === 'sectors' }" @click="currentTab = 'sectors'">Sectors</button>
         <button class="tab-btn" :class="{ active: currentTab === 'preds' }" @click="currentTab = 'preds'">Predictions</button>
       </div>
-currentView === 'dashboard'">
+v-if="currentView === 'dashboard'">
           <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
             <template v-if="overviewLoading">
               <!-- Foreign Flow Overview skeleton -->
@@ -352,4 +352,3 @@ currentView === 'dashboard'">
             </div>
           </div>
         </div>
-        <div v-else-if="

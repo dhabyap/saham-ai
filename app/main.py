@@ -107,27 +107,35 @@ def _start_telegram_bot() -> None:
 
 
 @app.get("/")
-async def root() -> FileResponse:
+async def root(request: Request):
     """Vue 3 dashboard SPA"""
-    return FileResponse(os.path.join(TEMPLATES_DIR, "dashboard_vue.html"))
+    return templates.TemplateResponse(
+        "dashboard_vue.html",
+        {"request": request},
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+    )
 
 
 @app.get("/dashboard")
-async def dashboard_vue() -> FileResponse:
+async def dashboard_vue(request: Request):
     """Vue 3 dashboard with 3 themes"""
-    return FileResponse(os.path.join(TEMPLATES_DIR, "dashboard_vue.html"))
+    return templates.TemplateResponse("dashboard_vue.html", {"request": request})
 
 
 @app.get("/market-reports")
-async def market_reports_page() -> FileResponse:
+async def market_reports_page(request: Request):
     """Market reports page - serves SPA with market view active"""
-    return FileResponse(os.path.join(TEMPLATES_DIR, "dashboard_vue.html"))
+    return templates.TemplateResponse("dashboard_vue.html", {"request": request})
 
 
 @app.get("/shareholders")
-async def shareholders_page() -> FileResponse:
+async def shareholders_page(request: Request):
     """Shareholder >1% tracking page"""
-    return FileResponse(os.path.join(TEMPLATES_DIR, "dashboard_vue.html"))
+    return templates.TemplateResponse("dashboard_vue.html", {"request": request})
 
 
 @app.get("/api-docs")

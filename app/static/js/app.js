@@ -85,8 +85,12 @@ createApp({
       filteredStocks: filteredStocks, allStocks: allStocks,
       toggleSidebar: toggleSidebar, closeSearch: closeSearch, onSearchInput: onSearchInput,
       dateStr: dateStr,
+      // Loading States
+      overviewLoading: overviewLoading, daytradingLoading: daytradingLoading,
+      longtermLoading: longtermLoading, analysisLoading: analysisLoading,
+      shareholdersLoading: shareholdersLoading, mrReportsLoading: mrReportsLoading,
       // Dashboard Overview
-      overviewLoading: overviewLoading, foreignOverviewStocks: foreignOverviewStocks,
+      foreignOverviewStocks: foreignOverviewStocks,
       pahlawanBursaStocks: pahlawanBursaStocks, dailyNetTotal: dailyNetTotal,
       foreignStockCount: foreignStockCount, foreignActivitySummary: foreignActivitySummary,
       market: market, aiPerf: aiPerf, aiPerfDetails: aiPerfDetails,
@@ -109,6 +113,7 @@ createApp({
       // Shareholders
       shareholdersStats: shareholdersStats, shareholdersPeriods: shareholdersPeriods,
       shareholdersLatestPeriod: shareholdersLatestPeriod,
+      shareholdersError: shareholdersError,
       topShareholders: topShareholders, filteredTopShareholders: filteredTopShareholders,
       shareholderSearchQuery: shareholderSearchQuery,
       shStockQuery: shStockQuery, shStockResult: shStockResult,
@@ -143,6 +148,10 @@ createApp({
       formatRp: formatRp, formatVolume: formatVolume, formatPrice: formatPrice,
       // Watchlist
       watchlist: watchlist,
+      // Loading States
+      overviewLoading: overviewLoading, daytradingLoading: daytradingLoading,
+      longtermLoading: longtermLoading, analysisLoading: analysisLoading,
+      shareholdersLoading: shareholdersLoading, mrReportsLoading: mrReportsLoading,
     };
   }
 }).mount('#app');

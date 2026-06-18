@@ -138,6 +138,30 @@ def shareholder_top(
     }
 
 
+@router.get("/shareholders/stocks")
+def shareholder_stocks(period: Optional[str] = None):
+    """List stocks that have shareholder data."""
+    from app.services.shareholder_service import get_db
+    with get_db() as conn:
+        if period:
+            rows = conn.execute(
+                """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
+                   FROM shareholders
+                   WHERE data_period = ?
+                   GROUP BY stock_code
+                   ORDER BY stock_code ASC""",
+                (period,)
+            )
+        else:
+            rows = conn.execute(
+                """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
+                   FROM shareholders
+                   GROUP BY stock_code
+                   ORDER BY stock_code ASC"""
+            )
+    return {"status": "ok", "period": period or "all", "data": [dict(r) for r in rows]}
+
+
 @router.get("/shareholders/search/{name}")
 def shareholder_search(name: str, period: Optional[str] = None):
     """Search portfolio of a specific shareholder (e.g. 'LO KHENG HONG')."""

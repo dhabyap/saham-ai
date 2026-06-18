@@ -1,4 +1,4 @@
-<template v-else-if="currentView === 'marketreports'">
+<template v-if="currentView === 'marketreports'">
 <div class="tabs">
 <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="switchMrTab('overview')">📈 IHSG Chart</button>
 <button class="tab-btn" :class="{ active: currentTab === 'reports' }" @click="switchMrTab('reports')">📋 Reports</button>

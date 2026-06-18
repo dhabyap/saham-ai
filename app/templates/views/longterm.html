@@ -1,4 +1,4 @@
-<template v-else-if="currentView === 'longterm'">
+<template v-if="currentView === 'longterm'">
 <div class="tabs">
 <button class="tab-btn" :class="{ active: currentTab === 'accumulation' }" @click="currentTab = 'accumulation'">Accumulation</button>
 <button class="tab-btn" :class="{ active: currentTab === 'portfolio' }" @click="currentTab = 'portfolio'">Portfolio</button>

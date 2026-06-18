@@ -1,4 +1,4 @@
-<template v-else-if="currentView === 'daytrading'">
+<template v-if="currentView === 'daytrading'">
 <div class="tabs">
 <button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">Signals</button>
 <button class="tab-btn" :class="{ active: currentTab === 'candidates' }" @click="currentTab = 'candidates'">Candidates</button>

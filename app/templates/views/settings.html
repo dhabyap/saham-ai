@@ -1,4 +1,4 @@
-<template v-else-if="currentView === 'settings'">
+<template v-if="currentView === 'settings'">
 <div class="tabs">
 <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">General</button>
 <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Account</button>

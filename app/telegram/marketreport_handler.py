@@ -75,6 +75,12 @@
             msg += "\n"
 
             # ── AI Analysis ──
+            # Query AI Recommendations
+            import sqlite3
+            conn = sqlite3.connect(os.path.join(base, "app", "database", "stock.db"))
+            ai_rec = conn.execute("SELECT reasoning FROM ai_recommendations ORDER BY created_at DESC LIMIT 1").fetchone()
+            conn.close()
+
             from collections import Counter, defaultdict
             ihsg_vals = [r['ihsg_change'] for r in reports if r['ihsg_change'] is not None]
             total = len(reports)
@@ -93,6 +99,10 @@
             msg += f"Rata-rata IHSG: {avg:+.2f}%\n"
             msg += f"Hijau/Merah: {green}/{red}\n"
             msg += f"Top asing beli: {', '.join(s for s, c in top_fb_stocks)}\n"
+            
+            if ai_rec:
+                msg += f"\n🤖 *AI Market Recommendation:*\n{ai_rec[0]}\n"
+            
             msg += f"\n💡 /analyze BBCA — analisa detail saham"
 
             await update.message.reply_text(msg, parse_mode="Markdown")

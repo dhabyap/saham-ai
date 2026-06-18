@@ -274,20 +274,40 @@ async function loadStocks() {
 
 // ── Shareholders ──
 async function loadShareholders() {
+  shareholdersLoading.value = true;
+  shareholdersError.value = '';
   try {
     var data = await cachedFetch('/api/shareholders/periods', 3600000);
     if (data.status === 'ok') {
-      shareholdersPeriods.value = data.periods;
-      shareholdersLatestPeriod.value = data.latest;
-      shareholdersStats.value = data.stats;
-      var topData = await cachedFetch('/api/shareholders/top?period=' + data.latest, 3600000);
-      if (topData.status === 'ok') topShareholders.value = topData.data;
-      var stocksData = await cachedFetch('/api/shareholders/stocks?period=' + data.latest, 3600000);
-      if (stocksData.status === 'ok') shStockList.value = stocksData.data;
-      var popData = await cachedFetch('/api/shareholders/top?period=' + data.latest + '&min_pct=0.1&limit=30', 3600000);
-      if (popData.status === 'ok') popularHolders.value = popData.data;
+      shareholdersPeriods.value = data.periods || [];
+      shareholdersLatestPeriod.value = data.latest || '';
+      shareholdersStats.value = data.stats || { total_records: 0, total_stocks: 0, total_holders: 0, top_holder: '-', period: 'all' };
+      if (data.latest) {
+        var topData = await cachedFetch('/api/shareholders/top?period=' + data.latest, 3600000);
+        if (topData.status === 'ok') {
+          topShareholders.value = topData.data || [];
+          if (topShareholders.value.length) {
+            shareholdersStats.value = Object.assign({}, shareholdersStats.value, { top_holder: topShareholders.value[0].shareholder_name });
+          }
+        }
+        var stocksData = await cachedFetch('/api/shareholders/stocks?period=' + data.latest, 3600000);
+        if (stocksData.status === 'ok') shStockList.value = stocksData.data || [];
+        var popData = await cachedFetch('/api/shareholders/top?period=' + data.latest + '&min_pct=0.1&limit=30', 3600000);
+        if (popData.status === 'ok') popularHolders.value = popData.data || [];
+      } else {
+        topShareholders.value = [];
+        shStockList.value = [];
+        popularHolders.value = [];
+      }
+    } else {
+      shareholdersError.value = 'Gagal memuat ringkasan shareholder.';
     }
-  } catch(e) { console.error('Shareholders load failed:', e); }
+  } catch(e) {
+    console.error('Shareholders load failed:', e);
+    shareholdersError.value = 'Gagal mengambil data shareholder: ' + e.message;
+  } finally {
+    shareholdersLoading.value = false;
+  }
   var chartRetries = 0;
   var tryChart = function() {
     if (document.getElementById('shBarChart')) { renderShareholderCharts(); }

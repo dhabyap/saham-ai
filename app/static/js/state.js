@@ -155,6 +155,7 @@ var comparisonAvailable = computed(function() {
 var shareholdersStats = ref({ total_records: 0, total_stocks: 0, total_holders: 0, top_holder: '-', period: 'all' });
 var shareholdersPeriods = ref([]);
 var shareholdersLatestPeriod = ref('');
+var shareholdersError = ref('');
 var topShareholders = ref([]);
 var shareholderSearchQuery = ref('');
 var shareholderSearchResults = ref([]);

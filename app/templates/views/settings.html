@@ -1,9 +1,5 @@
-<div v-else-if="currentView === 'settings'" class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">General</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Account</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">Alerts</button>
-      </div>
-<div v-else-if="currentView === 'settings'">
+<template v-else-if="currentView === 'settings'">
+<div>
           <div class="tab-pane" :class="{ active: currentTab === 'general' }">
             <div class="section">
               <div class="section-title">&#9881; General Settings</div>
@@ -145,3 +141,146 @@
             </div>
           </div>
         </div>
+<div>
+          <div class="tab-pane" :class="{ active: currentTab === 'general' }">
+            <div class="section">
+              <div class="section-title">&#9881; General Settings</div>
+              <div class="card">
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Theme</div>
+                    <div style="font-size:12px;color:var(--muted)">Choose your preferred theme</div>
+                  </div>
+                  <div class="theme-switcher">
+                    <button v-for="t in themes" :key="t.id" class="theme-btn" :class="{ active: currentTheme === t.id }" @click="switchTheme(t.id)" :title="t.label">{{ t.label }}</button>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Language</div>
+                    <div style="font-size:12px;color:var(--muted)">Interface language</div>
+                  </div>
+                  <select class="form-control" style="width:auto;min-width:140px" v-model="settingsLanguage">
+                    <option value="en">English</option>
+                    <option value="id">Bahasa Indonesia</option>
+                  </select>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Risk Tolerance</div>
+                    <div style="font-size:12px;color:var(--muted)">Default risk level for signals</div>
+                  </div>
+                  <select class="form-control" style="width:auto;min-width:140px" v-model="settingsRiskTolerance">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Target Profit %</div>
+                    <div style="font-size:12px;color:var(--muted)">Default take-profit target</div>
+                  </div>
+                  <select class="form-control" style="width:auto;min-width:140px" v-model="settingsTargetProfit">
+                    <option value="3">3%</option>
+                    <option value="5">5%</option>
+                    <option value="8">8%</option>
+                    <option value="10">10%</option>
+                  </select>
+                </div>
+                <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.04);display:flex;gap:12px">
+                  <button class="btn btn-primary" @click="mockSave">Save Settings</button>
+                  <button class="btn btn-outline" @click="mockSave">Reset</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane" :class="{ active: currentTab === 'account' }">
+            <div class="section">
+              <div class="section-title">&#128100; Account</div>
+              <div class="card">
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Telegram ID</div>
+                    <div style="font-size:12px;color:var(--muted)">Connected Telegram account for alerts</div>
+                  </div>
+                  <span class="badge badge-success" style="font-size:13px">@dhaby_analyst</span>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Email Notifications</div>
+                    <div style="font-size:12px;color:var(--muted)">Receive email alerts for signals</div>
+                  </div>
+                  <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer">
+                    <input type="checkbox" v-model="settingsEmailNotif" />
+                    <span>{{ settingsEmailNotif ? 'Enabled' : 'Disabled' }}</span>
+                  </label>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">Push Notifications</div>
+                    <div style="font-size:12px;color:var(--muted)">Browser push alerts</div>
+                  </div>
+                  <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer">
+                    <input type="checkbox" v-model="settingsPushNotif" />
+                    <span>{{ settingsPushNotif ? 'Enabled' : 'Disabled' }}</span>
+                  </label>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div style="font-weight:600;font-size:14px">API Status</div>
+                    <div style="font-size:12px;color:var(--muted)">Data provider connection status</div>
+                  </div>
+                  <span class="badge badge-success">&#9679; Connected</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'alerts' }">
+            <div class="section">
+              <div class="section-title">&#128276; Active Alerts</div>
+              <div v-for="alert in settingsAlerts" :key="alert.stock + alert.type" class="alert-item">
+                <div>
+                  <div style="font-weight:600;font-size:14px">{{ alert.stock }} — {{ alert.type }}</div>
+                  <div style="font-size:12px;color:var(--muted)">{{ alert.condition }}</div>
+                </div>
+                <div class="flex-center">
+                  <span class="badge" :class="alert.status === 'Active' ? 'badge-success' : 'badge-warning'" style="margin-right:8px">{{ alert.status }}</span>
+                  <button class="btn btn-sm btn-danger" @click="removeAlert(alert)">X</button>
+                </div>
+              </div>
+              <div v-if="settingsAlerts.length === 0" class="card" style="text-align:center;padding:30px;color:var(--muted)">
+                No active alerts. Create one below.
+              </div>
+              <div class="card" style="margin-top:16px">
+                <span class="card-label" style="margin-bottom:12px;display:block">Add Alert</span>
+                <div class="grid-2">
+                  <div>
+                    <label>Stock</label>
+                    <select class="form-control" v-model="newAlertStock">
+                      <option value="">Select stock...</option>
+                      <option v-for="s in allStocks" :key="s.code" :value="s.code">{{ s.code }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Alert Type</label>
+                    <select class="form-control" v-model="newAlertType">
+                      <option value="Price Alert">Price Alert</option>
+                      <option value="RSI Alert">RSI Alert</option>
+                      <option value="Volume Alert">Volume Alert</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Condition</label>
+                    <input type="text" class="form-control" v-model="newAlertCondition" placeholder="e.g. Above 10,000" />
+                  </div>
+                  <div style="display:flex;align-items:flex-end">
+                    <button class="btn btn-primary w-full" @click="addAlert" :disabled="!newAlertStock || !newAlertCondition">Add Alert</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+</template>

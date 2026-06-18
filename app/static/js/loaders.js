@@ -1,6 +1,30 @@
 // ─── Data Loaders ───
 // Memuat data dari API untuk semua view
 
+// ── Cache Invalidation ──
+// NOTE: requires 'invalidateCache()' and '_cache' from Client-Side Cache (#17)
+function onCacheInvalidate(pattern) {
+  if (typeof invalidateCache === 'function') {
+    invalidateCache(pattern);
+  }
+  if (typeof _loadedViews !== 'undefined') {
+    Object.keys(_loadedViews).forEach(function(key) {
+      var view = pattern.replace('/api/', '');
+      if (key.includes(view)) delete _loadedViews[key];
+    });
+  }
+}
+
+function clearAllCache() {
+  if (typeof _cache !== 'undefined') {
+    Object.keys(_cache).forEach(function(key) { delete _cache[key]; });
+  }
+  if (typeof _loadedViews !== 'undefined') {
+    Object.keys(_loadedViews).forEach(function(key) { delete _loadedViews[key]; });
+  }
+}
+// ─────────────────────────
+
 // ── Dashboard ──
 async function loadAllData() {
   overviewLoading.value = true;
@@ -285,19 +309,24 @@ async function loadAlerts() {
 // ── UI Actions ──
 function mockScan() {
   loadDayTradingData();
+  onCacheInvalidate('/api/day-trade');
   currentTab.value = 'signals';
 }
 function mockSave() {
+  onCacheInvalidate('/api/alerts');
+  onCacheInvalidate('/api/settings');
   alert('Settings saved (local only).');
 }
 function addAlert() {
   if (!newAlertStock.value || !newAlertCondition.value) return;
   settingsAlerts.value.push({ stock: newAlertStock.value, type: newAlertType.value, condition: newAlertCondition.value, status: 'Active' });
   newAlertStock.value = ''; newAlertType.value = 'Price Alert'; newAlertCondition.value = '';
+  onCacheInvalidate('/api/alerts');
 }
 function removeAlert(alert) {
   var idx = settingsAlerts.value.indexOf(alert);
   if (idx > -1) settingsAlerts.value.splice(idx, 1);
+  onCacheInvalidate('/api/alerts');
 }
 async function selectStock(item) {
   try {

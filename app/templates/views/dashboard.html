@@ -8,8 +8,8 @@
 </div>
 <div>
           <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <!-- SKELETON loading -->
             <template v-if="overviewLoading">
-              <!-- Foreign Flow Overview skeleton -->
               <div class="section">
                 <div class="section-title"><div class="skeleton-text" style="width:180px;height:18px"></div></div>
                 <div class="grid-6">
@@ -20,20 +20,17 @@
                   </div>
                 </div>
               </div>
-              <!-- Foreign table skeleton -->
               <div class="section">
                 <div class="section-title"><div class="skeleton-text" style="width:220px;height:18px"></div></div>
                 <div class="card p-4">
                   <div v-for="n in 5" :key="n" class="skeleton-table-row" style="grid-template-columns:80px 1fr 1fr 1fr 80px;margin-bottom:6px"><div></div><div></div><div></div><div></div><div></div></div>
                 </div>
               </div>
-              <!-- Stats row skeleton -->
               <div class="section">
                 <div class="grid-4-card">
                   <div v-for="n in 4" :key="n" class="card text-center p-3"><div class="skeleton-value"></div><div class="skeleton-text" style="width:80px;margin:6px auto 0"></div></div>
                 </div>
               </div>
-              <!-- Charts skeleton -->
               <div class="section">
                 <div class="grid-2">
                   <div class="card p-4"><div class="skeleton-text" style="width:140px;height:16px;margin-bottom:12px"></div><div style="height:220px" class="skeleton-chart"></div></div>
@@ -44,10 +41,10 @@
             <template v-else>
             <!-- Foreign Flow Overview -->
             <div class="section" v-if="foreignActivitySummary">
-              <div class="section-title">🌍 Foreign Flow Overview</div>
+
               <div class="grid-6">
                 <div class="card card-accent card-big" style="border-left:4px solid #7C3AED;">
-                  <div class="card-header"><span class="card-label">🌍 Net Foreign Flow</span></div>
+                  <div class="section-title">🌍 Foreign Flow Overview</div>
                   <span class="card-value" style="color:#7C3AED">{{ formatRp(dailyNetTotal) }}</span>
                   <span class="card-sub">Asing beli bersih di {{ foreignStockCount }} saham ({{ foreignActivitySummary.date }})</span>
                 </div>

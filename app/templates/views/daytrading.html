@@ -6,10 +6,29 @@
 </div>
 <div>
           <div class="tab-pane" :class="{ active: currentTab === 'signals' }">
+            <!-- SKELETON loading -->
+            <template v-if="daytradingLoading">
+              <div class="section">
+                <div class="section-head">
+                  <div class="section-title"><div class="skeleton-text" style="width:220px;height:18px"></div></div>
+                  <div class="skeleton-badge" style="width:80px;height:28px;border-radius:6px"></div>
+                </div>
+                <div class="candidate-row">
+                  <div v-for="n in 4" :key="n" class="candidate-card skeleton-card" style="padding:16px">
+                    <div class="flex justify-between mb-2"><div class="skeleton-text" style="width:50px"></div><div class="skeleton-badge" style="width:60px;height:18px"></div></div>
+                    <div class="skeleton-text" style="width:100px;height:12px;margin-bottom:4px"></div>
+                    <div class="skeleton-value" style="height:22px;width:50px"></div>
+                    <div class="skeleton-text" style="width:80px;height:12px;margin:6px 0 4px"></div>
+                    <div class="skeleton-value" style="height:18px;width:70px"></div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
             <div class="section">
               <div class="section-head">
-                <div class="section-title">&#127919; BPJS Day Trading — Active Signals</div>
-                <button class="view-all" @click="mockScan">Scan Now &rarr;</button>
+                <div class="section-title">🎯 BPJS Day Trading — Active Signals</div>
+                <button class="view-all" @click="mockScan">Scan Now →</button>
               </div>
               <div class="candidate-row">
                 <div v-for="item in dayTradingSignals" :key="item.code" class="candidate-card">
@@ -25,14 +44,25 @@
                   <div class="cc-val" style="font-size:13px">{{ item.entry }} / {{ item.exit }}</div>
                 </div>
                 <div v-if="dayTradingSignals.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
-                  ⏳ Memuat data sinyal... Scan butuh waktu beberapa detik. Tekan &quot;Scan Now&quot; untuk refresh.
+                  ⏳ Memuat data sinyal... Scan butuh waktu beberapa detik. Tekan "Scan Now" untuk refresh.
                 </div>
               </div>
             </div>
+            </template>
           </div>
           <div class="tab-pane" :class="{ active: currentTab === 'candidates' }">
+            <!-- SKELETON loading -->
+            <template v-if="daytradingLoading">
+              <div class="section">
+                <div class="section-title"><div class="skeleton-text" style="width:200px;height:18px"></div></div>
+                <div class="card p-4" style="padding:0;overflow:hidden">
+                  <div v-for="n in 6" :key="n" class="skeleton-table-row" style="grid-template-columns:80px 1fr 60px 80px 60px 60px 80px 80px 60px;margin-bottom:4px;padding:8px 12px"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
             <div class="section">
-              <div class="section-title">&#128203; BPJS Candidates — Sorted by Confidence</div>
+              <div class="section-title">📋 BPJS Candidates — Sorted by Confidence</div>
               <div class="card" style="padding:0;overflow:hidden">
                 <div class="table-wrap">
                   <table>
@@ -56,10 +86,21 @@
                 </div>
               </div>
             </div>
+            </template>
           </div>
           <div class="tab-pane" :class="{ active: currentTab === 'history' }">
+            <!-- SKELETON loading -->
+            <template v-if="daytradingLoading">
+              <div class="section">
+                <div class="section-title"><div class="skeleton-text" style="width:200px;height:18px"></div></div>
+                <div class="card p-4" style="padding:0;overflow:hidden">
+                  <div v-for="n in 5" :key="n" class="skeleton-table-row" style="grid-template-columns:120px 80px 80px 80px 80px 80px;margin-bottom:4px;padding:8px 12px"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
             <div class="section">
-              <div class="section-title">&#128214; Day Trading History</div>
+              <div class="section-title">📖 Day Trading History</div>
               <div class="card" style="padding:0;overflow:hidden">
                 <div class="table-wrap">
                   <table>
@@ -80,6 +121,7 @@
                 </div>
               </div>
             </div>
+            </template>
           </div>
         </div>
 </template>

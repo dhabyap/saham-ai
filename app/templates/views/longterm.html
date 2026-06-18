@@ -6,8 +6,24 @@
 </div>
 <div>
           <div class="tab-pane" :class="{ active: currentTab === 'accumulation' }">
+            <!-- SKELETON loading -->
+            <template v-if="longtermLoading">
+              <div class="section">
+                <div class="section-title"><div class="skeleton-text" style="width:240px;height:18px"></div></div>
+                <div class="candidate-row">
+                  <div v-for="n in 3" :key="n" class="candidate-card skeleton-card" style="padding:16px">
+                    <div class="flex justify-between mb-2"><div class="skeleton-text" style="width:60px"></div><div class="skeleton-badge" style="width:70px;height:18px"></div></div>
+                    <div class="skeleton-text" style="width:120px;height:12px;margin-bottom:4px"></div>
+                    <div class="skeleton-value" style="height:22px;width:50px"></div>
+                    <div class="skeleton-text" style="width:90px;height:12px;margin:6px 0 4px"></div>
+                    <div class="skeleton-value" style="height:18px;width:120px"></div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
             <div class="section">
-              <div class="section-title">&#128142; Long Term — Accumulation Candidates</div>
+              <div class="section-title">💎 Long Term — Accumulation Candidates</div>
               <div class="candidate-row">
                 <div v-for="item in ltAccumulation" :key="item.code" class="candidate-card">
                   <div class="cc-head">
@@ -26,10 +42,21 @@
                 </div>
               </div>
             </div>
+            </template>
           </div>
           <div class="tab-pane" :class="{ active: currentTab === 'portfolio' }">
+            <!-- SKELETON loading -->
+            <template v-if="longtermLoading">
+              <div class="section">
+                <div class="section-title"><div class="skeleton-text" style="width:150px;height:18px"></div></div>
+                <div class="card p-4" style="padding:0;overflow:hidden">
+                  <div v-for="n in 4" :key="n" class="skeleton-table-row" style="grid-template-columns:80px 100px 80px 100px 80px 80px 80px;margin-bottom:4px;padding:8px 12px"><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
             <div class="section">
-              <div class="section-title">&#128188; Portfolio</div>
+              <div class="section-title">💼 Portfolio</div>
               <div v-if="ltPortfolio.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted)">
                 Belum ada posisi portfolio. Tambahkan saham ke watchlist untuk mulai tracking.
               </div>
@@ -54,10 +81,26 @@
                 </div>
               </div>
             </div>
+            </template>
           </div>
           <div class="tab-pane" :class="{ active: currentTab === 'watchlist' }">
+            <!-- SKELETON loading -->
+            <template v-if="longtermLoading">
+              <div class="section">
+                <div class="section-title"><div class="skeleton-text" style="width:180px;height:18px"></div></div>
+                <div class="grid-2">
+                  <div v-for="n in 4" :key="n" class="card skeleton-card" style="padding:16px">
+                    <div class="flex justify-between mb-2"><div class="skeleton-text" style="width:60px"></div><div class="skeleton-badge" style="width:50px;height:18px"></div></div>
+                    <div class="skeleton-text" style="width:160px;height:12px;margin-bottom:4px"></div>
+                    <div class="skeleton-text" style="width:140px;height:12px"></div>
+                    <div class="flex gap-2 mt-2"><div class="skeleton-badge" style="width:60px;height:28px"></div><div class="skeleton-badge" style="width:60px;height:28px"></div></div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
             <div class="section">
-              <div class="section-title">&#128065; Watchlist — Full Details</div>
+              <div class="section-title">👁️ Watchlist — Full Details</div>
               <div class="grid-2">
                 <div v-for="item in ltWatchlist" :key="item.code" class="card">
                   <div class="flex-center" style="justify-content:space-between;margin-bottom:8px">
@@ -65,7 +108,7 @@
                     <span class="badge" :class="item.chg >= 0 ? 'badge-success' : 'badge-danger'">{{ item.chg >= 0 ? '+' : '' }}{{ item.chg }}%</span>
                   </div>
                   <div style="font-size:12px;color:var(--muted);margin-bottom:4px">{{ item.name }}</div>
-                  <div style="font-size:13px;color:var(--muted)">Volume: {{ item.volume }} &middot; Sector: {{ item.sector }}</div>
+                  <div style="font-size:13px;color:var(--muted)">Volume: {{ item.volume }} · Sector: {{ item.sector }}</div>
                   <div style="margin-top:10px;display:flex;gap:8px">
                     <button class="btn btn-sm btn-primary">Detail</button>
                     <button class="btn btn-sm btn-outline" @click="item._removed = true">Remove</button>
@@ -76,6 +119,7 @@
                 </div>
               </div>
             </div>
+            </template>
           </div>
         </div>
 </template>

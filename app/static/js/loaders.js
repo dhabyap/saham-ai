@@ -1,6 +1,59 @@
 // ─── Data Loaders ───
 // Memuat data dari API untuk semua view
 
+// ── Client-Side Cache Layer ──
+var _cache = {};
+
+function getCached(url, ttlMs) {
+  var entry = _cache[url];
+  if (!entry) return null;
+  if (Date.now() - entry.ts > ttlMs) { delete _cache[url]; return null; }
+  return entry.data;
+}
+
+function setCache(url, data) {
+  _cache[url] = { data: data, ts: Date.now() };
+}
+
+async function cachedFetch(url, ttlMs) {
+  ttlMs = ttlMs || 5 * 60 * 1000;
+  var cached = getCached(url, ttlMs);
+  if (cached) return cached;
+  var res = await fetch(url);
+  var data = await res.json();
+  setCache(url, data);
+  return data;
+}
+
+// ── Cache Invalidation ──
+function invalidateCache(pattern) {
+  Object.keys(_cache).forEach(function(key) {
+    if (key.includes(pattern)) delete _cache[key];
+  });
+}
+
+function onCacheInvalidate(pattern) {
+  if (typeof invalidateCache === 'function') {
+    invalidateCache(pattern);
+  }
+  if (typeof _loadedViews !== 'undefined') {
+    Object.keys(_loadedViews).forEach(function(key) {
+      var view = pattern.replace('/api/', '');
+      if (key.includes(view)) delete _loadedViews[key];
+    });
+  }
+}
+
+function clearAllCache() {
+  if (typeof _cache !== 'undefined') {
+    Object.keys(_cache).forEach(function(key) { delete _cache[key]; });
+  }
+  if (typeof _loadedViews !== 'undefined') {
+    Object.keys(_loadedViews).forEach(function(key) { delete _loadedViews[key]; });
+  }
+}
+// ─────────────────────────
+
 // ── Dashboard ──
 async function loadDashboardData() {
   overviewLoading.value = true;
@@ -153,9 +206,8 @@ function applyForeignData(data) {
 // ── Market Summary Load ──
 async function loadMarketSummary() {
   try {
-    var responses = await Promise.all([ fetch('/api/market-summary'), fetch('/api/market-sentiment') ]);
-    var sum = await responses[0].json();
-    var sent = await responses[1].json();
+    var sum = await cachedFetch('/api/market-summary', 300000);
+    var sent = await cachedFetch('/api/market-sentiment', 300000);
     var fg = sent.fear_greed || sum.fear_greed || { index: 50, label: 'Neutral' };
     var vol = sum.total_volume || 0;
     var volStr = vol >= 1e12 ? (vol/1e12).toFixed(1)+'T' : vol >= 1e9 ? (vol/1e9).toFixed(1)+'B' : vol >= 1e6 ? (vol/1e6).toFixed(1)+'M' : String(vol);
@@ -171,8 +223,9 @@ async function loadMarketSummary() {
 
 async function loadTopMovers() {
   try {
-    var responses = await Promise.all([ fetch('/api/top-gainers?limit=10'), fetch('/api/top-losers?limit=10'), fetch('/api/top-volume?limit=10') ]);
-    var g = await responses[0].json(), l = await responses[1].json(), v = await responses[2].json();
+    var g = await cachedFetch('/api/top-gainers?limit=10', 300000);
+    var l = await cachedFetch('/api/top-losers?limit=10', 300000);
+    var v = await cachedFetch('/api/top-volume?limit=10', 300000);
     var fmt = function(items) { return items.map(function(s) { return { code: s.code, name: s.name || s.stock_name || '', chg: (s.change_pct >= 0 ? '+' : '') + s.change_pct + '%', vol: s.volume ? (s.volume >= 1e9 ? (s.volume/1e9).toFixed(1)+'B' : (s.volume/1e6).toFixed(1)+'M') : '-' }; }); };
     movers.value = { gainers: fmt((g.gainers || []).slice(0,3)), losers: fmt((l.losers || []).slice(0,3)), volume: fmt((v.volumes || []).slice(0,3)) };
     allGainers.value = fmt(g.gainers || []);
@@ -183,8 +236,7 @@ async function loadTopMovers() {
 
 async function loadSectors() {
   try {
-    var res = await fetch('/api/sector-performance');
-    var data = await res.json();
+    var data = await cachedFetch('/api/sector-performance', 600000);
     var maxPerf = Math.max.apply(null, Object.values(data).map(function(s) { return Math.abs(s.performance); }).concat([0.01]));
     sectors.value = Object.entries(data).map(function(kv) {
       var name = kv[0], s = kv[1], perf = s.performance;
@@ -201,8 +253,7 @@ async function loadSectors() {
 async function loadStocks() {
   stocksLoading.value = true;
   try {
-    var res = await fetch('/api/stocks');
-    var data = await res.json();
+    var data = await cachedFetch('/api/stocks', 3600000);
     var SECTOR_GUESS = { BBCA:'Financials', BBRI:'Financials', BMRI:'Financials', BBNI:'Financials', TLKM:'Technology', EXCL:'Technology', TOWR:'Technology', ASII:'Consumer Cycl.', UNVR:'Consumer Cycl.', INDF:'Consumer Cycl.', ICBP:'Consumer Cycl.', HMSP:'Consumer Cycl.', GGRM:'Consumer Cycl.', ADRO:'Energy', ITMG:'Energy', PTBA:'Energy', MEDC:'Energy', CPIN:'Healthcare', KLBF:'Healthcare', JSMR:'Infrastructure', PGAS:'Infrastructure', SMGR:'Infrastructure', INTP:'Infrastructure', SMMA:'Infrastructure', AKRA:'Infrastructure', GOTO:'Technology' };
     allStocks.value = (data.stocks || []).map(function(s) { return { code: s.code, name: s.name || '', chg: 0, price: '-', sector: SECTOR_GUESS[s.code] || 'Other', score: 0 }; });
     analysisStocks.value = allStocks.value.slice();
@@ -224,20 +275,16 @@ async function loadStocks() {
 // ── Shareholders ──
 async function loadShareholders() {
   try {
-    var res = await fetch('/api/shareholders/periods');
-    var data = await res.json();
+    var data = await cachedFetch('/api/shareholders/periods', 3600000);
     if (data.status === 'ok') {
       shareholdersPeriods.value = data.periods;
       shareholdersLatestPeriod.value = data.latest;
       shareholdersStats.value = data.stats;
-      var topRes = await fetch('/api/shareholders/top?period=' + data.latest);
-      var topData = await topRes.json();
+      var topData = await cachedFetch('/api/shareholders/top?period=' + data.latest, 3600000);
       if (topData.status === 'ok') topShareholders.value = topData.data;
-      var stocksRes = await fetch('/api/shareholders/stocks?period=' + data.latest);
-      var stocksData = await stocksRes.json();
+      var stocksData = await cachedFetch('/api/shareholders/stocks?period=' + data.latest, 3600000);
       if (stocksData.status === 'ok') shStockList.value = stocksData.data;
-      var popRes = await fetch('/api/shareholders/top?period=' + data.latest + '&min_pct=0.1&limit=30');
-      var popData = await popRes.json();
+      var popData = await cachedFetch('/api/shareholders/top?period=' + data.latest + '&min_pct=0.1&limit=30', 3600000);
       if (popData.status === 'ok') popularHolders.value = popData.data;
     }
   } catch(e) { console.error('Shareholders load failed:', e); }
@@ -252,8 +299,7 @@ async function loadShareholders() {
 // ── Watchlist ──
 async function loadWatchlistData() {
   try {
-    var res = await fetch('/api/watchlist/1');
-    var data = await res.json();
+    var data = await cachedFetch('/api/watchlist/1', 300000);
     watchlist.value = (data.watchlist || []).map(function(w) { return { code: w.stock_code || w.code || '', chg: 0 }; });
     ltWatchlist.value = (data.watchlist || []).map(function(w) { return { code: w.stock_code || w.code || '', name: '', chg: 0, volume: '-', sector: '-' }; });
     watchlist.value.forEach(function(w) {
@@ -265,7 +311,7 @@ async function loadWatchlistData() {
 // ── Day Trading ──
 async function loadDayTradingData() {
   try {
-    var json = await fetchWithTimeout('/api/day-trade/candidates', 15000);
+    var json = await cachedFetch('/api/day-trade/candidates', 300000);
     if (!json) { console.warn('Day trade load timeout'); return; }
     var candidates = (json.data && json.data.candidates) || [];
     var signalMap = { ENTER: { cls: 'success' }, WAIT: { cls: 'warning' }, AVOID: { cls: 'danger' }, HOLD: { cls: 'accent' } };
@@ -283,7 +329,7 @@ async function loadDayTradingData() {
 // ── Foreign Flow ──
 async function loadForeignFlowData() {
   try {
-    var json = await fetchWithTimeout('/api/foreign-flow/summary', 8000);
+    var json = await cachedFetch('/api/foreign-flow/summary', 900000);
     if (!json) { console.warn('Foreign flow load timeout'); return; }
     var acc = (json.data && json.data.top_accumulating) || [];
     longTermSignals.value = acc.map(function(a) {
@@ -298,8 +344,7 @@ async function loadForeignFlowData() {
 // ── Analysis History ──
 async function loadAnalysisHistory() {
   try {
-    var res = await fetch('/api/analysis-history?limit=20');
-    var json = await res.json();
+    var json = await cachedFetch('/api/analysis-history?limit=20', 900000);
     var history = json.history || [];
     if (history.length) {
       var wins = history.filter(function(h) { return h.result === 'win' || h.result === 'success'; });
@@ -319,28 +364,71 @@ async function loadAnalysisHistory() {
 // ── Alerts ──
 async function loadAlerts() {
   try {
-    var res = await fetch('/api/alerts?limit=20');
-    var json = await res.json();
+    var json = await cachedFetch('/api/alerts?limit=20', 300000);
     settingsAlerts.value = (json.alerts || []).map(function(a) { return { stock: a.stock_code || a.code || '-', type: a.alert_type || a.type || 'Price Alert', condition: a.condition || '-', status: a.status || 'Inactive' }; });
   } catch(e) { console.error('Alerts load failed:', e); }
 }
 
 // ── UI Actions ──
+var _refreshIntervals = {};
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+
+  // Dashboard market — 2 menit
+  _refreshIntervals.dashboard = setInterval(function() {
+    if (typeof invalidateCache === 'function') {
+      invalidateCache('/api/market');
+      invalidateCache('/api/top-');
+      invalidateCache('/api/sector');
+    }
+    loadMarketSummary();
+    loadTopMovers();
+    loadSectors();
+  }, 2 * 60 * 1000);
+
+  // Day Trading — 5 menit
+  _refreshIntervals.daytrading = setInterval(function() {
+    if (typeof invalidateCache === 'function') {
+      invalidateCache('/api/day-trade');
+    }
+    loadDayTradingData();
+  }, 5 * 60 * 1000);
+
+  // Long Term — 15 menit
+  _refreshIntervals.longterm = setInterval(function() {
+    if (typeof invalidateCache === 'function') {
+      invalidateCache('/api/long-term');
+      invalidateCache('/api/foreign-flow');
+    }
+    loadForeignFlowData();
+  }, 15 * 60 * 1000);
+}
+
+function stopAutoRefresh() {
+  Object.values(_refreshIntervals).forEach(clearInterval);
+  _refreshIntervals = {};
+}
 function mockScan() {
   loadDayTradingData();
+  onCacheInvalidate('/api/day-trade');
   currentTab.value = 'signals';
 }
 function mockSave() {
+  onCacheInvalidate('/api/alerts');
+  onCacheInvalidate('/api/settings');
   alert('Settings saved (local only).');
 }
 function addAlert() {
   if (!newAlertStock.value || !newAlertCondition.value) return;
   settingsAlerts.value.push({ stock: newAlertStock.value, type: newAlertType.value, condition: newAlertCondition.value, status: 'Active' });
   newAlertStock.value = ''; newAlertType.value = 'Price Alert'; newAlertCondition.value = '';
+  onCacheInvalidate('/api/alerts');
 }
 function removeAlert(alert) {
   var idx = settingsAlerts.value.indexOf(alert);
   if (idx > -1) settingsAlerts.value.splice(idx, 1);
+  onCacheInvalidate('/api/alerts');
 }
 async function selectStock(item) {
   try {
@@ -377,8 +465,7 @@ async function addComparison() {
 // ── Market Reports ──
 async function loadMarketReports() {
   try {
-    var res = await fetch('/api/market-reports?limit=500');
-    var json = await res.json();
+    var json = await cachedFetch('/api/market-reports?limit=500', 3600000);
     var full = (json.data || []).filter(function(r) { return r.type === 'full' || r.type === 'akhir_sesi' || r.type === 'sesi1'; });
     if (mrFilter.value !== 'all') { mrReports.value = full.filter(function(r) { return r.type === mrFilter.value; }); }
     else { mrReports.value = full; }
@@ -399,8 +486,7 @@ async function loadMarketReports() {
 async function loadMrAnalysis() {
   mrLoadingAnalysis.value = true;
   try {
-    var res = await fetch('/api/market-report-analysis');
-    var json = await res.json();
+    var json = await cachedFetch('/api/market-report-analysis', 3600000);
     if (json.status === 'ok' && json.analysis) mrAnalysis.value = json.analysis;
   } catch(e) { console.error('Analysis load failed:', e); }
   mrLoadingAnalysis.value = false;
@@ -408,8 +494,7 @@ async function loadMrAnalysis() {
 
 async function loadForeignOverview() {
   try {
-    var res = await fetch('/api/market-reports?limit=5');
-    var json = await res.json();
+    var json = await cachedFetch('/api/market-reports?limit=5', 3600000);
     var reports = json.data || [];
     if (!reports.length) return;
     var latest = reports[0];
@@ -429,8 +514,7 @@ async function loadForeignOverview() {
 async function loadBacktest() {
   mrBtLoading.value = true; mrBtError.value = null;
   try {
-    var res = await fetch('/api/market-backtest');
-    var json = await res.json();
+    var json = await cachedFetch('/api/market-backtest', 3600000);
     if (json.status === 'ok') mrBtData.value = json;
     else mrBtError.value = 'Gagal muat data backtest';
   } catch(e) { console.error('Backtest load failed:', e); mrBtError.value = 'Backtest error: ' + e.message; }
@@ -508,7 +592,7 @@ async function searchShareholdersByHolder() {
   shHolderLoading.value = true; shHolderError.value = ''; shHolderSearched.value = true;
   try {
     var period = shareholdersLatestPeriod.value || 'FEB2026';
-    var res = await fetch('/api/shareholders/search/' + encodeURIComponent(q.toUpperCase()) + '?period=' + period);
+    var res = await fetch('/api/shareholders/search?name=' + encodeURIComponent(q) + '&period=' + period);
     var data = await res.json();
     if (data.status === 'ok') shHolderResult.value = data.data;
     else { shHolderError.value = 'Gagal memuat data'; shHolderResult.value = []; }
@@ -516,14 +600,14 @@ async function searchShareholdersByHolder() {
   shHolderLoading.value = false;
 }
 async function selectHolder(name) {
-  shHolderQuery.value = name; shHolderSearched.value = true; shHolderLoading.value = true; shHolderError.value = '';
+  shHolderActiveName.value = name;
+  shHolderLoading.value = true; shHolderSearched.value = true; shHolderError.value = '';
   try {
     var period = shareholdersLatestPeriod.value || 'FEB2026';
-    var res = await fetch('/api/shareholders/search/' + encodeURIComponent(name.toUpperCase()) + '?period=' + period);
+    var res = await fetch('/api/shareholders/holder/' + encodeURIComponent(name) + '?period=' + period);
     var data = await res.json();
     if (data.status === 'ok') shHolderResult.value = data.data;
-    else { shHolderError.value = 'Gagal memuat data'; shHolderResult.value = []; }
-  } catch(e) { shHolderError.value = 'Gagal mengambil data: ' + e.message; shHolderResult.value = []; }
+  } catch(e) { shHolderError.value = 'Gagal mengambil data'; }
   shHolderLoading.value = false;
 }
 

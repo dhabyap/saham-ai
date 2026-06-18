@@ -47,6 +47,13 @@ var headerTitle = computed(function() {
 // ── Dashboard Overview ──
 var overviewLoading = ref(true);
 var stocksLoading = ref(false);
+
+// ── Per-View Loading States ──
+var daytradingLoading = ref(true);
+var longtermLoading = ref(true);
+var shareholdersLoading = ref(true);
+var analysisLoading = ref(true);
+var mrReportsLoading = ref(true);
 var foreignOverviewStocks = ref([]);
 var pahlawanBursaStocks = ref([]);
 var dailyNetTotal = ref(0);

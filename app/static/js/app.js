@@ -63,8 +63,8 @@ createApp({
       syncViewFromUrl();
       loadForeignOverview();
       window.addEventListener('hashchange', function() { syncViewFromUrl(); });
-      loadAllData();
-      loadAllDashboardData();
+      // Lazy load: only dashboard data on mount, others load on demand
+      loadDashboardData();
     });
 
     return {
@@ -73,6 +73,13 @@ createApp({
       // Navigation
       currentView: currentView, navItems: navItems, currentTab: currentTab,
       switchView: switchView, switchMrTab: switchMrTab,
+      // Lazy loading states
+      dashboardLoading: dashboardLoading,
+      daytradingLoading: daytradingLoading,
+      longtermLoading: longtermLoading,
+      analysisLoading: analysisLoading,
+      shareholdersLoading: shareholdersLoading,
+      mrLoading: mrLoading,
       // Search / Sidebar
       searchQuery: searchQuery, searchOpen: searchOpen, sidebarOpen: sidebarOpen,
       filteredStocks: filteredStocks, allStocks: allStocks,

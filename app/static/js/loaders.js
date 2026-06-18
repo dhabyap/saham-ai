@@ -25,6 +25,11 @@ async function loadAllData() {
   if (results[6].status === 'fulfilled' && results[6].value) applyLongtermData(results[6].value);
   if (results[7].status === 'fulfilled' && results[7].value) applyForeignData(results[7].value);
   overviewLoading.value = false;
+  daytradingLoading.value = false;
+  longtermLoading.value = false;
+  analysisLoading.value = false;
+  shareholdersLoading.value = false;
+  mrReportsLoading.value = false;
 }
 
 function applyMarketData(data) {

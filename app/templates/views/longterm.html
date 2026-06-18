@@ -1,0 +1,80 @@
+<div v-else-if="currentView === 'longterm'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'accumulation' }" @click="currentTab = 'accumulation'">Accumulation</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'portfolio' }" @click="currentTab = 'portfolio'">Portfolio</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'watchlist' }" @click="currentTab = 'watchlist'">Watchlist</button>
+      </div>
+currentView === 'longterm'">
+          <div class="tab-pane" :class="{ active: currentTab === 'accumulation' }">
+            <div class="section">
+              <div class="section-title">&#128142; Long Term — Accumulation Candidates</div>
+              <div class="candidate-row">
+                <div v-for="item in ltAccumulation" :key="item.code" class="candidate-card">
+                  <div class="cc-head">
+                    <span class="cc-code">{{ item.code }}</span>
+                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.phase }}</span>
+                  </div>
+                  <div class="cc-detail">Confidence</div>
+                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
+                  <div class="cc-detail" style="margin-top:4px">Entry Zone</div>
+                  <div class="cc-val">{{ item.entryZone }}</div>
+                  <div class="cc-detail" style="margin-top:4px">Accum Days / RS</div>
+                  <div class="cc-val" style="font-size:13px">{{ item.accumDays }} days / {{ item.rsStatus }}</div>
+                </div>
+                <div v-if="ltAccumulation.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
+                  ⏳ Memuat data akumulasi... (butuh data foreign flow)
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'portfolio' }">
+            <div class="section">
+              <div class="section-title">&#128188; Portfolio</div>
+              <div v-if="ltPortfolio.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted)">
+                Belum ada posisi portfolio. Tambahkan saham ke watchlist untuk mulai tracking.
+              </div>
+              <div v-else class="card card-table">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>Stock</th><th>Entry Date</th><th>Avg Price</th><th>Current Price</th><th>Profit %</th><th>Position</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in ltPortfolio" :key="row.stock">
+                        <td class="font-semibold">{{ row.stock }}</td>
+                        <td>{{ row.entryDate }}</td>
+                        <td>{{ row.avgPrice }}</td>
+                        <td>{{ row.currentPrice }}</td>
+                        <td :class="row.profitClass">{{ row.profitPct }}</td>
+                        <td>{{ row.position }}</td>
+                        <td><span class="badge" :class="'badge-' + row.statusClass">{{ row.status }}</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'watchlist' }">
+            <div class="section">
+              <div class="section-title">&#128065; Watchlist — Full Details</div>
+              <div class="grid-2">
+                <div v-for="item in ltWatchlist" :key="item.code" class="card">
+                  <div class="flex-center" style="justify-content:space-between;margin-bottom:8px">
+                    <span style="font-size:17px;font-weight:700">{{ item.code }}</span>
+                    <span class="badge" :class="item.chg >= 0 ? 'badge-success' : 'badge-danger'">{{ item.chg >= 0 ? '+' : '' }}{{ item.chg }}%</span>
+                  </div>
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:4px">{{ item.name }}</div>
+                  <div style="font-size:13px;color:var(--muted)">Volume: {{ item.volume }} &middot; Sector: {{ item.sector }}</div>
+                  <div style="margin-top:10px;display:flex;gap:8px">
+                    <button class="btn btn-sm btn-primary">Detail</button>
+                    <button class="btn btn-sm btn-outline" @click="item._removed = true">Remove</button>
+                  </div>
+                </div>
+                <div v-if="ltWatchlist.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
+                  Belum ada saham di watchlist. Tambahkan saham dari menu Analisis.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="

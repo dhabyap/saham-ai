@@ -1,0 +1,17 @@
+<header class="header">
+        <button class="hamburger" @click="toggleSidebar" aria-label="Toggle menu">&#9776;</button>
+        <span class="header-title">{{ headerTitle }}</span>
+        <div class="header-search">
+          <span class="search-ico">&#128269;</span>
+          <input type="text" v-model="searchQuery" placeholder="Search stocks..." @focus="searchOpen = true" @input="onSearchInput" autocomplete="off" />
+        </div>
+        <div class="theme-switcher">
+          <button v-for="t in themes" :key="t.id" class="theme-btn" :class="{ active: currentTheme === t.id }" @click="switchTheme(t.id)" :title="t.label">{{ t.label }}</button>
+        </div>
+        <div class="header-user">
+          <div class="avatar">D</div>
+          <span class="name">Dhaby</span>
+          <span style="font-size:10px;color:var(--muted)">&#9660;</span>
+        </div>
+        <span class="date-display">{{ dateStr }}</span>
+      </header>

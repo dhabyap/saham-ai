@@ -1,0 +1,111 @@
+<div v-else-if="currentView === 'analysis'" class="tabs">
+        <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">Search</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'detail' }" @click="currentTab = 'detail'">Detail</button>
+        <button class="tab-btn" :class="{ active: currentTab === 'comparison' }" @click="currentTab = 'comparison'">Comparison</button>
+      </div>
+currentView === 'analysis'" style="width:100%">
+          <div class="tab-pane" :class="{ active: currentTab === 'search' }">
+            <div class="section">
+              <div class="section-title">&#128269; Search Stocks</div>
+              <div class="card" style="margin-bottom:20px;width:100%">
+                <div style="position:relative">
+                  <input type="text" class="form-control" v-model="analysisQuery" placeholder="Search by stock code or name..." style="padding-left:36px;font-size:15px;width:100%" />
+                  <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px">&#128269;</span>
+                </div>
+                <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                  <span style="font-size:12px;color:var(--muted);margin-right:4px">Filter sector:</span>
+                  <button v-for="s in analysisSectors" :key="s" class="btn btn-sm" :class="analysisSector === s ? 'btn-primary' : 'btn-outline'" @click="analysisSector = s">{{ s }}</button>
+                </div>
+              </div>
+              <div v-if="filteredAnalysis.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted)">
+                No stocks found for "{{ analysisQuery }}"
+              </div>
+              <div class="grid-3" v-else>
+                <div v-for="item in filteredAnalysis" :key="item.code" class="candidate-card" @click="selectStock(item)" style="cursor:pointer">
+                  <div class="cc-head">
+                    <span class="cc-code">{{ item.code }}</span>
+                    <span class="badge" :class="item.chg >= 0 ? 'badge-success' : 'badge-danger'">{{ item.chg >= 0 ? '+' : '' }}{{ item.chg }}%</span>
+                  </div>
+                  <div class="cc-detail">{{ item.name }}</div>
+                  <div class="cc-detail" style="margin-top:4px">Sector: {{ item.sector }}</div>
+                  <div class="cc-val" style="margin-top:4px">{{ item.price }}</div>
+                  <div class="cc-detail" style="margin-top:4px">Score: <span :style="{color: item.score >= 70 ? 'var(--success)' : item.score >= 50 ? 'var(--warning)' : 'var(--danger)'}">{{ item.score }}/100</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'detail' }">
+            <div class="section">
+              <div class="section-head">
+                <div class="section-title">&#128202; Analysis — {{ selectedStock.code }}</div>
+                <span class="badge" :class="'badge-' + selectedStock.signalClass" style="font-size:13px;padding:5px 16px">{{ selectedStock.recommendation }}</span>
+              </div>
+              <div class="grid-4" style="margin-bottom:20px">
+                <div class="card"><span class="card-label">Current Price</span><span class="card-value card-value-sm" style="color:var(--text)">{{ selectedStock.price }}</span><span class="card-sub">Updated {{ dateStr }}</span></div>
+                <div class="card"><span class="card-label">Change</span><span class="card-value card-value-sm" :style="{color: selectedStock.chg >= 0 ? 'var(--success)' : 'var(--danger)'}">{{ selectedStock.chg >= 0 ? '+' : '' }}{{ selectedStock.chg }}%</span><span class="card-sub">Today</span></div>
+                <div class="card"><span class="card-label">RSI</span><span class="card-value card-value-sm">{{ selectedStock.rsi }}</span><span class="card-sub" :style="{color: selectedStock.rsi > 70 ? 'var(--danger)' : selectedStock.rsi > 60 ? 'var(--warning)' : 'var(--success)'}">{{ selectedStock.rsiLabel }}</span></div>
+                <div class="card card-accent"><span class="card-label">AI Score</span><span class="card-value card-value-sm" style="color:var(--accent)">{{ selectedStock.score }}/100</span><span class="card-sub">Confidence: {{ selectedStock.confidence }}%</span></div>
+              </div>
+              <div class="grid-2" style="margin-bottom:20px">
+                <div class="card">
+                  <span class="card-label" style="margin-bottom:12px;display:block">Technical Indicators</span>
+                  <div class="detail-grid">
+                    <div class="detail-item"><div class="detail-label">RSI (14)</div><div class="detail-value">{{ selectedStock.rsi }}</div></div>
+                    <div class="detail-item"><div class="detail-label">MACD</div><div class="detail-value" :style="{color: selectedStock.macd.startsWith('+') ? 'var(--success)' : 'var(--danger)'}">{{ selectedStock.macd }}</div></div>
+                    <div class="detail-item"><div class="detail-label">MA 20</div><div class="detail-value">{{ selectedStock.ma20 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">MA 50</div><div class="detail-value">{{ selectedStock.ma50 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Bollinger Upper</div><div class="detail-value">{{ selectedStock.bbUpper }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Bollinger Lower</div><div class="detail-value">{{ selectedStock.bbLower }}</div></div>
+                  </div>
+                </div>
+                <div class="card">
+                  <span class="card-label" style="margin-bottom:12px;display:block">Support &amp; Resistance</span>
+                  <div class="detail-grid">
+                    <div class="detail-item"><div class="detail-label">Resistance R2</div><div class="detail-value" style="color:var(--danger)">{{ selectedStock.r2 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Resistance R1</div><div class="detail-value" style="color:var(--warning)">{{ selectedStock.r1 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Pivot Point</div><div class="detail-value">{{ selectedStock.pivot }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Support S1</div><div class="detail-value" style="color:var(--success)">{{ selectedStock.s1 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Support S2</div><div class="detail-value" style="color:var(--success)">{{ selectedStock.s2 }}</div></div>
+                    <div class="detail-item"><div class="detail-label">Volume</div><div class="detail-value">{{ selectedStock.volume }}</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <span class="card-label" style="margin-bottom:8px;display:block">AI Recommendation</span>
+                <p style="font-size:14px;line-height:1.7;color:var(--text)">{{ selectedStock.analysis }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane" :class="{ active: currentTab === 'comparison' }">
+            <div class="section">
+              <div class="section-title">&#128200; Stock Comparison</div>
+              <div class="card" style="padding:0;overflow:hidden">
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:140px">Metric</th>
+                        <th v-for="s in comparisonStocks" :key="s.code" style="text-align:center;font-size:14px">{{ s.code }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in comparisonRows" :key="row.label">
+                        <td style="font-weight:600;color:var(--muted)">{{ row.label }}</td>
+                        <td v-for="s in comparisonStocks" :key="s.code" style="text-align:center" :class="row.getClass ? row.getClass(s) : ''">{{ row.getValue(s) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+                <span style="font-size:13px;color:var(--muted)">Compare with:</span>
+                <select class="form-control" style="width:auto;min-width:120px" v-model="comparisonAddCode">
+                  <option value="">Select stock...</option>
+                  <option v-for="s in comparisonAvailable" :key="s" :value="s">{{ s }}</option>
+                </select>
+                <button class="btn btn-sm btn-primary" @click="addComparison" :disabled="!comparisonAddCode">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="

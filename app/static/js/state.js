@@ -1,43 +1,194 @@
 // ─── Vue Reactive State ───
-const { ref, computed } = Vue;
+var _a = Vue, ref = _a.ref, computed = _a.computed;
 
-// ── Navigation ──
-const currentTheme = ref('neumorphism');
-const currentView = ref('marketreports');
-const currentTab = ref('overview');
-const searchQuery = ref('');
-const sidebarOpen = ref(true);
-const searchOpen = ref(false);
-const dateStr = ref('');
+// ── Navigation / Appearance ──
+var currentTheme = ref('neumorphism');
+var currentView = ref('dashboard');
+var currentTab = ref('overview');
+var searchQuery = ref('');
+var sidebarOpen = ref(true);
+var searchOpen = ref(false);
+var dateStr = ref('');
 
-const themes = [
+var themes = [
   { id: 'neumorphism', label: 'Light' },
   { id: 'dark', label: 'Dark' },
   { id: 'classy', label: 'Classy' },
 ];
 
-const navItems = [
-  { view: 'marketreports', icon: '📊', label: 'Market Reports' },
+var navItems = [
+  { view: 'dashboard',     icon: '&#9751;', label: 'Dashboard' },
+  { view: 'daytrading',    icon: '&#8644;', label: 'Day Trading' },
+  { view: 'longterm',      icon: '&#9670;', label: 'Long Term' },
+  { view: 'analysis',      icon: '&#9776;', label: 'Analysis' },
+  { view: 'shareholders',  icon: '&#128101;', label: 'Shareholders' },
+  { view: 'marketreports', icon: '&#128202;', label: 'Market Reports' },
+  { view: 'settings',      icon: '&#9881;', label: 'Settings' },
 ];
 
-const headerTitle = computed(() => 'Market Reports');
+var headerTitle = computed(function() {
+  var map = {
+    dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term',
+    analysis: 'Analysis', shareholders: 'Shareholders', settings: 'Settings',
+    marketreports: 'Market Reports',
+  };
+  return map[currentView.value] || 'Dashboard';
+});
 
-// ── Market Reports State ──
-const mrReports = ref([]);
-const mrReportsLoading = ref(true);
-const mrStats = ref({ totalReports: 0, avgIHSG: 0, foreignStocks: 0, redDays: 0 });
-const mrForeignStocks = ref([]);
-const mrLocalStocks = ref([]);
-const mrAnalysis = ref(null);
-const mrLoadingAnalysis = ref(false);
-const mrStocksLoading = ref(false);
-const mrFilter = ref('all');
-const mrBtData = ref(null);
-const mrBtLoading = ref(false);
-const mrBtError = ref(null);
-const mrExpandedMonths = ref({});
-const mrSortKey = ref('net');
-const mrSortDir = ref('desc');
+// ── Dashboard Overview ──
+var overviewLoading = ref(true);
+var stocksLoading = ref(false);
+var foreignOverviewStocks = ref([]);
+var pahlawanBursaStocks = ref([]);
+var dailyNetTotal = ref(0);
+var foreignStockCount = ref(0);
+var foreignActivitySummary = ref(null);
+
+var market = ref({
+  fgi: { value: 50, label: 'Neutral' },
+  advancing: { count: 0, change: 0, pct: '0%' },
+  declining: { count: 0, change: 0, pct: '0%' },
+  avgChange: '0%', totalVolume: '0', volumeChange: '-',
+  status: 'Loading...', hours: '-',
+});
+
+var aiPerf = ref({
+  accuracy: '-', accuracyChange: '-', winRate: '-',
+  winRateChange: '-', avgProfit: '-', totalPredictions: '-',
+});
+var aiPerfDetails = ref([]);
+var movers = ref({ gainers: [], losers: [], volume: [] });
+var allGainers = ref([]);
+var allLosers = ref([]);
+var allVolume = ref([]);
+var bpjsSignals = ref([]);
+var longTermSignals = ref([]);
+var sectors = ref([]);
+var predictions = ref([]);
+var allPredictions = ref([]);
+
+// ── Day Trading ──
+var dayTradingSignals = ref([]);
+var dayTradingCandidates = ref([]);
+var dayTradingHistory = ref([]);
+
+// ── Long Term ──
+var ltAccumulation = ref([]);
+var ltPortfolio = ref([]);
+var ltWatchlist = ref([]);
+
+// ── Watchlist / Search ──
+var watchlist = ref([]);
+var allStocks = ref([]);
+
+var filteredStocks = computed(function() {
+  var q = searchQuery.value.toLowerCase();
+  if (!q) return allStocks.value;
+  return allStocks.value.filter(function(s) {
+    return s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
+  });
+});
+
+// ── Analysis ──
+var analysisQuery = ref('');
+var analysisSector = ref('All');
+var analysisSectors = ['All', 'Financials', 'Technology', 'Energy', 'Consumer Cycl.', 'Healthcare'];
+var analysisStocks = ref([]);
+
+var filteredAnalysis = computed(function() {
+  var items = analysisStocks.value;
+  if (analysisSector.value !== 'All') {
+    items = items.filter(function(s) { return s.sector === analysisSector.value; });
+  }
+  if (analysisQuery.value) {
+    var q = analysisQuery.value.toLowerCase();
+    items = items.filter(function(s) { return s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q); });
+  }
+  return items;
+});
+
+var selectedStock = ref({
+  code: '-', name: '-', price: '-', chg: 0,
+  rsi: '-', rsiLabel: '-', macd: '-',
+  ma20: '-', ma50: '-', bbUpper: '-', bbLower: '-',
+  r2: '-', r1: '-', pivot: '-', s1: '-', s2: '-',
+  volume: '-', score: 0, confidence: 0,
+  recommendation: 'HOLD', signalClass: 'warning',
+  analysis: 'Select a stock to analyze.',
+});
+
+var comparisonStocks = ref([]);
+var comparisonAddCode = ref('');
+
+var comparisonRows = computed(function() { return [
+  { label: 'Price', getValue: function(s) { return s.price; } },
+  { label: 'Change %', getValue: function(s) { return s.chg; }, getClass: function(s) { return s.chg && s.chg.startsWith('+') ? 'profit-positive' : 'profit-negative'; } },
+  { label: 'RSI (14)', getValue: function(s) { return s.rsi; } },
+  { label: 'MACD', getValue: function(s) { return s.macd; }, getClass: function(s) { return s.macd && s.macd.startsWith('+') ? 'profit-positive' : 'profit-negative'; } },
+  { label: 'Volume', getValue: function(s) { return s.volume; } },
+  { label: 'AI Score', getValue: function(s) { return s.score; }, getClass: function(s) { return parseInt(s.score) >= 80 ? 'profit-positive' : parseInt(s.score) >= 60 ? '' : 'profit-negative'; } },
+  { label: 'Recommendation', getValue: function(s) { return s.rec; }, getClass: function(s) { return s.rec === 'BUY' ? 'profit-positive' : s.rec === 'SELL' ? 'profit-negative' : ''; } },
+]; });
+
+var comparisonAvailable = computed(function() {
+  var used = new Set(comparisonStocks.value.map(function(s) { return s.code; }));
+  return allStocks.value.filter(function(s) { return !used.has(s.code); }).map(function(s) { return s.code; });
+});
+
+// ── Shareholders ──
+var shareholdersStats = ref({ total_records: 0, total_stocks: 0, total_holders: 0, top_holder: '-', period: 'all' });
+var shareholdersPeriods = ref([]);
+var shareholdersLatestPeriod = ref('');
+var topShareholders = ref([]);
+var shareholderSearchQuery = ref('');
+var shareholderSearchResults = ref([]);
+var shareholderStockQuery = ref('');
+var shareholderStockResults = ref([]);
+
+var shStockQuery = ref('');
+var shStockResult = ref([]);
+var shStockLoading = ref(false);
+var shStockError = ref('');
+var shStockSearched = ref(false);
+var shStockList = ref([]);
+var shStockSelected = ref('');
+var shStockActiveLabel = computed(function() {
+  if (shStockResult.value.length && shStockSelected.value) return shStockSelected.value;
+  if (shStockResult.value.length && shStockQuery.value) return shStockQuery.value.toUpperCase();
+  return '';
+});
+
+var shHolderQuery = ref('');
+var shHolderResult = ref([]);
+var shHolderLoading = ref(false);
+var shHolderError = ref('');
+var shHolderSearched = ref(false);
+var popularHolders = ref([]);
+var shHolderActiveName = computed(function() {
+  if (shHolderResult.value.length && shHolderSearched.value) return shHolderQuery.value.toUpperCase();
+  return '';
+});
+
+var filteredTopShareholders = computed(function() {
+  var q = shareholderSearchQuery.value.toLowerCase();
+  if (!q) return topShareholders.value;
+  return topShareholders.value.filter(function(s) { return s.shareholder_name.toLowerCase().includes(q); });
+});
+
+// ── Market Reports ──
+var mrReports = ref([]);
+var mrStats = ref({ totalReports: 0, avgIHSG: 0, foreignStocks: 0, redDays: 0 });
+var mrForeignStocks = ref([]);
+var mrLocalStocks = ref([]);
+var mrAnalysis = ref(null);
+var mrLoadingAnalysis = ref(false);
+var mrFilter = ref('all');
+var mrBtData = ref(null);
+var mrBtLoading = ref(false);
+var mrBtError = ref(null);
+var mrExpandedMonths = ref({});
+var mrSortKey = ref('net');
+var mrSortDir = ref('desc');
 
 function toggleMrSort(key) {
   if (mrSortKey.value === key) {
@@ -47,69 +198,59 @@ function toggleMrSort(key) {
     mrSortDir.value = key === 'stock' ? 'asc' : 'desc';
   }
 }
-
 function mrSortIcon(key) {
   if (mrSortKey.value !== key) return ' ↕';
   return mrSortDir.value === 'asc' ? ' ↑' : ' ↓';
 }
 
-const mrSortedForeign = computed(() => {
-  const key = mrSortKey.value;
-  const dir = mrSortDir.value === 'asc' ? 1 : -1;
-  const list = [...mrNetForeign.value].filter(x => x.net > 0);
-  return list.sort((a, b) => {
-    let va = a[key], vb = b[key];
+var mrSortedForeign = computed(function() {
+  var key = mrSortKey.value;
+  var dir = mrSortDir.value === 'asc' ? 1 : -1;
+  var list = mrNetForeign.value.slice().filter(function(x) { return x.net > 0; });
+  return list.sort(function(a, b) {
+    var va = a[key], vb = b[key];
     if (key === 'lastDate') { va = va || ''; vb = vb || ''; }
     if (typeof va === 'string') return va.localeCompare(vb) * dir;
     return (va - vb) * dir;
   });
 });
 
-const foreignOverviewStocks = ref([]);
-const pahlawanBursaStocks = ref([]);
-const dailyNetTotal = ref(0);
-const foreignStockCount = ref(0);
-const foreignActivitySummary = ref(null);
-
-const mrNetForeign = computed(() => {
-  const map = {};
-  mrReports.value.forEach(r => {
-    (r.foreign_buy || []).forEach(s => {
+var mrNetForeign = computed(function() {
+  var map = {};
+  mrReports.value.forEach(function(r) {
+    (r.foreign_buy || []).forEach(function(s) {
       if (!map[s.stock]) map[s.stock] = { stock: s.stock, foreignTotal: 0, localTotal: 0, lastDate: r.date };
       map[s.stock].foreignTotal += s.value;
       if (r.date > map[s.stock].lastDate) map[s.stock].lastDate = r.date;
     });
-    (r.local_buy || []).forEach(s => {
+    (r.local_buy || []).forEach(function(s) {
       if (!map[s.stock]) map[s.stock] = { stock: s.stock, foreignTotal: 0, localTotal: 0, lastDate: r.date };
       map[s.stock].localTotal += s.value;
       if (r.date > map[s.stock].lastDate) map[s.stock].lastDate = r.date;
     });
   });
-  return Object.values(map).map(s => ({
-    ...s,
-    net: s.foreignTotal - s.localTotal,
-  })).sort((a, b) => b.net - a.net);
+  return Object.values(map).map(function(s) { return Object.assign({}, s, { net: s.foreignTotal - s.localTotal }); }).sort(function(a, b) { return b.net - a.net; });
 });
 
-const mrMonths = computed(() => {
-  const groups = {};
-  mrReports.value.forEach(r => {
-    const m = r.date.substring(0, 7);
+var mrMonths = computed(function() {
+  var groups = {};
+  mrReports.value.forEach(function(r) {
+    var m = r.date.substring(0, 7);
     if (!groups[m]) groups[m] = { key: m, label: '', reports: [] };
     groups[m].reports.push(r);
   });
-  const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  return Object.keys(groups).sort().reverse().map(k => {
-    const g = groups[k];
-    const [y, mo] = k.split('-');
-    g.label = monthNames[parseInt(mo)-1] + ' ' + y;
-    const ihsg = g.reports.map(r => r.ihsg_change).filter(v => v !== null);
+  var monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  return Object.keys(groups).sort().reverse().map(function(k) {
+    var g = groups[k];
+    var parts = k.split('-');
+    g.label = monthNames[parseInt(parts[1])-1] + ' ' + parts[0];
+    var ihsg = g.reports.map(function(r) { return r.ihsg_change; }).filter(function(v) { return v !== null; });
     g.count = g.reports.length;
-    g.avgIHSG = ihsg.length ? ihsg.reduce((a,b) => a+b, 0) / ihsg.length : null;
-    g.redDays = ihsg.filter(v => v < 0).length;
-    g.greenDays = ihsg.filter(v => v >= 0).length;
+    g.avgIHSG = ihsg.length ? ihsg.reduce(function(a,b) { return a+b; }, 0) / ihsg.length : null;
+    g.redDays = ihsg.filter(function(v) { return v < 0; }).length;
+    g.greenDays = ihsg.filter(function(v) { return v >= 0; }).length;
     g.foreignSet = new Set();
-    g.reports.forEach(r => (r.foreign_buy || []).forEach(s => g.foreignSet.add(s.stock)));
+    g.reports.forEach(function(r) { (r.foreign_buy || []).forEach(function(s) { g.foreignSet.add(s.stock); }); });
     return g;
   });
 });
@@ -118,14 +259,13 @@ function toggleMonth(key) {
   mrExpandedMonths.value[key] = !mrExpandedMonths.value[key];
 }
 
-// ── Watchlist / Search ──
-const watchlist = ref([]);
-const allStocks = ref([]);
-
-const filteredStocks = computed(() => {
-  const q = searchQuery.value.toLowerCase();
-  if (!q) return allStocks.value;
-  return allStocks.value.filter(s =>
-    s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
-  );
-});
+// ── Settings ──
+var settingsLanguage = ref('en');
+var settingsRiskTolerance = ref('medium');
+var settingsTargetProfit = ref('5');
+var settingsEmailNotif = ref(true);
+var settingsPushNotif = ref(true);
+var settingsAlerts = ref([]);
+var newAlertStock = ref('');
+var newAlertType = ref('Price Alert');
+var newAlertCondition = ref('');

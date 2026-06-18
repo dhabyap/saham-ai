@@ -1,0 +1,22 @@
+<aside class="sidebar" :class="{ closed: !sidebarOpen }">
+      <div class="sidebar-inner">
+        <div class="sidebar-brand">
+          <div class="logo">AI</div>
+          <span>AI Stock Analyzer</span>
+        </div>
+        <ul class="nav">
+          <li v-for="nav in navItems" :key="nav.view">
+            <a :class="{ active: currentView === nav.view }" @click="switchView(nav.view)">
+              <span class="ico" v-html="nav.icon"></span> {{ nav.label }}
+            </a>
+          </li>
+        </ul>
+        <div class="sidebar-watchlist">
+          <h4>Watchlist</h4>
+          <div v-for="item in watchlist" :key="item.code" class="wl-item">
+            <span class="wl-code">{{ item.code }}</span>
+            <span class="wl-chg" :class="item.chg >= 0 ? 'wl-up' : 'wl-down'">{{ item.chg >= 0 ? '+' : '' }}{{ item.chg }}%</span>
+          </div>
+        </div>
+      </div>
+    </aside>

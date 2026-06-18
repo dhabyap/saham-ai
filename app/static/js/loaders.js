@@ -1,132 +1,402 @@
-// ─── Data Loaders & UI Actions ───
-// Depends on: state.js (refs), charts.js (renderMrCharts, buildMrStockTable)
+// ─── Data Loaders ───
+// Memuat data dari API untuk semua view
 
-async function loadMarketReports() {
-  mrReportsLoading.value = true;
-  try {
-    const res = await fetch('/api/market-reports?limit=500');
-    const json = await res.json();
-    const full = (json.data || []).filter(r => r.type === 'full' || r.type === 'akhir_sesi' || r.type === 'sesi1');
-    if (mrFilter.value !== 'all') {
-      mrReports.value = full.filter(r => r.type === mrFilter.value);
-    } else {
-      mrReports.value = full;
-    }
+// ── Dashboard ──
+async function loadAllData() {
+  overviewLoading.value = true;
+  var results = await Promise.allSettled([
+    fetch('/api/market-summary').then(function(r) { return r.json(); }),
+    fetch('/api/top-gainers?limit=5').then(function(r) { return r.json(); }),
+    fetch('/api/top-losers?limit=5').then(function(r) { return r.json(); }),
+    fetch('/api/top-volume?limit=5').then(function(r) { return r.json(); }),
+    fetch('/api/sector-performance').then(function(r) { return r.json(); }),
+    fetchWithTimeout('/api/day-trade/candidates', 15000),
+    fetchWithTimeout('/api/long-term/candidates', 15000),
+    fetch('/api/foreign-flow/summary').then(function(r) { return r.json(); }),
+  ]);
+  // Load shareholders separately
+  loadShareholders();
+  if (results[0].status === 'fulfilled' && results[0].value) applyMarketData(results[0].value);
+  if (results[1].status === 'fulfilled' && results[1].value) applyGainersData(results[1].value);
+  if (results[2].status === 'fulfilled' && results[2].value) applyLosersData(results[2].value);
+  if (results[3].status === 'fulfilled' && results[3].value) applyVolumeData(results[3].value);
+  if (results[4].status === 'fulfilled' && results[4].value) applySectorsData(results[4].value);
+  if (results[5].status === 'fulfilled' && results[5].value) applyDaytradeData(results[5].value);
+  if (results[6].status === 'fulfilled' && results[6].value) applyLongtermData(results[6].value);
+  if (results[7].status === 'fulfilled' && results[7].value) applyForeignData(results[7].value);
+  overviewLoading.value = false;
+}
 
-    if (full.length) {
-      const firstMonth = full[0].date.substring(0, 7);
-      mrExpandedMonths.value[firstMonth] = true;
-    }
+function applyMarketData(data) {
+  market.value.fgi.value = data.fear_greed.index;
+  market.value.fgi.label = data.fear_greed.label;
+  market.value.advancing.count = data.advancing;
+  market.value.advancing.change = data.advancing;
+  market.value.advancing.pct = (data.advancing / data.total_stocks * 100).toFixed(0) + '%';
+  market.value.declining.count = data.declining;
+  market.value.declining.change = data.declining;
+  market.value.declining.pct = (data.declining / data.total_stocks * 100).toFixed(0) + '%';
+  market.value.avgChange = (data.avg_change >= 0 ? '+' : '') + data.avg_change.toFixed(2) + '%';
+  market.value.totalVolume = formatVolume(data.total_volume);
+  market.value.volumeChange = '';
+}
 
-    const dataForStats = mrFilter.value !== 'all' ? mrReports.value : full;
-    const ihsgVals = dataForStats.map(r => r.ihsg_change).filter(v => v !== null);
-    const avgIHSG = ihsgVals.length ? (ihsgVals.reduce((a,b) => a+b, 0) / ihsgVals.length) : 0;
-    const allForeignStocks = new Set();
-    dataForStats.forEach(r => (r.foreign_buy || []).forEach(s => allForeignStocks.add(s.stock)));
-    const redDays = ihsgVals.filter(v => v < 0).length;
-    mrStats.value = { totalReports: dataForStats.length, avgIHSG: Math.round(avgIHSG * 10) / 10, foreignStocks: allForeignStocks.size, redDays };
+function applyGainersData(data) {
+  var items = (data.gainers || []).map(function(item) {
+    return { code: item.code, name: item.name, chg: (item.change_pct >= 0 ? '+' : '') + item.change_pct.toFixed(1) + '%' };
+  });
+  movers.value.gainers = items.slice(0, 5);
+  allGainers.value = items;
+}
 
-    mrForeignStocks.value = buildMrStockTable('foreign_buy', '#7C3AED');
-    mrLocalStocks.value = buildMrStockTable('local_buy', '#06D9FF');
+function applyLosersData(data) {
+  var items = (data.losers || []).map(function(item) {
+    return { code: item.code, name: item.name, chg: (item.change_pct >= 0 ? '+' : '') + item.change_pct.toFixed(1) + '%' };
+  });
+  movers.value.losers = items.slice(0, 5);
+  allLosers.value = items;
+}
 
-    setTimeout(() => renderMrCharts(full), 100);
-  } catch(e) {
-    console.error('Market report load failed:', e);
+function applyVolumeData(data) {
+  var items = (data.volumes || []).map(function(item) {
+    return { code: item.code, name: item.name, vol: formatVolume(item.volume) };
+  });
+  movers.value.volume = items.slice(0, 5);
+  allVolume.value = items;
+}
+
+function applySectorsData(data) {
+  sectors.value = Object.entries(data).map(function(kv) {
+    var name = kv[0], info = kv[1], perf = info.performance;
+    var isPos = perf >= 0;
+    var width = Math.min(Math.abs(perf) * 10, 100);
+    var color = isPos ? 'var(--success)' : 'var(--danger)';
+    var flowClass = info.flow === 'INFLOW' ? 'success' : info.flow === 'OUTFLOW' ? 'danger' : 'accent';
+    return { name: name, width: width + '%', barColor: color, textColor: color, change: (isPos ? '+' : '') + perf.toFixed(2) + '%', flow: info.flow, flowClass: flowClass };
+  });
+}
+
+function applyDaytradeData(data) {
+  if (data.status === 'ok' && data.data && data.data.candidates && data.data.candidates.length > 0) {
+    bpjsSignals.value = data.data.candidates.map(function(c) {
+      return { code: c.code, signal: c.signal, signalClass: c.signal === 'ENTER' ? 'success' : c.signal === 'WAIT' ? 'warning' : 'danger', confidence: c.confidence, price: formatPrice(c.price) };
+    });
   }
-  mrReportsLoading.value = false;
+}
+
+function applyLongtermData(data) {
+  if (data.status === 'ok' && data.data && data.data.candidates && data.data.candidates.length > 0) {
+    longTermSignals.value = data.data.candidates.map(function(c) {
+      return { code: c.code, signal: c.signal, signalClass: c.signalClass || (c.signal === 'Active Accum' ? 'accent' : c.signal === 'Accum Watch' ? 'warning' : 'danger'), confidence: c.confidence, entryZone: c.entryZone };
+    });
+  }
+}
+
+function applyForeignData(data) {
+  if (data.status === 'ok' && data.data) {
+    var items = [];
+    var accumulating = data.data.top_accumulating || [];
+    var distributing = data.data.top_distributing || [];
+    accumulating.forEach(function(item) {
+      items.push({ code: item.stock_code || item.code, phase: 'Active Accum', signalClass: 'accent', confidence: item.confidence || 0, entryZone: item.entry_zone || 'N/A', accumDays: item.accumulation_days || item.accum_days || 0, rsStatus: item.strength || item.rs_status || 'Neutral' });
+    });
+    distributing.forEach(function(item) {
+      items.push({ code: item.stock_code || item.code, phase: 'Distribution', signalClass: 'danger', confidence: item.confidence || 0, entryZone: 'N/A', accumDays: 0, rsStatus: 'Weak' });
+    });
+    if (items.length > 0) ltAccumulation.value = items;
+  }
+}
+
+// ── Market Summary Load ──
+async function loadMarketSummary() {
+  try {
+    var responses = await Promise.all([ fetch('/api/market-summary'), fetch('/api/market-sentiment') ]);
+    var sum = await responses[0].json();
+    var sent = await responses[1].json();
+    var fg = sent.fear_greed || sum.fear_greed || { index: 50, label: 'Neutral' };
+    var vol = sum.total_volume || 0;
+    var volStr = vol >= 1e12 ? (vol/1e12).toFixed(1)+'T' : vol >= 1e9 ? (vol/1e9).toFixed(1)+'B' : vol >= 1e6 ? (vol/1e6).toFixed(1)+'M' : String(vol);
+    market.value = {
+      fgi: { value: fg.index || 50, label: fg.label || 'Neutral' },
+      advancing: { count: sum.advancing || 0, change: '+0', pct: sum.total_stocks ? Math.round(sum.advancing/sum.total_stocks*100)+'%' : '0%' },
+      declining: { count: sum.declining || 0, change: '0', pct: sum.total_stocks ? Math.round(sum.declining/sum.total_stocks*100)+'%' : '0%' },
+      avgChange: (sum.avg_change != null ? (sum.avg_change >= 0 ? '+' : '') + sum.avg_change + '%' : '0%'),
+      totalVolume: volStr, volumeChange: '-', status: 'Open', hours: '09:00 - 15:00 WIB',
+    };
+  } catch(e) { console.error('Market summary load failed:', e); }
+}
+
+async function loadTopMovers() {
+  try {
+    var responses = await Promise.all([ fetch('/api/top-gainers?limit=10'), fetch('/api/top-losers?limit=10'), fetch('/api/top-volume?limit=10') ]);
+    var g = await responses[0].json(), l = await responses[1].json(), v = await responses[2].json();
+    var fmt = function(items) { return items.map(function(s) { return { code: s.code, name: s.name || s.stock_name || '', chg: (s.change_pct >= 0 ? '+' : '') + s.change_pct + '%', vol: s.volume ? (s.volume >= 1e9 ? (s.volume/1e9).toFixed(1)+'B' : (s.volume/1e6).toFixed(1)+'M') : '-' }; }); };
+    movers.value = { gainers: fmt((g.gainers || []).slice(0,3)), losers: fmt((l.losers || []).slice(0,3)), volume: fmt((v.volumes || []).slice(0,3)) };
+    allGainers.value = fmt(g.gainers || []);
+    allLosers.value = fmt(l.losers || []);
+    allVolume.value = fmt(v.volumes || []);
+  } catch(e) { console.error('Top movers load failed:', e); }
+}
+
+async function loadSectors() {
+  try {
+    var res = await fetch('/api/sector-performance');
+    var data = await res.json();
+    var maxPerf = Math.max.apply(null, Object.values(data).map(function(s) { return Math.abs(s.performance); }).concat([0.01]));
+    sectors.value = Object.entries(data).map(function(kv) {
+      var name = kv[0], s = kv[1], perf = s.performance;
+      var width = Math.max(8, Math.min(100, (Math.abs(perf) / maxPerf) * 100));
+      var isPos = perf >= 0;
+      var barColor = isPos ? 'var(--success)' : 'var(--danger)';
+      var fm = { INFLOW: { label: 'Inflow', cls: 'success' }, OUTFLOW: { label: 'Outflow', cls: 'danger' }, NEUTRAL: { label: 'Neutral', cls: 'accent' } };
+      var f = fm[s.flow] || fm.NEUTRAL;
+      return { name: name, width: width + '%', barColor: barColor, textColor: barColor, change: (perf >= 0 ? '+' : '') + perf.toFixed(2) + '%', flow: f.label, flowClass: f.cls };
+    });
+  } catch(e) { console.error('Sectors load failed:', e); }
+}
+
+async function loadStocks() {
+  stocksLoading.value = true;
+  try {
+    var res = await fetch('/api/stocks');
+    var data = await res.json();
+    var SECTOR_GUESS = { BBCA:'Financials', BBRI:'Financials', BMRI:'Financials', BBNI:'Financials', TLKM:'Technology', EXCL:'Technology', TOWR:'Technology', ASII:'Consumer Cycl.', UNVR:'Consumer Cycl.', INDF:'Consumer Cycl.', ICBP:'Consumer Cycl.', HMSP:'Consumer Cycl.', GGRM:'Consumer Cycl.', ADRO:'Energy', ITMG:'Energy', PTBA:'Energy', MEDC:'Energy', CPIN:'Healthcare', KLBF:'Healthcare', JSMR:'Infrastructure', PGAS:'Infrastructure', SMGR:'Infrastructure', INTP:'Infrastructure', SMMA:'Infrastructure', AKRA:'Infrastructure', GOTO:'Technology' };
+    allStocks.value = (data.stocks || []).map(function(s) { return { code: s.code, name: s.name || '', chg: 0, price: '-', sector: SECTOR_GUESS[s.code] || 'Other', score: 0 }; });
+    analysisStocks.value = allStocks.value.slice();
+    // Load scores
+    allStocks.value.forEach(function(s, i) {
+      fetch('/api/analyze/' + s.code).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.stock_code) {
+          var chg = d.change_pct || 0; s.chg = chg;
+          s.price = d.price ? 'Rp ' + Number(d.price).toLocaleString('id') : '-';
+          s.score = d.confidence || 50;
+          if (analysisStocks.value[i]) { analysisStocks.value[i] = Object.assign({}, analysisStocks.value[i], { chg: chg, price: s.price, score: s.score }); }
+        }
+      }).catch(function() {});
+    });
+  } catch(e) { console.error('Stocks load failed:', e); }
+  stocksLoading.value = false;
+}
+
+// ── Shareholders ──
+async function loadShareholders() {
+  try {
+    var res = await fetch('/api/shareholders/periods');
+    var data = await res.json();
+    if (data.status === 'ok') {
+      shareholdersPeriods.value = data.periods;
+      shareholdersLatestPeriod.value = data.latest;
+      shareholdersStats.value = data.stats;
+      var topRes = await fetch('/api/shareholders/top?period=' + data.latest);
+      var topData = await topRes.json();
+      if (topData.status === 'ok') topShareholders.value = topData.data;
+      var stocksRes = await fetch('/api/shareholders/stocks?period=' + data.latest);
+      var stocksData = await stocksRes.json();
+      if (stocksData.status === 'ok') shStockList.value = stocksData.data;
+      var popRes = await fetch('/api/shareholders/top?period=' + data.latest + '&min_pct=0.1&limit=30');
+      var popData = await popRes.json();
+      if (popData.status === 'ok') popularHolders.value = popData.data;
+    }
+  } catch(e) { console.error('Shareholders load failed:', e); }
+  var chartRetries = 0;
+  var tryChart = function() {
+    if (document.getElementById('shBarChart')) { renderShareholderCharts(); }
+    else if (chartRetries < 10) { chartRetries++; setTimeout(tryChart, 500); }
+  };
+  tryChart();
+}
+
+// ── Watchlist ──
+async function loadWatchlistData() {
+  try {
+    var res = await fetch('/api/watchlist/1');
+    var data = await res.json();
+    watchlist.value = (data.watchlist || []).map(function(w) { return { code: w.stock_code || w.code || '', chg: 0 }; });
+    ltWatchlist.value = (data.watchlist || []).map(function(w) { return { code: w.stock_code || w.code || '', name: '', chg: 0, volume: '-', sector: '-' }; });
+    watchlist.value.forEach(function(w) {
+      fetch('/api/stock/' + w.code).then(function(r) { return r.json(); }).then(function(d) { w.chg = d.change_pct || 0; }).catch(function() {});
+    });
+  } catch(e) { console.error('Watchlist load failed:', e); }
+}
+
+// ── Day Trading ──
+async function loadDayTradingData() {
+  try {
+    var json = await fetchWithTimeout('/api/day-trade/candidates', 15000);
+    if (!json) { console.warn('Day trade load timeout'); return; }
+    var candidates = (json.data && json.data.candidates) || [];
+    var signalMap = { ENTER: { cls: 'success' }, WAIT: { cls: 'warning' }, AVOID: { cls: 'danger' }, HOLD: { cls: 'accent' } };
+    dayTradingSignals.value = candidates.map(function(c) {
+      var sig = signalMap[c.action] || signalMap.WAIT;
+      return { code: c.stock_code, signal: c.action, signalClass: sig.cls, confidence: c.confidence || 0, price: c.current_price ? 'Rp ' + Number(c.current_price).toLocaleString('id') : '-', entry: c.entry_price ? 'Rp ' + Number(c.entry_price).toLocaleString('id') : '-', exit: c.target_profit ? 'Rp ' + Number(c.target_profit).toLocaleString('id') : '-' };
+    });
+    dayTradingCandidates.value = candidates.map(function(c) {
+      return { stock: c.stock_code, signal: c.action, signalClass: signalMap[c.action] ? signalMap[c.action].cls : 'warning', conf: c.confidence || 0, entry: c.entry_price ? Number(c.entry_price).toLocaleString('id') : '-', tp: c.target_profit ? Number(c.target_profit).toLocaleString('id') : '-', cl: c.cut_loss ? Number(c.cut_loss).toLocaleString('id') : '-', volRatio: c.volume_ratio ? c.volume_ratio.toFixed(1) + 'x' : '-', foreignFlow: c.foreign_flow_status || '-', action: c.action === 'ENTER' ? 'Buy' : 'Watch' };
+    });
+    bpjsSignals.value = dayTradingSignals.value.slice(0, 4);
+  } catch(e) { console.error('Day trade load failed:', e); }
+}
+
+// ── Foreign Flow ──
+async function loadForeignFlowData() {
+  try {
+    var json = await fetchWithTimeout('/api/foreign-flow/summary', 8000);
+    if (!json) { console.warn('Foreign flow load timeout'); return; }
+    var acc = (json.data && json.data.top_accumulating) || [];
+    longTermSignals.value = acc.map(function(a) {
+      return { code: a.stock_code, signal: a.strength === 'strong' ? 'Active Accum' : a.strength === 'moderate' ? 'Accum Watch' : 'Early Accum', signalClass: a.strength === 'strong' ? 'accent' : 'warning', confidence: Math.min(99, Math.round((a.accumulation_days || 0) * 3 + 50)), entryZone: a.cumulative_net ? 'Rp ' + Number(a.cumulative_net/1000000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : 'N/A' };
+    });
+    ltAccumulation.value = acc.map(function(a) {
+      return { code: a.stock_code, phase: a.strength === 'strong' ? 'Active Accum' : a.strength === 'moderate' ? 'Accum Watch' : 'Early Accum', signalClass: a.strength === 'strong' ? 'accent' : 'warning', confidence: Math.min(99, Math.round((a.accumulation_days || 0) * 3 + 50)), entryZone: a.cumulative_net ? Number(a.cumulative_net/1000000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : 'N/A', accumDays: a.accumulation_days || 0, rsStatus: a.strength || 'Neutral' };
+    });
+  } catch(e) { console.error('Foreign flow load failed:', e); }
+}
+
+// ── Analysis History ──
+async function loadAnalysisHistory() {
+  try {
+    var res = await fetch('/api/analysis-history?limit=20');
+    var json = await res.json();
+    var history = json.history || [];
+    if (history.length) {
+      var wins = history.filter(function(h) { return h.result === 'win' || h.result === 'success'; });
+      var total = history.length;
+      var winRate = total ? Math.round(wins.length / total * 100) : 0;
+      aiPerf.value = { accuracy: winRate + '%', accuracyChange: '-', winRate: winRate + '%', winRateChange: '-', avgProfit: history.reduce(function(a, h) { return a + (h.profit_pct || 0); }, 0) / total + '%', totalPredictions: String(total) };
+      var fmt = history.map(function(h) {
+        return { code: h.stock_code || h.code || '-', signal: h.prediction || h.signal || 'HOLD', signalClass: (h.prediction === 'BUY' || h.prediction === 'ENTER') ? 'success' : h.prediction === 'SELL' ? 'danger' : 'warning', confidence: h.confidence || 50, result: h.result === 'win' ? 'Win' : h.result === 'loss' ? 'Loss' : 'Pending', resultClass: h.result === 'win' ? 'success' : h.result === 'loss' ? 'danger' : 'warning', profit: (h.profit_pct >= 0 ? '+' : '') + (h.profit_pct || 0) + '%', profitClass: (h.profit_pct || 0) >= 0 ? 'profit-positive' : 'profit-negative', date: h.created_at ? h.created_at.slice(5, 10) : '-' };
+      });
+      predictions.value = fmt.slice(0, 5);
+      allPredictions.value = fmt;
+      dayTradingHistory.value = fmt.filter(function(h) { return h.code; }).map(function(h) { return { date: h.date, stock: h.code, entry: '-', exit: '-', profit: h.profit, profitClass: h.profitClass, result: h.result, resultClass: h.resultClass }; });
+    }
+  } catch(e) { console.error('Analysis history load failed:', e); }
+}
+
+// ── Alerts ──
+async function loadAlerts() {
+  try {
+    var res = await fetch('/api/alerts?limit=20');
+    var json = await res.json();
+    settingsAlerts.value = (json.alerts || []).map(function(a) { return { stock: a.stock_code || a.code || '-', type: a.alert_type || a.type || 'Price Alert', condition: a.condition || '-', status: a.status || 'Inactive' }; });
+  } catch(e) { console.error('Alerts load failed:', e); }
+}
+
+// ── UI Actions ──
+function mockScan() {
+  loadDayTradingData();
+  currentTab.value = 'signals';
+}
+function mockSave() {
+  alert('Settings saved (local only).');
+}
+function addAlert() {
+  if (!newAlertStock.value || !newAlertCondition.value) return;
+  settingsAlerts.value.push({ stock: newAlertStock.value, type: newAlertType.value, condition: newAlertCondition.value, status: 'Active' });
+  newAlertStock.value = ''; newAlertType.value = 'Price Alert'; newAlertCondition.value = '';
+}
+function removeAlert(alert) {
+  var idx = settingsAlerts.value.indexOf(alert);
+  if (idx > -1) settingsAlerts.value.splice(idx, 1);
+}
+async function selectStock(item) {
+  try {
+    var res = await fetch('/api/analyze/' + item.code);
+    if (!res.ok) throw new Error('Fetch failed');
+    var data = await res.json();
+    selectedStock.value = {
+      code: item.code, name: item.name || data.stock_name || '', price: data.price ? 'Rp ' + Number(data.price).toLocaleString('id') : '-', chg: data.change_pct || 0,
+      rsi: data.rsi != null ? String(data.rsi) : '-', rsiLabel: data.rsi_status || '-', macd: data.macd != null ? (data.macd >= 0 ? '+' : '') + Number(data.macd).toFixed(1) : '-',
+      ma20: data.ma20 ? 'Rp ' + Number(data.ma20).toLocaleString('id') : '-', ma50: data.ma50 ? 'Rp ' + Number(data.ma50).toLocaleString('id') : '-', bbUpper: '-', bbLower: '-',
+      r2: data.resistance ? 'Rp ' + Number(data.resistance * 1.05).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-', r1: data.resistance ? 'Rp ' + Number(data.resistance).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-',
+      pivot: data.price ? 'Rp ' + Number(data.price).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-', s1: data.support ? 'Rp ' + Number(data.support).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-', s2: data.support ? 'Rp ' + Number(data.support * 0.95).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-',
+      volume: data.volume ? Number(data.volume).toLocaleString('id') : '-', score: data.confidence || item.score || 50, confidence: data.confidence || item.score || 50,
+      recommendation: data.recommendation || 'HOLD', signalClass: (data.recommendation === 'BUY' || data.recommendation === 'ENTER') ? 'success' : (data.recommendation === 'SELL') ? 'danger' : 'warning',
+      analysis: data.full_analysis || data.reason || 'Analysis not available.',
+    };
+  } catch(e) {
+    console.error('Analyze failed:', e);
+    selectedStock.value = { code: item.code, name: item.name || '', price: '-', chg: 0, rsi: '-', rsiLabel: '-', macd: '-', ma20: '-', ma50: '-', bbUpper: '-', bbLower: '-', r2: '-', r1: '-', pivot: '-', s1: '-', s2: '-', volume: '-', score: item.score || 50, confidence: item.score || 50, recommendation: 'HOLD', signalClass: 'warning', analysis: 'Gagal mengambil data analisis dari server.' };
+  }
+  currentTab.value = 'detail';
+}
+async function addComparison() {
+  if (!comparisonAddCode.value) return;
+  try {
+    var res = await fetch('/api/analyze/' + comparisonAddCode.value);
+    if (!res.ok) throw new Error('fetch failed');
+    var d = await res.json();
+    comparisonStocks.value.push({ code: comparisonAddCode.value, price: d.price ? Number(d.price).toLocaleString('id') : '-', chg: d.change_pct != null ? (d.change_pct >= 0 ? '+' : '') + d.change_pct + '%' : '0%', rsi: d.rsi != null ? String(d.rsi) : '50', macd: d.macd != null ? (d.macd >= 0 ? '+' : '') + Number(d.macd).toFixed(1) : '0', volume: d.volume ? Number(d.volume).toLocaleString('id') : '-', score: String(d.confidence || 50), rec: d.recommendation || 'HOLD' });
+  } catch(e) { console.error('Comparison add failed:', e); }
+  comparisonAddCode.value = '';
+}
+
+// ── Market Reports ──
+async function loadMarketReports() {
+  try {
+    var res = await fetch('/api/market-reports?limit=500');
+    var json = await res.json();
+    var full = (json.data || []).filter(function(r) { return r.type === 'full' || r.type === 'akhir_sesi' || r.type === 'sesi1'; });
+    if (mrFilter.value !== 'all') { mrReports.value = full.filter(function(r) { return r.type === mrFilter.value; }); }
+    else { mrReports.value = full; }
+    if (full.length) { mrExpandedMonths.value[full[0].date.substring(0, 7)] = true; }
+    var dataForStats = mrFilter.value !== 'all' ? mrReports.value : full;
+    var ihsgVals = dataForStats.map(function(r) { return r.ihsg_change; }).filter(function(v) { return v !== null; });
+    var avgIHSG = ihsgVals.length ? (ihsgVals.reduce(function(a,b) { return a+b; }, 0) / ihsgVals.length) : 0;
+    var allForeignStocks = new Set();
+    dataForStats.forEach(function(r) { (r.foreign_buy || []).forEach(function(s) { allForeignStocks.add(s.stock); }); });
+    var redDays = ihsgVals.filter(function(v) { return v < 0; }).length;
+    mrStats.value = { totalReports: dataForStats.length, avgIHSG: Math.round(avgIHSG * 10) / 10, foreignStocks: allForeignStocks.size, redDays: redDays };
+    mrForeignStocks.value = buildMrStockTable('foreign_buy');
+    mrLocalStocks.value = buildMrStockTable('local_buy');
+    setTimeout(function() { renderMrCharts(full); }, 100);
+  } catch(e) { console.error('Market report load failed:', e); }
 }
 
 async function loadMrAnalysis() {
   mrLoadingAnalysis.value = true;
   try {
-    const res = await fetch('/api/market-report-analysis');
-    const json = await res.json();
-    if (json.status === 'ok' && json.analysis) {
-      mrAnalysis.value = json.analysis;
-    }
-  } catch(e) {
-    console.error('Analysis load failed:', e);
-  }
+    var res = await fetch('/api/market-report-analysis');
+    var json = await res.json();
+    if (json.status === 'ok' && json.analysis) mrAnalysis.value = json.analysis;
+  } catch(e) { console.error('Analysis load failed:', e); }
   mrLoadingAnalysis.value = false;
 }
 
 async function loadForeignOverview() {
   try {
-    const res = await fetch('/api/market-reports?limit=5');
-    const json = await res.json();
-    const reports = json.data || [];
+    var res = await fetch('/api/market-reports?limit=5');
+    var json = await res.json();
+    var reports = json.data || [];
     if (!reports.length) return;
-    const latest = reports[0];
-    const fb = latest.foreign_buy || [];
-    const lb = latest.local_buy || [];
-    const map = {};
-    fb.forEach(s => { map[s.stock] = { stock: s.stock, foreignBuy: s.value, localBuy: 0 }; });
-    lb.forEach(s => {
-      if (map[s.stock]) map[s.stock].localBuy = s.value;
-      else map[s.stock] = { stock: s.stock, foreignBuy: 0, localBuy: s.value };
-    });
-    const stocks = Object.values(map).map(s => ({ ...s, net: s.foreignBuy - s.localBuy }));
-    foreignOverviewStocks.value = stocks.filter(s => s.net > 0).sort((a, b) => b.net - a.net).slice(0, 10);
-    pahlawanBursaStocks.value = stocks.filter(s => s.net < 0).sort((a, b) => (b.localBuy - b.foreignBuy) - (a.localBuy - a.foreignBuy)).slice(0, 10);
-    dailyNetTotal.value = stocks.reduce((sum, s) => sum + s.net, 0);
-    foreignStockCount.value = stocks.filter(s => s.net > 0).length;
-    foreignActivitySummary.value = {
-      totalForeign: fb.reduce((a, s) => a + s.value, 0),
-      totalLocal: lb.reduce((a, s) => a + s.value, 0),
-      date: latest.date,
-    };
-  } catch(e) {
-    console.error('Foreign overview load failed:', e);
-  }
+    var latest = reports[0];
+    var fb = latest.foreign_buy || [], lb = latest.local_buy || [];
+    var map = {};
+    fb.forEach(function(s) { map[s.stock] = { stock: s.stock, foreignBuy: s.value, localBuy: 0 }; });
+    lb.forEach(function(s) { if (map[s.stock]) map[s.stock].localBuy = s.value; else map[s.stock] = { stock: s.stock, foreignBuy: 0, localBuy: s.value }; });
+    var stocks = Object.values(map).map(function(s) { return Object.assign({}, s, { net: s.foreignBuy - s.localBuy }); });
+    foreignOverviewStocks.value = stocks.filter(function(s) { return s.net > 0; }).sort(function(a,b) { return b.net - a.net; }).slice(0, 10);
+    pahlawanBursaStocks.value = stocks.filter(function(s) { return s.net < 0; }).sort(function(a,b) { return (b.localBuy - b.foreignBuy) - (a.localBuy - a.foreignBuy); }).slice(0, 10);
+    dailyNetTotal.value = stocks.reduce(function(sum, s) { return sum + s.net; }, 0);
+    foreignStockCount.value = stocks.filter(function(s) { return s.net > 0; }).length;
+    foreignActivitySummary.value = { totalForeign: fb.reduce(function(a, s) { return a + s.value; }, 0), totalLocal: lb.reduce(function(a, s) { return a + s.value; }, 0), date: latest.date };
+  } catch(e) { console.error('Foreign overview load failed:', e); }
 }
 
 async function loadBacktest() {
-  mrBtLoading.value = true;
-  mrBtError.value = null;
+  mrBtLoading.value = true; mrBtError.value = null;
   try {
-    const res = await fetch('/api/market-backtest');
-    const json = await res.json();
-    if (json.status === 'ok') {
-      mrBtData.value = json;
-    } else {
-      mrBtError.value = 'Gagal muat data backtest';
-    }
-  } catch(e) {
-    console.error('Backtest load failed:', e);
-    mrBtError.value = 'Backtest error: ' + e.message;
-  }
+    var res = await fetch('/api/market-backtest');
+    var json = await res.json();
+    if (json.status === 'ok') mrBtData.value = json;
+    else mrBtError.value = 'Gagal muat data backtest';
+  } catch(e) { console.error('Backtest load failed:', e); mrBtError.value = 'Backtest error: ' + e.message; }
   mrBtLoading.value = false;
 }
 
-async function loadStocks() {
-  try {
-    const res = await fetch('/api/stocks');
-    const data = await res.json();
-    allStocks.value = (data.stocks || []).map(s => ({
-      code: s.code, name: s.name || '',
-      chg: 0, price: '-', sector: 'Other', score: 0,
-    }));
-  } catch(e) { console.error('Stocks load failed:', e); }
-}
-
-async function loadWatchlistData() {
-  try {
-    const res = await fetch('/api/watchlist/1');
-    const data = await res.json();
-    watchlist.value = (data.watchlist || []).map(w => ({ code: w.stock_code || w.code || '', chg: 0 }));
-    watchlist.value.forEach(w => {
-      fetch('/api/stock/' + w.code).then(r => r.json()).then(d => {
-        w.chg = d.change_pct || 0;
-      }).catch(() => {});
-    });
-  } catch(e) { console.error('Watchlist load failed:', e); }
-}
-
-// ── UI Actions ──
-
 function switchMrTab(tab) {
   currentTab.value = tab;
-  if (tab === 'overview') setTimeout(() => renderMrCharts(mrReports.value), 100);
+  if (tab === 'overview') setTimeout(function() { renderMrCharts(mrReports.value); }, 100);
   if (tab === 'analysis' && !mrAnalysis.value) loadMrAnalysis();
   if (tab === 'backtest' && !mrBtData.value) loadBacktest();
 }
@@ -138,24 +408,83 @@ function setMrFilter(filter) {
 
 function switchView(view, tab) {
   currentView.value = view;
-  if (view === 'marketreports') loadMarketReports();
+  if (view === 'marketreports') { loadMarketReports(); }
+  var firstTabs = { dashboard: 'overview', daytrading: 'signals', longterm: 'accumulation', analysis: 'search', shareholders: 'overview', settings: 'general', marketreports: 'overview' };
   _viewChanging = true;
-  currentTab.value = tab || 'overview';
+  currentTab.value = tab || firstTabs[view] || 'overview';
   if (window.innerWidth <= 768) sidebarOpen.value = false;
 }
 
 function switchTheme(theme) {
   currentTheme.value = theme;
 }
-
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value;
 }
-
 function closeSearch(e) {
   if (e.target === e.currentTarget) searchOpen.value = false;
 }
-
 function onSearchInput() {
   if (searchQuery.value) searchOpen.value = true;
+}
+
+// ── Shareholder search functions ──
+async function searchShareholdersByStock() {
+  var q = shStockQuery.value.trim();
+  if (!q) return;
+  shStockLoading.value = true; shStockError.value = ''; shStockSearched.value = true;
+  try {
+    var period = shareholdersLatestPeriod.value || 'FEB2026';
+    var res = await fetch('/api/shareholders/' + q.toUpperCase() + '?period=' + period);
+    var data = await res.json();
+    if (data.status === 'ok') shStockResult.value = data.data;
+    else { shStockError.value = 'Gagal memuat data'; shStockResult.value = []; }
+  } catch(e) { shStockError.value = 'Gagal mengambil data: ' + e.message; shStockResult.value = []; }
+  shStockLoading.value = false;
+}
+async function onShStockSelect() {
+  var val = shStockSelected.value;
+  if (!val) return;
+  shStockQuery.value = ''; shStockLoading.value = true; shStockError.value = ''; shStockSearched.value = true;
+  try {
+    var period = shareholdersLatestPeriod.value || 'FEB2026';
+    var res = await fetch('/api/shareholders/' + val + '?period=' + period);
+    var data = await res.json();
+    if (data.status === 'ok') shStockResult.value = data.data;
+    else { shStockError.value = 'Gagal memuat data'; shStockResult.value = []; }
+  } catch(e) { shStockError.value = 'Gagal mengambil data: ' + e.message; shStockResult.value = []; }
+  shStockLoading.value = false;
+}
+async function searchShareholdersByHolder() {
+  var q = shHolderQuery.value.trim();
+  if (!q) return;
+  shHolderLoading.value = true; shHolderError.value = ''; shHolderSearched.value = true;
+  try {
+    var period = shareholdersLatestPeriod.value || 'FEB2026';
+    var res = await fetch('/api/shareholders/search/' + encodeURIComponent(q.toUpperCase()) + '?period=' + period);
+    var data = await res.json();
+    if (data.status === 'ok') shHolderResult.value = data.data;
+    else { shHolderError.value = 'Gagal memuat data'; shHolderResult.value = []; }
+  } catch(e) { shHolderError.value = 'Gagal mengambil data: ' + e.message; shHolderResult.value = []; }
+  shHolderLoading.value = false;
+}
+async function selectHolder(name) {
+  shHolderQuery.value = name; shHolderSearched.value = true; shHolderLoading.value = true; shHolderError.value = '';
+  try {
+    var period = shareholdersLatestPeriod.value || 'FEB2026';
+    var res = await fetch('/api/shareholders/search/' + encodeURIComponent(name.toUpperCase()) + '?period=' + period);
+    var data = await res.json();
+    if (data.status === 'ok') shHolderResult.value = data.data;
+    else { shHolderError.value = 'Gagal memuat data'; shHolderResult.value = []; }
+  } catch(e) { shHolderError.value = 'Gagal mengambil data: ' + e.message; shHolderResult.value = []; }
+  shHolderLoading.value = false;
+}
+
+// ── Bootstrap load all ──
+async function loadAllDashboardData() {
+  await Promise.allSettled([
+    loadMarketSummary(), loadTopMovers(), loadSectors(), loadStocks(),
+    loadWatchlistData(), loadDayTradingData(), loadForeignFlowData(),
+    loadAnalysisHistory(), loadAlerts(), loadShareholders(),
+  ]);
 }

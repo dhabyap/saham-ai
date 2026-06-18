@@ -7,6 +7,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.templating import Jinja2Templates
+from starlette.requests import Request
 import threading
 
 from app.config import Config
@@ -30,6 +32,15 @@ app = FastAPI(
 os.makedirs(STATIC_DIR, exist_ok=True)
 os.makedirs(CHARTS_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# Jinja2 templates with custom delimiters to avoid Vue {{ }} conflict
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
+templates.env.block_start_string = '{%'
+templates.env.block_end_string = '%}'
+templates.env.variable_start_string = '{{'
+templates.env.variable_end_string = '}}'
+templates.env.comment_start_string = '{#'
+templates.env.comment_end_string = '#}'
 
 # Include API routes
 app.include_router(router)

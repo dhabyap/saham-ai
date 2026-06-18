@@ -10,6 +10,15 @@ var sidebarOpen = ref(true);
 var searchOpen = ref(false);
 var dateStr = ref('');
 
+// ── Lazy Load tracking ──
+var _loadedViews = {};
+var dashboardLoading = ref(true);
+var daytradingLoading = ref(false);
+var longtermLoading = ref(false);
+var analysisLoading = ref(false);
+var shareholdersLoading = ref(false);
+var mrLoading = ref(false);
+
 var themes = [
   { id: 'neumorphism', label: 'Light' },
   { id: 'dark', label: 'Dark' },

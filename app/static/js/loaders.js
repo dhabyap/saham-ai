@@ -2,29 +2,72 @@
 // Memuat data dari API untuk semua view
 
 // ── Dashboard ──
-async function loadAllData() {
+async function loadDashboardData() {
   overviewLoading.value = true;
+  dashboardLoading.value = true;
   var results = await Promise.allSettled([
     fetch('/api/market-summary').then(function(r) { return r.json(); }),
     fetch('/api/top-gainers?limit=5').then(function(r) { return r.json(); }),
     fetch('/api/top-losers?limit=5').then(function(r) { return r.json(); }),
     fetch('/api/top-volume?limit=5').then(function(r) { return r.json(); }),
     fetch('/api/sector-performance').then(function(r) { return r.json(); }),
-    fetchWithTimeout('/api/day-trade/candidates', 15000),
-    fetchWithTimeout('/api/long-term/candidates', 15000),
     fetch('/api/foreign-flow/summary').then(function(r) { return r.json(); }),
   ]);
-  // Load shareholders separately
   loadShareholders();
+  loadWatchlistData();
+  loadStocks();
   if (results[0].status === 'fulfilled' && results[0].value) applyMarketData(results[0].value);
   if (results[1].status === 'fulfilled' && results[1].value) applyGainersData(results[1].value);
   if (results[2].status === 'fulfilled' && results[2].value) applyLosersData(results[2].value);
   if (results[3].status === 'fulfilled' && results[3].value) applyVolumeData(results[3].value);
   if (results[4].status === 'fulfilled' && results[4].value) applySectorsData(results[4].value);
-  if (results[5].status === 'fulfilled' && results[5].value) applyDaytradeData(results[5].value);
-  if (results[6].status === 'fulfilled' && results[6].value) applyLongtermData(results[6].value);
-  if (results[7].status === 'fulfilled' && results[7].value) applyForeignData(results[7].value);
+  if (results[5].status === 'fulfilled' && results[5].value) applyForeignData(results[5].value);
   overviewLoading.value = false;
+  dashboardLoading.value = false;
+  _loadedViews.dashboard = true;
+}
+
+// ── Day Trading ──
+async function loadDayTradingView() {
+  daytradingLoading.value = true;
+  await Promise.allSettled([
+    loadDayTradingData(),
+    loadAnalysisHistory(),
+  ]);
+  daytradingLoading.value = false;
+  _loadedViews.daytrading = true;
+}
+
+// ── Long Term ──
+async function loadLongTermView() {
+  longtermLoading.value = true;
+  await Promise.allSettled([
+    fetchWithTimeout('/api/long-term/candidates', 15000).then(function(json) {
+      if (json && json.status === 'ok' && json.data && json.data.candidates) {
+        applyLongtermData(json);
+      }
+    }),
+    loadForeignFlowData(),
+  ]);
+  longtermLoading.value = false;
+  _loadedViews.longterm = true;
+}
+
+// ── Analysis ──
+async function loadAnalysisView() {
+  analysisLoading.value = true;
+  if (!allStocks.value.length) await loadStocks();
+  await loadAnalysisHistory();
+  analysisLoading.value = false;
+  _loadedViews.analysis = true;
+}
+
+// ── Shareholders ──
+async function loadShareholdersView() {
+  shareholdersLoading.value = true;
+  await loadShareholders();
+  shareholdersLoading.value = false;
+  _loadedViews.shareholders = true;
 }
 
 function applyMarketData(data) {
@@ -408,7 +451,11 @@ function setMrFilter(filter) {
 
 function switchView(view, tab) {
   currentView.value = view;
-  if (view === 'marketreports') { loadMarketReports(); }
+  if (view === 'marketreports' && !_loadedViews.marketreports) { loadMarketReports(); _loadedViews.marketreports = true; }
+  if (view === 'daytrading' && !_loadedViews.daytrading) loadDayTradingView();
+  if (view === 'longterm' && !_loadedViews.longterm) loadLongTermView();
+  if (view === 'analysis' && !_loadedViews.analysis) loadAnalysisView();
+  if (view === 'shareholders' && !_loadedViews.shareholders) loadShareholdersView();
   var firstTabs = { dashboard: 'overview', daytrading: 'signals', longterm: 'accumulation', analysis: 'search', shareholders: 'overview', settings: 'general', marketreports: 'overview' };
   _viewChanging = true;
   currentTab.value = tab || firstTabs[view] || 'overview';
@@ -487,4 +534,7 @@ async function loadAllDashboardData() {
     loadWatchlistData(), loadDayTradingData(), loadForeignFlowData(),
     loadAnalysisHistory(), loadAlerts(), loadShareholders(),
   ]);
-}
+};
+
+// ⚠ DEPRECATED — kept for reference, use per-view loaders instead
+

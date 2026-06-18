@@ -1,9 +1,9 @@
-v-else-if="currentView === 'analysis'" class="tabs">
+<div v-else-if="currentView === 'analysis'" class="tabs">
         <button class="tab-btn" :class="{ active: currentTab === 'search' }" @click="currentTab = 'search'">Search</button>
         <button class="tab-btn" :class="{ active: currentTab === 'detail' }" @click="currentTab = 'detail'">Detail</button>
         <button class="tab-btn" :class="{ active: currentTab === 'comparison' }" @click="currentTab = 'comparison'">Comparison</button>
       </div>
-v-else-if="currentView === 'analysis'" style="width:100%">
+<div v-else-if="currentView === 'analysis'" style="width:100%">
           <div class="tab-pane" :class="{ active: currentTab === 'search' }">
             <div class="section">
               <div class="section-title">&#128269; Search Stocks</div>

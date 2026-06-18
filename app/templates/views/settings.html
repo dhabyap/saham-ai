@@ -1,9 +1,9 @@
-v-else-if="currentView === 'settings'" class="tabs">
+<div v-else-if="currentView === 'settings'" class="tabs">
         <button class="tab-btn" :class="{ active: currentTab === 'general' }" @click="currentTab = 'general'">General</button>
         <button class="tab-btn" :class="{ active: currentTab === 'account' }" @click="currentTab = 'account'">Account</button>
         <button class="tab-btn" :class="{ active: currentTab === 'alerts' }" @click="currentTab = 'alerts'">Alerts</button>
       </div>
-v-else-if="currentView === 'settings'">
+<div v-else-if="currentView === 'settings'">
           <div class="tab-pane" :class="{ active: currentTab === 'general' }">
             <div class="section">
               <div class="section-title">&#9881; General Settings</div>

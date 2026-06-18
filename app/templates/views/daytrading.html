@@ -1,9 +1,9 @@
-v-else-if="currentView === 'daytrading'" class="tabs">
+<div v-else-if="currentView === 'daytrading'" class="tabs">
         <button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">Signals</button>
         <button class="tab-btn" :class="{ active: currentTab === 'candidates' }" @click="currentTab = 'candidates'">Candidates</button>
         <button class="tab-btn" :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">History</button>
       </div>
-v-else-if="currentView === 'daytrading'">
+<div v-else-if="currentView === 'daytrading'">
           <div class="tab-pane" :class="{ active: currentTab === 'signals' }">
             <div class="section">
               <div class="section-head">

@@ -10,7 +10,8 @@ body {
 #app {
     display:flex;
     width:100%;
-    min-height:100vh;
+    height:100vh;
+    overflow:hidden;
 }
 
 *,*::before,*::after {
@@ -258,7 +259,7 @@ body {
     display:flex;
     flex-direction:column;
     min-width:0;
-    min-height:100vh;
+    height:100vh;
     overflow-y:auto;
     transition:var(--transition);
 }

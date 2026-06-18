@@ -283,6 +283,45 @@ async function loadAlerts() {
 }
 
 // ── UI Actions ──
+var _refreshIntervals = {};
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+
+  // Dashboard market — 2 menit
+  _refreshIntervals.dashboard = setInterval(function() {
+    if (typeof invalidateCache === 'function') {
+      invalidateCache('/api/market');
+      invalidateCache('/api/top-');
+      invalidateCache('/api/sector');
+    }
+    loadMarketSummary();
+    loadTopMovers();
+    loadSectors();
+  }, 2 * 60 * 1000);
+
+  // Day Trading — 5 menit
+  _refreshIntervals.daytrading = setInterval(function() {
+    if (typeof invalidateCache === 'function') {
+      invalidateCache('/api/day-trade');
+    }
+    loadDayTradingData();
+  }, 5 * 60 * 1000);
+
+  // Long Term — 15 menit
+  _refreshIntervals.longterm = setInterval(function() {
+    if (typeof invalidateCache === 'function') {
+      invalidateCache('/api/long-term');
+      invalidateCache('/api/foreign-flow');
+    }
+    loadForeignFlowData();
+  }, 15 * 60 * 1000);
+}
+
+function stopAutoRefresh() {
+  Object.values(_refreshIntervals).forEach(clearInterval);
+  _refreshIntervals = {};
+}
 function mockScan() {
   loadDayTradingData();
   currentTab.value = 'signals';

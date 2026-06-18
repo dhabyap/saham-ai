@@ -65,6 +65,7 @@ createApp({
       window.addEventListener('hashchange', function() { syncViewFromUrl(); });
       loadAllData();
       loadAllDashboardData();
+      startAutoRefresh();
     });
 
     return {

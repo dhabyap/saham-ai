@@ -1,82 +1,9 @@
 <template v-else-if="currentView === 'daytrading'">
-<div>
-          <div class="tab-pane" :class="{ active: currentTab === 'signals' }">
-            <div class="section">
-              <div class="section-head">
-                <div class="section-title">&#127919; BPJS Day Trading — Active Signals</div>
-                <button class="view-all" @click="mockScan">Scan Now &rarr;</button>
-              </div>
-              <div class="candidate-row">
-                <div v-for="item in dayTradingSignals" :key="item.code" class="candidate-card">
-                  <div class="cc-head">
-                    <span class="cc-code">{{ item.code }}</span>
-                    <span class="badge" :class="'badge-' + item.signalClass">{{ item.signal }}</span>
-                  </div>
-                  <div class="cc-detail">Confidence</div>
-                  <div class="cc-val" style="color:var(--accent)">{{ item.confidence }}%</div>
-                  <div class="cc-detail" style="margin-top:4px">Price</div>
-                  <div class="cc-val">{{ item.price }}</div>
-                  <div class="cc-detail" style="margin-top:4px">Entry / Exit</div>
-                  <div class="cc-val" style="font-size:13px">{{ item.entry }} / {{ item.exit }}</div>
-                </div>
-                <div v-if="dayTradingSignals.length === 0" class="card" style="text-align:center;padding:40px;color:var(--muted);width:100%">
-                  ⏳ Memuat data sinyal... Scan butuh waktu beberapa detik. Tekan &quot;Scan Now&quot; untuk refresh.
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'candidates' }">
-            <div class="section">
-              <div class="section-title">&#128203; BPJS Candidates — Sorted by Confidence</div>
-              <div class="card" style="padding:0;overflow:hidden">
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr><th>Stock</th><th>Signal</th><th>Conf</th><th>Entry Price</th><th>TP</th><th>CL</th><th>Volume Ratio</th><th>Foreign Flow</th><th>Action</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="row in dayTradingCandidates" :key="row.stock">
-                        <td style="font-weight:600">{{ row.stock }}</td>
-                        <td><span class="badge" :class="'badge-' + row.signalClass">{{ row.signal }}</span></td>
-                        <td>{{ row.conf }}%</td>
-                        <td>{{ row.entry }}</td>
-                        <td>{{ row.tp }}</td>
-                        <td>{{ row.cl }}</td>
-                        <td>{{ row.volRatio }}</td>
-                        <td>{{ row.foreignFlow }}</td>
-                        <td><span class="badge" :class="row.action === 'Buy' ? 'badge-success' : 'badge-warning'">{{ row.action }}</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane" :class="{ active: currentTab === 'history' }">
-            <div class="section">
-              <div class="section-title">&#128214; Day Trading History</div>
-              <div class="card" style="padding:0;overflow:hidden">
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr><th>Date</th><th>Stock</th><th>Entry</th><th>Exit</th><th>Profit %</th><th>Result</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="row in dayTradingHistory" :key="row.stock + row.date">
-                        <td style="color:var(--muted)">{{ row.date }}</td>
-                        <td style="font-weight:600">{{ row.stock }}</td>
-                        <td>{{ row.entry }}</td>
-                        <td>{{ row.exit }}</td>
-                        <td :class="row.profitClass">{{ row.profit }}</td>
-                        <td><span class="badge" :class="'badge-' + row.resultClass">{{ row.result }}</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+<div class="tabs">
+<button class="tab-btn" :class="{ active: currentTab === 'signals' }" @click="currentTab = 'signals'">Signals</button>
+<button class="tab-btn" :class="{ active: currentTab === 'candidates' }" @click="currentTab = 'candidates'">Candidates</button>
+<button class="tab-btn" :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">History</button>
+</div>
 <div>
           <div class="tab-pane" :class="{ active: currentTab === 'signals' }">
             <div class="section">

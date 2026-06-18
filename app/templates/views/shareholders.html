@@ -1,8 +1,8 @@
 <template v-else-if="currentView === 'shareholders'">
 <div class="tabs">
-        <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
-        <button class="tab-btn" :class="{ active: currentTab === 'top' }" @click="currentTab = 'top'">Top Holders</button>
-      </div>
+<button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
+<button class="tab-btn" :class="{ active: currentTab === 'top' }" @click="currentTab = 'top'">Top Holders</button>
+</div>
 <div>
           <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
             <div class="section">

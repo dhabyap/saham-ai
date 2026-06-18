@@ -25,10 +25,32 @@ async function cachedFetch(url, ttlMs) {
   return data;
 }
 
+// ── Cache Invalidation ──
 function invalidateCache(pattern) {
   Object.keys(_cache).forEach(function(key) {
     if (key.includes(pattern)) delete _cache[key];
   });
+}
+
+function onCacheInvalidate(pattern) {
+  if (typeof invalidateCache === 'function') {
+    invalidateCache(pattern);
+  }
+  if (typeof _loadedViews !== 'undefined') {
+    Object.keys(_loadedViews).forEach(function(key) {
+      var view = pattern.replace('/api/', '');
+      if (key.includes(view)) delete _loadedViews[key];
+    });
+  }
+}
+
+function clearAllCache() {
+  if (typeof _cache !== 'undefined') {
+    Object.keys(_cache).forEach(function(key) { delete _cache[key]; });
+  }
+  if (typeof _loadedViews !== 'undefined') {
+    Object.keys(_loadedViews).forEach(function(key) { delete _loadedViews[key]; });
+  }
 }
 // ─────────────────────────
 
@@ -55,6 +77,11 @@ async function loadAllData() {
   if (results[6].status === 'fulfilled' && results[6].value) applyLongtermData(results[6].value);
   if (results[7].status === 'fulfilled' && results[7].value) applyForeignData(results[7].value);
   overviewLoading.value = false;
+  daytradingLoading.value = false;
+  longtermLoading.value = false;
+  analysisLoading.value = false;
+  shareholdersLoading.value = false;
+  mrReportsLoading.value = false;
 }
 
 function applyMarketData(data) {
@@ -306,19 +333,24 @@ async function loadAlerts() {
 // ── UI Actions ──
 function mockScan() {
   loadDayTradingData();
+  onCacheInvalidate('/api/day-trade');
   currentTab.value = 'signals';
 }
 function mockSave() {
+  onCacheInvalidate('/api/alerts');
+  onCacheInvalidate('/api/settings');
   alert('Settings saved (local only).');
 }
 function addAlert() {
   if (!newAlertStock.value || !newAlertCondition.value) return;
   settingsAlerts.value.push({ stock: newAlertStock.value, type: newAlertType.value, condition: newAlertCondition.value, status: 'Active' });
   newAlertStock.value = ''; newAlertType.value = 'Price Alert'; newAlertCondition.value = '';
+  onCacheInvalidate('/api/alerts');
 }
 function removeAlert(alert) {
   var idx = settingsAlerts.value.indexOf(alert);
   if (idx > -1) settingsAlerts.value.splice(idx, 1);
+  onCacheInvalidate('/api/alerts');
 }
 async function selectStock(item) {
   try {
@@ -478,7 +510,7 @@ async function searchShareholdersByHolder() {
   shHolderLoading.value = true; shHolderError.value = ''; shHolderSearched.value = true;
   try {
     var period = shareholdersLatestPeriod.value || 'FEB2026';
-    var res = await fetch('/api/shareholders/search/' + encodeURIComponent(q.toUpperCase()) + '?period=' + period);
+    var res = await fetch('/api/shareholders/search?name=' + encodeURIComponent(q) + '&period=' + period);
     var data = await res.json();
     if (data.status === 'ok') shHolderResult.value = data.data;
     else { shHolderError.value = 'Gagal memuat data'; shHolderResult.value = []; }
@@ -486,22 +518,13 @@ async function searchShareholdersByHolder() {
   shHolderLoading.value = false;
 }
 async function selectHolder(name) {
-  shHolderQuery.value = name; shHolderSearched.value = true; shHolderLoading.value = true; shHolderError.value = '';
+  shHolderActiveName.value = name;
+  shHolderLoading.value = true; shHolderSearched.value = true; shHolderError.value = '';
   try {
     var period = shareholdersLatestPeriod.value || 'FEB2026';
-    var res = await fetch('/api/shareholders/search/' + encodeURIComponent(name.toUpperCase()) + '?period=' + period);
+    var res = await fetch('/api/shareholders/holder/' + encodeURIComponent(name) + '?period=' + period);
     var data = await res.json();
     if (data.status === 'ok') shHolderResult.value = data.data;
-    else { shHolderError.value = 'Gagal memuat data'; shHolderResult.value = []; }
-  } catch(e) { shHolderError.value = 'Gagal mengambil data: ' + e.message; shHolderResult.value = []; }
+  } catch(e) { shHolderError.value = 'Gagal mengambil data'; }
   shHolderLoading.value = false;
-}
-
-// ── Bootstrap load all ──
-async function loadAllDashboardData() {
-  await Promise.allSettled([
-    loadMarketSummary(), loadTopMovers(), loadSectors(), loadStocks(),
-    loadWatchlistData(), loadDayTradingData(), loadForeignFlowData(),
-    loadAnalysisHistory(), loadAlerts(), loadShareholders(),
-  ]);
 }

@@ -1,62 +1,129 @@
-// ─── Vue App Entry Point ───
-// Depends on: state.js, utils.js, charts.js, loaders.js (loaded via <script> before this)
-
-var _vue = Vue, createApp = _vue.createApp, onMounted = _vue.onMounted, watch = _vue.watch;
-
-var _viewChanging = false;
-
-function navigateFromHash() {
-  var hash = window.location.hash.replace('#', '');
-  if (!hash) return null;
-  var parts = hash.split('/');
-  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'settings', 'marketreports'];
-  var view = validViews.indexOf(parts[0]) !== -1 ? parts[0] : null;
-  return { view: view, tab: parts[1] || null };
-}
-
-function getViewFromUrl() {
-  var fromHash = navigateFromHash();
-  if (fromHash && fromHash.view) return fromHash;
-  var path = window.location.pathname.replace(/\/$/, '');
-  var pathMap = { '/market-reports': 'marketreports', '/dashboard': 'dashboard', '/shareholders': 'shareholders' };
-  if (pathMap[path]) return { view: pathMap[path], tab: null };
-  var params = new URLSearchParams(window.location.search);
-  var view = params.get('view');
-  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'settings', 'marketreports'];
-  if (validViews.indexOf(view) !== -1) return { view: view, tab: null };
-  return null;
-}
-
-function syncViewFromUrl() {
-  var result = getViewFromUrl();
-  if (result && result.view) {
-    currentView.value = result.view;
-    var firstTabs = { dashboard: 'overview', daytrading: 'signals', longterm: 'accumulation', analysis: 'search', shareholders: 'overview', settings: 'general', marketreports: 'overview' };
-    _viewChanging = true;
-    currentTab.value = result.tab || firstTabs[result.view] || 'overview';
-    if (result.view === 'marketreports') loadMarketReports();
-  }
-}
+const { createApp, ref, computed, onMounted } = Vue;
 
 createApp({
-  setup: function() {
-    watch(currentTheme, function(val) {
-      localStorage.setItem('dashboard-theme', val);
-      document.documentElement.setAttribute('data-theme', val);
+  setup() {
+    // ── State ──
+    const currentTheme = ref('dark');
+    const themes = ['light', 'dark', 'blue', 'gold'];
+    const headerTitle = ref('SahamAI — Intelligent Market Analysis');
+    const currentView = ref('dashboard');
+    const navItems = [
+      { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
+      { id: 'daytrading', label: 'Day Trading', icon: '⚡' },
+      { id: 'longterm', label: 'Long Term', icon: '💎' },
+      { id: 'analysis', label: 'Analysis', icon: '🔍' },
+      { id: 'shareholders', label: 'Shareholders', icon: '👥' },
+      { id: 'marketreports', label: 'Reports', icon: '📜' },
+    ];
+    const currentTab = ref('signals');
+    const searchQuery = ref('');
+    const searchOpen = ref(false);
+    const sidebarOpen = ref(true);
+    const dateStr = ref('');
+    
+    // ── Loaders / API Data ──
+    const overviewLoading = ref(true);
+    const stocksLoading = ref(false);
+    const daytradingLoading = ref(true);
+    const longtermLoading = ref(true);
+    const analysisLoading = ref(true);
+    const shareholdersLoading = ref(true);
+    const mrReportsLoading = ref(true);
+    
+    const foreignOverviewStocks = ref([]);
+    const pahlawanBursaStocks = ref([]);
+    const dailyNetTotal = ref(0);
+    const foreignStockCount = ref(0);
+    const foreignActivitySummary = ref('');
+    const market = ref([]);
+    const aiPerf = ref([]);
+    const aiPerfDetails = ref([]);
+    const movers = ref([]);
+    const allGainers = ref([]);
+    const allLosers = ref([]);
+    const allVolume = ref([]);
+    const bpjsSignals = ref([]);
+    const longTermSignals = ref([]);
+    const sectors = ref([]);
+    const predictions = ref([]);
+    const allPredictions = ref([]);
+    
+    const dayTradingSignals = ref([]);
+    const dayTradingCandidates = ref([]);
+    const dayTradingHistory = ref([]);
+    
+    const ltAccumulation = ref([]);
+    const ltPortfolio = ref([]);
+    const ltWatchlist = ref([]);
+    
+    const analysisQuery = ref('');
+    const analysisSector = ref('All');
+    const analysisSectors = ref(['All', 'Finance', 'Consumer', 'Energy', 'Mining', 'Industrial', 'Health', 'Tech']);
+    const analysisStocks = ref([]);
+    const filteredAnalysis = computed(() => {
+      if (analysisQuery.value === '') return analysisStocks.value;
+      return analysisStocks.value.filter(s => s.code.toLowerCase().includes(analysisQuery.value.toLowerCase()));
     });
+    const selectedStock = ref(null);
+    
+    const shareholdersStats = ref({ total_records: 0, total_stocks: 0, total_holders: 0, top_holder: '' });
+    const shareholdersLatestPeriod = ref('');
+    const topShareholders = ref([]);
+    
+    const mrReports = ref([]);
+    const mrStats = ref([]);
+    const mrAnalysis = ref([]);
+    const mrLoadingAnalysis = ref(false);
+    const mrFilter = ref('All');
+    const mrBtData = ref([]);
+    const mrBtLoading = ref(false);
+    const mrBtError = ref(null);
+    const mrMonths = ref([]);
+    const mrExpandedMonths = ref([]);
+    
+    const settingsLanguage = ref('ID');
+    const settingsRiskTolerance = ref('Medium');
+    const settingsTargetProfit = ref('10%');
+    const settingsEmailNotif = ref(true);
+    const settingsPushNotif = ref(true);
+    const settingsAlerts = ref([]);
+    const newAlertStock = ref('');
+    const newAlertType = ref('Price');
+    const newAlertCondition = ref('');
+    
+    const watchlist = ref([]);
 
-    watch(currentTab, function(tab) {
-      if (currentView.value) {
-        var hash = '#' + currentView.value + '/' + tab;
-        if (_viewChanging) { history.pushState(null, '', hash); _viewChanging = false; }
-        else if (window.location.hash !== hash) { history.replaceState(null, '', hash); }
+    // ── UI Logic ──
+    const switchView = (view) => {
+      currentView.value = view;
+      if (view === 'daytrading') currentTab.value = 'signals';
+      if (view === 'longterm') currentTab.value = 'accumulation';
+      if (view === 'analysis') currentTab.value = 'search';
+      if (view === 'shareholders') currentTab.value = 'overview';
+      if (view === 'marketreports') currentTab.value = 'overview';
+    };
+    const switchTab = (tab) => {
+      currentTab.value = tab;
+    };
+    const toggleSidebar = () => {
+      sidebarOpen.value = !sidebarOpen.value;
+    };
+    const openSearch = () => {
+      searchOpen.value = true;
+      searchQuery.value = '';
+    };
+    const closeSearch = () => {
+      searchOpen.value = false;
+    };
+    const onSearchInput = () => {
+      if (searchQuery.value.length > 2) {
+        searchOpen.value = false;
+        // logic filter stocks
       }
-    });
+    };
 
-    onMounted(function() {
-      var saved = localStorage.getItem('dashboard-theme');
-      if (saved) currentTheme.value = saved;
-      document.documentElement.setAttribute('data-theme', currentTheme.value);
+    // ── Init ──
+    onMounted(() => {
       var d = new Date();
       dateStr.value = d.toLocaleDateString('en-ID', { month: 'short', day: 'numeric', year: 'numeric' });
       document.addEventListener('keydown', function(e) { if (e.key === 'Escape') searchOpen.value = false; });
@@ -73,11 +140,11 @@ createApp({
       currentTheme: currentTheme, themes: themes, headerTitle: headerTitle,
       // Navigation
       currentView: currentView, navItems: navItems, currentTab: currentTab,
-      switchView: switchView, switchMrTab: switchMrTab,
+      switchView: switchView, switchTab: switchTab,
       // Search / Sidebar
       searchQuery: searchQuery, searchOpen: searchOpen, sidebarOpen: sidebarOpen,
       filteredStocks: filteredStocks, allStocks: allStocks,
-      toggleSidebar: toggleSidebar, closeSearch: closeSearch, onSearchInput: onSearchInput,
+      toggleSidebar: toggleSidebar, openSearch: openSearch, closeSearch: closeSearch, onSearchInput: onSearchInput,
       dateStr: dateStr,
       // Dashboard Overview
       overviewLoading: overviewLoading,

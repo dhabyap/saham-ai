@@ -9,6 +9,16 @@
 <div>
           <!-- IHSG Chart tab -->
           <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+            <!-- SKELETON loading -->
+            <template v-if="mrReportsLoading">
+              <div class="section">
+                <div class="section-title"><div class="skeleton-text" style="width:160px;height:18px"></div></div>
+                <div class="card p-4 skeleton-card" style="height:260px"><div class="skeleton-chart" style="height:220px;width:100%"></div></div>
+                <div class="section-title"><div class="skeleton-text" style="width:220px;height:18px;margin-top:16px"></div></div>
+                <div class="card p-4 skeleton-card" style="height:260px"><div class="skeleton-chart" style="height:220px;width:100%"></div></div>
+              </div>
+            </template>
+            <template v-else>
             <div class="section" v-if="mrReports.length === 0">
               <div class="card text-center p-4">
                 <div class="font-bold text-muted" style="font-size:18px;margin-bottom:8px">📊 Market Reports</div>
@@ -28,6 +38,7 @@
                 <div class="chart-wrap"><canvas id="foreignChart"></canvas></div>
               </div>
             </div>
+            </template>
             </template>
           </div>
           <!-- Reports tab -->

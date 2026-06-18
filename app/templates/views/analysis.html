@@ -6,6 +6,28 @@
 </div>
 <div style="width:100%">
           <div class="tab-pane" :class="{ active: currentTab === 'search' }">
+            <!-- SKELETON loading -->
+            <template v-if="analysisLoading">
+              <div class="section">
+                <div class="section-title"><div class="skeleton-text" style="width:180px;height:18px"></div></div>
+                <div class="card mb-3 skeleton-card" style="padding:16px">
+                  <div class="skeleton-text" style="width:100%;height:40px;border-radius:6px"></div>
+                  <div class="flex gap-2 mt-2">
+                    <div v-for="n in 5" :key="n" class="skeleton-badge" style="width:50px;height:22px"></div>
+                  </div>
+                </div>
+                <div class="grid-3">
+                  <div v-for="n in 6" :key="n" class="card skeleton-card" style="padding:16px;text-align:center">
+                    <div class="skeleton-text" style="width:50px;margin:0 auto"></div>
+                    <div class="skeleton-text" style="width:120px;height:12px;margin:6px auto"></div>
+                    <div class="skeleton-text" style="width:80px;height:12px;margin:4px auto"></div>
+                    <div class="skeleton-value" style="height:18px;width:60px;margin:8px auto 0"></div>
+                    <div class="skeleton-text" style="width:70px;height:12px;margin:4px auto"></div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
             <div class="section">
               <div class="section-title">&#128269; Search Stocks</div>
               <div class="card" style="margin-bottom:20px;width:100%">
@@ -34,6 +56,8 @@
                 </div>
               </div>
             </div>
+            </template>
+            </template>
           </div>
           <div class="tab-pane" :class="{ active: currentTab === 'detail' }">
             <div class="section">

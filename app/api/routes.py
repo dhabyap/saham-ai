@@ -302,16 +302,41 @@ def shareholder_concentration(
             total_stocks = conn.execute(
                 "SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE data_period=?", (period,)
             ).fetchone()[0]
+            rows = list(rows)
         return {
             "status": "ok", "period": period,
-            "dominant_stocks": dominant,
+            "dominant_stocks": rows,
             "summary": {
-                "total_dominant": len(dominant),
-                "dominant_pct": round(len(dominant) / total_stocks * 100, 1) if total_stocks else 0
+                "total_dominant": len(rows),
+                "dominant_pct": round(len(rows) / total_stocks * 100, 1) if total_stocks else 0
             }
         }
     except Exception as e:
         logger.error("concentration error: %s", e)
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
+
+@router.get("/shareholders/scatter-data")
+def shareholder_scatter(period: str = Query("FEB2026")):
+    """All stocks' shareholder aggregation for scatter plot."""
+    from app.services.shareholder_service import get_db
+    try:
+        period = period.strip().upper()
+        if period == '2026-02': period = 'FEB2026'
+        with get_db() as conn:
+            rows = conn.execute("""
+                SELECT stock_code,
+                       ROUND(MAX(share_percent), 2) as top_pct,
+                       ROUND(SUM(share_percent), 2) as total_pct,
+                       COUNT(*) as holders
+                FROM shareholders WHERE data_period=?
+                GROUP BY stock_code
+                ORDER BY stock_code
+            """, (period,))
+            data = list(rows)
+        return {"status": "ok", "period": period, "total": len(data), "data": data}
+    except Exception as e:
+        logger.error("scatter error: %s", e)
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
 

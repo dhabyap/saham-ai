@@ -188,6 +188,7 @@ var shTopStocks = ref([]);
 var shConcentration = ref([]);
 var shDetailStats = ref(null);
 var shDistLoading = ref(false);
+var shScatterData = ref([]);
 var shStockDetailData = ref(null);
 var shStockDetailLoading = ref(false);
 var shHolderPortfolio = ref(null);

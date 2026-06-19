@@ -328,6 +328,7 @@ async function loadShareholdersEnhanced() {
       fetch('/api/shareholders/top-stocks?period=' + period + '&limit=10').then(function(r) { return r.json(); }),
       fetch('/api/shareholders/stats/detail?period=' + period).then(function(r) { return r.json(); }),
       fetch('/api/shareholders/concentration?period=' + period + '&threshold=5').then(function(r) { return r.json(); }),
+      fetch('/api/shareholders/scatter-data?period=' + period).then(function(r) { return r.json(); }),
     ]);
 
     if (results[0].status === 'fulfilled' && results[0].value && results[0].value.status === 'ok')
@@ -341,6 +342,9 @@ async function loadShareholdersEnhanced() {
 
     if (results[3].status === 'fulfilled' && results[3].value && results[3].value.status === 'ok')
       shConcentration.value = results[3].value.dominant_stocks || [];
+
+    if (results[4].status === 'fulfilled' && results[4].value && results[4].value.status === 'ok')
+      shScatterData.value = results[4].value.data || [];
 
     window.Vue.nextTick(function() { renderShareholderChartsEnhanced(); });
   } catch(e) {

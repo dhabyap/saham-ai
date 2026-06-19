@@ -254,6 +254,7 @@ function renderShareholderChartsEnhanced() {
       });
     }
   }
+  renderScatterChart();
 }
 
 var shStockDetailChartInstance = null;
@@ -332,6 +333,86 @@ function renderHolderPortfolioChart() {
       scales: {
         x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: textColor, callback: function(v) { return v + '%'; } } },
         y: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+var shScatterChartInstance = null;
+
+function renderScatterChart() {
+  var data = shScatterData.value;
+  if (!data || !data.length) return;
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var textColor = isDark ? '#aaa' : '#666';
+  var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+
+  var canvas = document.getElementById('bubbleChart');
+  if (!canvas) return;
+  if (shScatterChartInstance) { shScatterChartInstance.destroy(); shScatterChartInstance = null; }
+
+  var ctx = canvas.getContext('2d');
+
+  function makeDataset(label, stocks, color) {
+    return {
+      label: label + ' (' + stocks.length + ')',
+      data: stocks.map(function(s) { return { x: s.holders, y: s.top_pct, stock: s.stock_code, total: s.total_pct }; }),
+      backgroundColor: color,
+      borderColor: color.replace('0.6','1').replace('0.5','1'),
+      borderWidth: 0.3,
+      pointRadius: 5,
+      pointHoverRadius: 8,
+    };
+  }
+
+  var highConc = [], medConc = [], lowConc = [];
+  data.forEach(function(s) {
+    if (s.top_pct >= 50) highConc.push(s);
+    else if (s.top_pct >= 20) medConc.push(s);
+    else lowConc.push(s);
+  });
+
+  shScatterChartInstance = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        makeDataset('≥50% Sangat Terkonsentrasi', highConc, 'rgba(239,68,68,0.7)'),
+        makeDataset('20-50% Terkonsentrasi', medConc, 'rgba(245,158,11,0.7)'),
+        makeDataset('<20% Tersebar', lowConc, 'rgba(59,130,246,0.6)'),
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 0 },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { color: textColor, font: { size: 10 }, boxWidth: 14, padding: 10, usePointStyle: true }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              var d = ctx.raw;
+              return d.stock + ': top ' + d.y.toFixed(1) + '%, ' + d.x + ' holders, ' + d.total.toFixed(1) + '% total';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'logarithmic',
+          title: { display: true, text: 'Jumlah Pemegang Saham (log)', color: textColor },
+          min: 0.5,
+          grid: { color: gridColor },
+          ticks: { color: textColor, callback: function(v) { var n = Math.round(v); return n > 0 ? n : ''; } }
+        },
+        y: {
+          title: { display: true, text: 'Kepemilikan Terbesar (%)', color: textColor },
+          min: 0, max: 100,
+          grid: { color: gridColor },
+          ticks: { color: textColor, callback: function(v) { return v + '%'; } }
+        }
       }
     }
   });

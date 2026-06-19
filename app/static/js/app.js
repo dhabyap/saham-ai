@@ -112,6 +112,8 @@ createApp({
       shareholdersError: shareholdersError,
       topShareholders: topShareholders, filteredTopShareholders: filteredTopShareholders,
       shareholderSearchQuery: shareholderSearchQuery,
+      selectedPeriod: selectedPeriod,
+      loadShareholdersByPeriod: loadShareholdersByPeriod,
       shStockQuery: shStockQuery, shStockResult: shStockResult,
       shStockLoading: shStockLoading, shStockError: shStockError,
       shStockSearched: shStockSearched, searchShareholdersByStock: searchShareholdersByStock,

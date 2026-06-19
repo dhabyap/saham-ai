@@ -181,6 +181,18 @@ var shHolderLoading = ref(false);
 var shHolderError = ref('');
 var shHolderSearched = ref(false);
 var popularHolders = ref([]);
+var selectedPeriod = ref(''); // selected period for shareholders
+// ── Shareholders Enhanced ──
+var shDistribution = ref(null);
+var shTopStocks = ref([]);
+var shConcentration = ref([]);
+var shDetailStats = ref(null);
+var shDistLoading = ref(false);
+var shStockDetailData = ref(null);
+var shStockDetailLoading = ref(false);
+var shHolderPortfolio = ref(null);
+var shHolderPortfolioLoading = ref(false);
+
 var shHolderActiveName = computed(function() {
   if (shHolderResult.value.length && shHolderSearched.value) return shHolderQuery.value.toUpperCase();
   return '';

@@ -1,111 +1,171 @@
 <template v-if="currentView === 'shareholders'">
-<div class="tabs">
-<button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
-<button class="tab-btn" :class="{ active: currentTab === 'top' }" @click="currentTab = 'top'">Top Holders</button>
-</div>
-<div>
-          <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
-            <template v-if="shareholdersLoading">
-              <div class="section">
-                <div class="section-title">Memuat data shareholder...</div>
-                <div class="stats-row">
-                  <div v-for="n in 3" :key="n" class="card text-center p-3">
-                    <div class="skeleton-value" style="height:28px"></div>
-                    <div class="skeleton-text" style="width:100px;margin:4px auto 0"></div>
-                  </div>
-                </div>
-                <div class="card p-4 mt-4 skeleton-card">
-                  <div class="skeleton-text" style="width:180px;height:14px;margin-bottom:8px"></div>
-                  <div class="skeleton-text" style="width:240px;height:12px;margin-bottom:4px"></div>
-                  <div class="skeleton-text" style="width:200px;height:12px"></div>
-                </div>
-              </div>
-            </template>
-            <template v-else-if="shareholdersError">
-              <div class="section">
-                <div class="card p-4" style="border-left:4px solid var(--danger);color:var(--danger)">
-                  <div class="font-semibold mb-2">Data shareholder gagal dimuat</div>
-                  <p class="text-sm">{{ shareholdersError }}</p>
-                </div>
-              </div>
-            </template>
-            <template v-else-if="!shareholdersStats.total_records">
-              <div class="section">
-                <div class="card p-4" style="text-align:center">
-                  <div class="font-semibold mb-2">Belum ada data shareholder</div>
-                  <p class="text-sm text-muted">Data kepemilikan belum tersedia atau belum diimport untuk periode ini.</p>
-                </div>
-              </div>
-            </template>
-            <template v-else>
-              <div class="section">
-                <div class="section-title">Ringkasan Kepemilikan</div>
-                <div class="stats-row">
-                  <div class="card text-center p-3">
-                    <div class="font-bold text-accent" style="font-size:24px">{{ shareholdersStats.total_records }}</div>
-                    <div class="text-xs text-muted text-uppercase">Total Data</div>
-                  </div>
-                  <div class="card text-center p-3">
-                    <div class="font-bold text-secondary" style="font-size:24px">{{ shareholdersStats.total_stocks }}</div>
-                    <div class="text-xs text-muted text-uppercase">Emiten Terpantau</div>
-                  </div>
-                  <div class="card text-center p-3">
-                    <div class="font-bold text-warning" style="font-size:24px">{{ shareholdersStats.total_holders }}</div>
-                    <div class="text-xs text-muted text-uppercase">Pemegang Saham</div>
-                  </div>
-                </div>
-                <div class="card p-4 mt-4">
-                  <div class="font-semibold mb-2">Info Terkini</div>
-                  <p class="text-sm text-muted">Data periode: <strong>{{ shareholdersLatestPeriod }}</strong></p>
-                  <p class="text-sm text-muted">Pemegang saham dominan: <strong>{{ shareholdersStats.top_holder || '-' }}</strong></p>
-                </div>
-              </div>
-            </template>
+  <div class="tabs">
+    <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
+    <button class="tab-btn" :class="{ active: currentTab === 'top' }" @click="currentTab = 'top'">Top Holders</button>
+  </div>
+  
+  <!-- Period Selector -->
+  <div v-if="shareholdersPeriods && shareholdersPeriods.length > 1" class="period-selector">
+    <label for="period-select" class="period-label">Periode:</label>
+    <select id="period-select" v-model="selectedPeriod" @change="loadShareholdersByPeriod" class="period-dropdown">
+      <option v-for="p in shareholdersPeriods" :key="p" :value="p">{{ p }}</option>
+    </select>
+  </div>
+  <div>
+    <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+      <template v-if="shareholdersLoading">
+        <div class="section">
+          <div class="section-title">Memuat data shareholder...</div>
+          <div class="stats-row">
+            <div v-for="n in 3" :key="n" class="card text-center p-3">
+              <div class="skeleton-value" style="height: 28px"></div>
+              <div class="skeleton-text" style="width: 100px; margin: 4px auto 0"></div>
+            </div>
           </div>
-
-          <div class="tab-pane" :class="{ active: currentTab === 'top' }">
-            <template v-if="shareholdersLoading">
-              <div class="section">
-                <div class="section-title">Memuat top holders...</div>
-                <div class="card p-4" style="padding:0;overflow:hidden">
-                  <div v-for="n in 8" :key="n" class="skeleton-table-row" style="grid-template-columns:1fr 80px;margin-bottom:4px;padding:8px 12px">
-                    <div></div><div></div>
-                  </div>
-                </div>
-              </div>
-            </template>
-            <template v-else-if="shareholdersError">
-              <div class="section">
-                <div class="card p-4" style="border-left:4px solid var(--danger);color:var(--danger)">
-                  <div class="font-semibold mb-2">Top holders gagal dimuat</div>
-                  <p class="text-sm">{{ shareholdersError }}</p>
-                </div>
-              </div>
-            </template>
-            <template v-else-if="!topShareholders.length">
-              <div class="section">
-                <div class="card p-4" style="text-align:center">
-                  <div class="font-semibold mb-2">Belum ada top holders</div>
-                  <p class="text-sm text-muted">Tidak ada data top holders untuk periode yang sedang dipilih.</p>
-                </div>
-              </div>
-            </template>
-            <template v-else>
-              <div class="section">
-                <div class="section-title">Top Shareholders</div>
-                <div class="card card-table">
-                  <table class="table-compact">
-                    <thead><tr><th>Name</th><th>Total %</th></tr></thead>
-                    <tbody>
-                      <tr v-for="s in topShareholders" :key="s.shareholder_name">
-                        <td>{{ s.shareholder_name }}</td>
-                        <td>{{ (s.total_pct || 0).toFixed(2) }}%</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </template>
+          <div class="card p-4 mt-4 skeleton-card">
+            <div class="skeleton-text" style="width: 180px; height: 14px; margin-bottom: 8px"></div>
+            <div class="skeleton-text" style="width: 240px; height: 12px; margin-bottom: 4px"></div>
+            <div class="skeleton-text" style="width: 200px; height: 12px"></div>
           </div>
         </div>
+      </template>
+      <template v-else-if="shareholdersError">
+        <div class="section">
+          <div class="card p-4" style="border-left: 4px solid var(--danger); color: var(--danger)">
+            <div class="font-semibold mb-2">Data shareholder gagal dimuat</div>
+            <p class="text-sm">{{ shareholdersError }}</p>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="!shareholdersStats.total_records">
+        <div class="section">
+          <div class="card p-4" style="text-align: center">
+            <div class="font-semibold mb-2">Belum ada data shareholder</div>
+            <p class="text-sm text-muted">Data kepemilikan belum tersedia atau belum diimport untuk periode ini.</p>
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <div class="section">
+          <div class="section-title">Ringkasan Kepemilikan</div>
+          <div class="stats-row">
+            <div class="card text-center p-3">
+              <div class="font-bold text-accent" style="font-size: 24px">{{ shareholdersStats.total_records }}</div>
+              <div class="text-xs text-muted text-uppercase">Total Data</div>
+            </div>
+            <div class="card text-center p-3">
+              <div class="font-bold text-secondary" style="font-size: 24px">{{ shareholdersStats.total_stocks }}</div>
+              <div class="text-xs text-muted text-uppercase">Emiten Terpantau</div>
+            </div>
+            <div class="card text-center p-3">
+              <div class="font-bold text-warning" style="font-size: 24px">{{ shareholdersStats.total_holders }}</div>
+              <div class="text-xs text-muted text-uppercase">Pemegang Saham</div>
+            </div>
+          </div>
+          <div class="card p-4 mt-4">
+            <div class="font-semibold mb-2">Info Terkini</div>
+            <p class="text-sm text-muted">Data periode: <strong>{{ shareholdersLatestPeriod }}</strong></p>
+            <p class="text-sm text-muted">Pemegang saham dominan: <strong>{{ shareholdersStats.top_holder || '-' }}</strong></p>
+          </div>
+
+          <!-- Chart: Distribusi Kepemilikan -->
+          <div class="card p-4 mt-4">
+            <div class="font-semibold mb-2">Distribusi Kepemilikan</div>
+            <div class="chart-container" style="max-height: 280px;">
+              <canvas id="shDistChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart: Top 10 Emiten -->
+          <div class="card p-4 mt-4">
+            <div class="font-semibold mb-2">Top 10 Emiten dengan Holders Terbanyak</div>
+            <div class="chart-container" style="max-height: 320px;">
+              <canvas id="shTopStockChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart: Top 10 Holders -->
+          <div class="card p-4 mt-4">
+            <div class="font-semibold mb-2">Top 10 Pemegang Saham</div>
+            <div class="chart-container" style="max-height: 320px;">
+              <canvas id="shTopHolderChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Insight Narrative -->
+          <div v-if="shDetailStats" class="card p-4 mt-4 insight-card">
+            <div class="font-semibold mb-2">📊 Ringkasan Intelijen</div>
+            <div class="text-sm">
+              <p class="mb-2">
+                <strong>Total {{ shDetailStats.total_records }}</strong> catatan kepemilikan saham, 
+                tersebar di <strong>{{ shDetailStats.total_stocks }}</strong> emiten, 
+                dimiliki oleh <strong>{{ shDetailStats.total_holders }}</strong> pemegang saham berbeda.
+              </p>
+              <p class="mb-2">
+                <strong>{{ shDetailStats.top_holder }}</strong> adalah pemegang saham terbesar 
+                dengan total kepemilikan <strong>{{ shDetailStats.top_holder_pct.toFixed(2) }}%</strong> 
+                di berbagai emiten.
+              </p>
+              <p>
+                <strong>{{ shDetailStats.most_held_stock }}</strong> adalah emiten dengan jumlah 
+                pemegang saham terbanyak (<strong>{{ shDetailStats.most_held_count }}</strong> holders), 
+                menunjukkan minat investor yang tinggi terhadap saham ini.
+              </p>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <div class="tab-pane" :class="{ active: currentTab === 'top' }">
+      <template v-if="shareholdersLoading">
+        <div class="section">
+          <div class="section-title">Memuat top holders...</div>
+          <div class="card p-4" style="padding: 0; overflow: hidden">
+            <div v-for="n in 8" :key="n" class="skeleton-table-row" style="grid-template-columns: 1fr 80px; margin-bottom: 4px; padding: 8px 12px">
+              <div></div>
+              <div></div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="shareholdersError">
+        <div class="section">
+          <div class="card p-4" style="border-left: 4px solid var(--danger); color: var(--danger)">
+            <div class="font-semibold mb-2">Top holders gagal dimuat</div>
+            <p class="text-sm">{{ shareholdersError }}</p>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="!topShareholders.length">
+        <div class="section">
+          <div class="card p-4" style="text-align: center">
+            <div class="font-semibold mb-2">Belum ada top holders</div>
+            <p class="text-sm text-muted">Tidak ada data top holders untuk periode yang sedang dipilih.</p>
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <div class="section">
+          <div class="section-title">Top Shareholders</div>
+          <div class="card card-table">
+            <table class="table-compact">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Total %</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="s in topShareholders" :key="s.shareholder_name">
+                  <td>{{ s.shareholder_name }}</td>
+                  <td>{{ (s.total_pct || 0).toFixed(2) }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
 </template>

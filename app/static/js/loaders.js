@@ -283,6 +283,7 @@ async function loadShareholders() {
     if (data.status === 'ok') {
       shareholdersPeriods.value = data.periods || [];
       shareholdersLatestPeriod.value = data.latest || '';
+      selectedPeriod.value = data.latest || '';
       shareholdersStats.value = data.stats || { total_records: 0, total_stocks: 0, total_holders: 0, top_holder: '-', period: 'all' };
       if (data.latest) {
         var topData = await cachedFetch('/api/shareholders/top?period=' + data.latest, 3600000);
@@ -310,12 +311,75 @@ async function loadShareholders() {
   } finally {
     shareholdersLoading.value = false;
   }
-  var chartRetries = 0;
-  var tryChart = function() {
-    if (document.getElementById('shBarChart')) { renderShareholderCharts(); }
-    else if (chartRetries < 10) { chartRetries++; setTimeout(tryChart, 500); }
-  };
-  tryChart();
+  // Load enhanced chart data after basic data succeeds
+  if (shareholdersStats.value.total_records > 0 && shareholdersLatestPeriod.value) {
+    loadShareholdersEnhanced();
+  }
+}
+
+async function loadShareholdersEnhanced() {
+  shDistLoading.value = true;
+  try {
+    var period = shareholdersLatestPeriod.value;
+    if (!period) { shDistLoading.value = false; return; }
+
+    var results = await Promise.allSettled([
+      fetch('/api/shareholders/distribution?period=' + period).then(function(r) { return r.json(); }),
+      fetch('/api/shareholders/top-stocks?period=' + period + '&limit=10').then(function(r) { return r.json(); }),
+      fetch('/api/shareholders/stats/detail?period=' + period).then(function(r) { return r.json(); }),
+      fetch('/api/shareholders/concentration?period=' + period + '&threshold=5').then(function(r) { return r.json(); }),
+    ]);
+
+    if (results[0].status === 'fulfilled' && results[0].value && results[0].value.status === 'ok')
+      shDistribution.value = results[0].value.distribution;
+
+    if (results[1].status === 'fulfilled' && results[1].value && results[1].value.status === 'ok')
+      shTopStocks.value = results[1].value.data || [];
+
+    if (results[2].status === 'fulfilled' && results[2].value && results[2].value.status === 'ok')
+      shDetailStats.value = results[2].value.stats;
+
+    if (results[3].status === 'fulfilled' && results[3].value && results[3].value.status === 'ok')
+      shConcentration.value = results[3].value.dominant_stocks || [];
+
+    window.Vue.nextTick(function() { renderShareholderChartsEnhanced(); });
+  } catch(e) {
+    console.error('Enhanced shareholders load failed:', e);
+  } finally {
+    shDistLoading.value = false;
+  }
+}
+
+async function loadShareholdersByPeriod() {
+  var period = selectedPeriod.value;
+  if (!period) return;
+  
+  shareholdersLatestPeriod.value = period;
+  shareholdersLoading.value = true;
+  shareholdersError.value = '';
+  
+  try {
+    var topData = await fetch('/api/shareholders/top?period=' + period).then(function(r) { return r.json(); });
+    if (topData.status === 'ok') {
+      topShareholders.value = topData.data || [];
+      if (topShareholders.value.length) {
+        shareholdersStats.value = Object.assign({}, shareholdersStats.value, { top_holder: topShareholders.value[0].shareholder_name });
+      }
+    }
+    
+    var stocksData = await fetch('/api/shareholders/stocks?period=' + period).then(function(r) { return r.json(); });
+    if (stocksData.status === 'ok') shStockList.value = stocksData.data || [];
+    
+    var popData = await fetch('/api/shareholders/top?period=' + period + '&min_pct=0.1&limit=30').then(function(r) { return r.json(); });
+    if (popData.status === 'ok') popularHolders.value = popData.data || [];
+    
+    loadShareholdersEnhanced();
+  } catch(e) {
+    console.error('Period reload failed:', e);
+    shareholdersError.value = 'Gagal memuat data untuk periode ' + period;
+  } finally {
+    shareholdersLoading.value = false;
+  }
 }
 
 // ── Watchlist ──

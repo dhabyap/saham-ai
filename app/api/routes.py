@@ -183,6 +183,134 @@ def shareholder_search(name: str, period: Optional[str] = None):
     }
 
 
+@router.get("/shareholders/distribution")
+def shareholder_distribution(period: str = Query(...)):
+    """Distribution of holdings by category (for donut chart)."""
+    try:
+        from app.services.shareholder_service import get_db
+        with get_db() as conn:
+            cur = conn.execute("""
+                SELECT
+                    SUM(CASE WHEN share_percent >= 5 THEN 1 ELSE 0 END) as large,
+                    SUM(CASE WHEN share_percent >= 1 AND share_percent < 5 THEN 1 ELSE 0 END) as medium,
+                    SUM(CASE WHEN share_percent >= 0.5 AND share_percent < 1 THEN 1 ELSE 0 END) as small,
+                    SUM(CASE WHEN share_percent < 0.5 THEN 1 ELSE 0 END) as tiny,
+                    COUNT(*) as total
+                FROM shareholders WHERE data_period = ?
+            """, (period,))
+            row = dict(cur.fetchone())
+        return {
+            "status": "ok", "period": period, "distribution": row,
+            "labels": {
+                "large": "\u22655% (Pengendali)", "medium": "1-5% (Signifikan)",
+                "small": "0.5-1% (Minoritas)", "tiny": "<0.5% (Pemodal Kecil)"
+            }
+        }
+    except Exception as e:
+        logger.error("distribution error: %s", e)
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
+
+@router.get("/shareholders/top-stocks")
+def shareholder_top_stocks(
+    period: str = Query(...),
+    limit: int = Query(10, ge=1, le=50),
+):
+    """Stocks with most shareholders (for bar chart)."""
+    try:
+        from app.services.shareholder_service import get_db
+        with get_db() as conn:
+            rows = conn.execute("""
+                SELECT stock_code, COUNT(*) as holder_count,
+                       ROUND(SUM(share_percent), 2) as total_pct,
+                       ROUND(AVG(share_percent), 2) as avg_pct
+                FROM shareholders WHERE data_period = ?
+                GROUP BY stock_code
+                ORDER BY holder_count DESC
+                LIMIT ?
+            """, (period, limit))
+            data = [dict(r) for r in rows]
+        return {"status": "ok", "period": period, "data": data}
+    except Exception as e:
+        logger.error("top-stocks error: %s", e)
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
+
+@router.get("/shareholders/stats/detail")
+def shareholder_stats_detail(period: str = Query(...)):
+    """Detailed aggregate stats for a period."""
+    try:
+        from app.services.shareholder_service import get_db
+        with get_db() as conn:
+            total = conn.execute("SELECT COUNT(*) FROM shareholders WHERE data_period=?", (period,)).fetchone()[0]
+            stocks = conn.execute("SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE data_period=?", (period,)).fetchone()[0]
+            holders = conn.execute("SELECT COUNT(DISTINCT shareholder_name) FROM shareholders WHERE data_period=?", (period,)).fetchone()[0]
+            top = conn.execute("""
+                SELECT shareholder_name, COUNT(*) as stock_count, ROUND(SUM(share_percent), 2) as total_pct
+                FROM shareholders WHERE data_period=?
+                GROUP BY shareholder_name ORDER BY total_pct DESC LIMIT 1
+            """, (period,)).fetchone()
+            mhs = conn.execute("""
+                SELECT stock_code, COUNT(*) as cnt FROM shareholders
+                WHERE data_period=? GROUP BY stock_code ORDER BY cnt DESC LIMIT 1
+            """, (period,)).fetchone()
+            avg_pct = conn.execute(
+                "SELECT ROUND(AVG(share_percent), 2) FROM shareholders WHERE data_period=?", (period,)
+            ).fetchone()[0] or 0
+        avg_holders = round(stocks / holders, 1) if holders else 0
+        return {
+            "status": "ok", "period": period,
+            "stats": {
+                "total_records": total, "total_stocks": stocks, "total_holders": holders,
+                "top_holder": top[0] if top else "-",
+                "top_holder_stocks": top[1] if top else 0,
+                "top_holder_pct": top[2] if top else 0,
+                "most_held_stock": mhs[0] if mhs else "-",
+                "most_held_count": mhs[1] if mhs else 0,
+                "avg_holders_per_stock": avg_holders,
+                "avg_pct_per_holder": avg_pct,
+            }
+        }
+    except Exception as e:
+        logger.error("stats/detail error: %s", e)
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
+
+@router.get("/shareholders/concentration")
+def shareholder_concentration(
+    period: str = Query(...),
+    threshold: float = Query(5.0, ge=0.1, le=100),
+):
+    """Stock concentration — stocks with dominant holders."""
+    try:
+        from app.services.shareholder_service import get_db
+        with get_db() as conn:
+            rows = conn.execute("""
+                SELECT stock_code, ROUND(MAX(share_percent), 2) as top_holder_pct,
+                       ROUND(SUM(share_percent), 2) as total_owned_pct,
+                       COUNT(*) as holder_count
+                FROM shareholders WHERE data_period=?
+                GROUP BY stock_code
+                HAVING top_holder_pct >= ?
+                ORDER BY top_holder_pct DESC LIMIT 10
+            """, (period, threshold))
+            dominant = [dict(r) for r in rows]
+            total_stocks = conn.execute(
+                "SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE data_period=?", (period,)
+            ).fetchone()[0]
+        return {
+            "status": "ok", "period": period,
+            "dominant_stocks": dominant,
+            "summary": {
+                "total_dominant": len(dominant),
+                "dominant_pct": round(len(dominant) / total_stocks * 100, 1) if total_stocks else 0
+            }
+        }
+    except Exception as e:
+        logger.error("concentration error: %s", e)
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
+
 @router.get("/shareholders/{stock_code}")
 def shareholder_by_stock(stock_code: str, period: Optional[str] = None):
     """Get shareholder >1% data for a stock."""

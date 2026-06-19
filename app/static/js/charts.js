@@ -3,8 +3,9 @@
 
 var ihsgChartInstance = null;
 var foreignChartInstance = null;
-var shBarChartInstance = null;
-var shDoughnutInstance = null;
+var shDistChartInstance = null;
+var shTopStockChartInstance = null;
+var shTopHolderChartInstance = null;
 
 function renderMrCharts(full) {
   var sorted = full.slice().reverse();
@@ -131,4 +132,126 @@ function renderShareholderCharts() {
     data: { labels: ['1-5 saham', '6-10 saham', '11-20 saham', '21-50 saham', '50+ saham'], datasets: [{ data: buckets, backgroundColor: ['#8B5CF6','#3B82F6','#F59E0B','#10B981','#EF4444'], borderWidth: 0 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 10 }, boxWidth: 10, padding: 8 } } } }
   });
+}
+
+function renderShareholderChartsEnhanced() {
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var textColor = isDark ? '#aaa' : '#666';
+  var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+  var accent = '#7C3AED';
+  var accentLight = 'rgba(124,58,237,0.6)';
+
+  // 1. DONUT — Distribusi Kepemilikan
+  var dist = shDistribution.value;
+  if (dist && dist.total) {
+    var ctx1 = document.getElementById('shDistChart');
+    if (ctx1) {
+      if (shDistChartInstance) { shDistChartInstance.destroy(); shDistChartInstance = null; }
+      shDistChartInstance = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+          labels: ['≥5% (Pengendali)', '1-5% (Signifikan)', '0.5-1% (Minoritas)', '<0.5% (Pemodal Kecil)'],
+          datasets: [{
+            data: [dist.large, dist.medium, dist.small, dist.tiny],
+            backgroundColor: ['#EF4444', '#F59E0B', '#3B82F6', '#8B5CF6'],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '55%',
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textColor, font: { size: 10 }, boxWidth: 12, padding: 10 } },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  var total = dist.total;
+                  var pct = ((ctx.raw / total) * 100).toFixed(1);
+                  return ctx.label + ': ' + ctx.raw + ' data (' + pct + '%)';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // 2. BAR — Top 10 Emiten
+  var topStocks = shTopStocks.value;
+  if (topStocks && topStocks.length) {
+    var ctx2 = document.getElementById('shTopStockChart');
+    if (ctx2) {
+      if (shTopStockChartInstance) { shTopStockChartInstance.destroy(); shTopStockChartInstance = null; }
+      shTopStockChartInstance = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: topStocks.map(function(s) { return s.stock_code; }),
+          datasets: [{
+            label: 'Jumlah Holders',
+            data: topStocks.map(function(s) { return s.holder_count; }),
+            backgroundColor: accentLight,
+            borderColor: accent,
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 } },
+            x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } }
+          }
+        }
+      });
+    }
+  }
+
+  // 3. BAR HORIZONTAL — Top 10 Holders
+  var topHolders = topShareholders.value;
+  if (topHolders && topHolders.length) {
+    var ctx3 = document.getElementById('shTopHolderChart');
+    if (ctx3) {
+      if (shTopHolderChartInstance) { shTopHolderChartInstance.destroy(); shTopHolderChartInstance = null; }
+      var holders10 = topHolders.slice().sort(function(a,b) { return (b.total_pct||0) - (a.total_pct||0); }).slice(0, 10);
+      shTopHolderChartInstance = new Chart(ctx3, {
+        type: 'bar',
+        data: {
+          labels: holders10.map(function(h) {
+            var n = h.shareholder_name || '';
+            return n.length > 30 ? n.substring(0,28)+'...' : n;
+          }),
+          datasets: [{
+            label: 'Total Kepemilikan %',
+            data: holders10.map(function(h) { return parseFloat((h.total_pct||0).toFixed(2)); }),
+            backgroundColor: holders10.map(function(h) {
+              return (h.stock_count||0) > 20 ? 'rgba(239,68,68,0.7)' : 'rgba(124,58,237,0.7)';
+            }),
+            borderColor: holders10.map(function(h) {
+              return (h.stock_count||0) > 20 ? '#EF4444' : '#7C3AED';
+            }),
+            borderWidth: 1, borderRadius: 4,
+          }]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: function(ctx) {
+                  var item = holders10[ctx.dataIndex];
+                  return 'Saham dipegang: ' + (item.stock_count||0) + ' emiten';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: gridColor }, ticks: { color: textColor, callback: function(v) { return v + '%'; } } },
+            y: { grid: { display: false }, ticks: { color: textColor, font: { size: 9 } } }
+          }
+        }
+      });
+    }
+  }
 }

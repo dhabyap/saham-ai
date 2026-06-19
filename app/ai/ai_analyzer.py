@@ -47,7 +47,7 @@ class AIAnalyzer:
         # 2) DB cache (same day)
         db_cached = ai_crud.get_analysis_cache(cache_key, today)
         if db_cached:
-            normalized = self._normalize_result(db_cached, data, db_cached.get("ai_provider", "9router"))
+            normalized = self._normalize_result(db_cached, data, db_cached.get("ai_provider", ""))
             normalized["source"] = "database"
             _analysis_cache[cache_key] = {"date": today, "result": normalized}
             return normalized

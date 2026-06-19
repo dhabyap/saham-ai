@@ -135,6 +135,8 @@ function applyMarketData(data) {
   market.value.avgChange = (data.avg_change >= 0 ? '+' : '') + data.avg_change.toFixed(2) + '%';
   market.value.totalVolume = formatVolume(data.total_volume);
   market.value.volumeChange = '';
+  market.value.status = 'Open';
+  market.value.hours = '09:00 - 15:00 WIB';
 }
 
 function applyGainersData(data) {
@@ -500,7 +502,8 @@ async function loadMarketReports() {
     mrForeignStocks.value = buildMrStockTable('foreign_buy');
     mrLocalStocks.value = buildMrStockTable('local_buy');
     setTimeout(function() { renderMrCharts(full); }, 100);
-  } catch(e) { console.error('Market report load failed:', e); }
+    mrReportsLoading.value = false;
+  } catch(e) { console.error('Market report load failed:', e); mrReportsLoading.value = false; }
 }
 
 async function loadMrAnalysis() {

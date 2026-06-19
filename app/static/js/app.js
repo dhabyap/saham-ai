@@ -6,7 +6,7 @@ var _vue = Vue, createApp = _vue.createApp, onMounted = _vue.onMounted, watch = 
 var _viewChanging = false;
 
 function navigateFromHash() {
-  var hash = window.location.hash.replace('#', '');
+  var hash = window.location.hash.replace(/^#\/?/, '');
   if (!hash) return null;
   var parts = hash.split('/');
   var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'settings', 'marketreports'];
@@ -30,11 +30,7 @@ function getViewFromUrl() {
 function syncViewFromUrl() {
   var result = getViewFromUrl();
   if (result && result.view) {
-    currentView.value = result.view;
-    var firstTabs = { dashboard: 'overview', daytrading: 'signals', longterm: 'accumulation', analysis: 'search', shareholders: 'overview', settings: 'general', marketreports: 'overview' };
-    _viewChanging = true;
-    currentTab.value = result.tab || firstTabs[result.view] || 'overview';
-    if (result.view === 'marketreports') loadMarketReports();
+    switchView(result.view, result.tab);
   }
 }
 

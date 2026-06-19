@@ -141,25 +141,35 @@ def shareholder_top(
 @router.get("/shareholders/stocks")
 def shareholder_stocks(period: Optional[str] = None):
     """List stocks that have shareholder data."""
-    from app.services.shareholder_service import get_db
-    with get_db() as conn:
-        if period:
-            rows = conn.execute(
-                """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
-                   FROM shareholders
-                   WHERE data_period = ?
-                   GROUP BY stock_code
-                   ORDER BY stock_code ASC""",
-                (period,)
-            )
-        else:
-            rows = conn.execute(
-                """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
-                   FROM shareholders
-                   GROUP BY stock_code
-                   ORDER BY stock_code ASC"""
-            )
-    return {"status": "ok", "period": period or "all", "data": [dict(r) for r in rows]}
+    try:
+        from app.services.shareholder_service import get_db
+        with get_db() as conn:
+            if period:
+                rows = conn.execute(
+                    """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
+                       FROM shareholders
+                       WHERE data_period = ?
+                       GROUP BY stock_code
+                       ORDER BY stock_code ASC""",
+                    (period,)
+                )
+            else:
+                rows = conn.execute(
+                    """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
+                       FROM shareholders
+                       GROUP BY stock_code
+                       ORDER BY stock_code ASC"""
+                )
+            result = [dict(r) for r in rows]
+            return {"status": "ok", "period": period or "all", "data": result}
+    except Exception as e:
+        import traceback
+        logger.error("shareholder_stocks error: %s\n%s", e, traceback.format_exc())
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": str(e)}
+        )
 
 
 @router.get("/shareholders/search/{name}")

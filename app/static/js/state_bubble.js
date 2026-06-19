@@ -31,7 +31,9 @@ function renderBubbleChart(data) {
 
 // Ensure data fetch triggers on page load
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/shareholders/concentration')
+    // Ambil period dari state global (atau default)
+    const period = document.getElementById('period-select')?.value || '2026-02'; 
+    fetch(`/api/shareholders/concentration?period=${period}`)
         .then(res => res.json())
         .then(data => renderBubbleChart(data))
         .catch(err => console.error("Error loading bubble data:", err));

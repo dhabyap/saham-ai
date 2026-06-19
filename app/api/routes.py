@@ -284,6 +284,10 @@ def shareholder_concentration(
     """Stock concentration — stocks with dominant holders."""
     try:
         from app.services.shareholder_service import get_db
+        # Data fix
+        period = period.strip().upper()
+        if period == '2026-02': period = 'FEB2026'
+
         with get_db() as conn:
             rows = conn.execute("""
                 SELECT stock_code, ROUND(MAX(share_percent), 2) as top_holder_pct,
@@ -294,7 +298,7 @@ def shareholder_concentration(
                 HAVING top_holder_pct >= ?
                 ORDER BY top_holder_pct DESC LIMIT 10
             """, (period, threshold))
-            dominant = [dict(r) for r in rows]
+
             total_stocks = conn.execute(
                 "SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE data_period=?", (period,)
             ).fetchone()[0]

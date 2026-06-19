@@ -1,22 +1,38 @@
 // state_bubble.js - Bubble Chart Logic
 function renderBubbleChart(data) {
+    if (!data || data.length === 0) {
+        console.warn("Bubble chart data is empty");
+        return;
+    }
     const ctx = document.getElementById('bubbleChart').getContext('2d');
+    
+    // Fallback data if API returns weird structure
+    const chartData = data.map(item => ({
+        x: item.market_cap || 0,
+        y: item.volatility || 0,
+        r: (item.holding_size || 1000000) / 100000 
+    }));
+
     new Chart(ctx, {
         type: 'bubble',
         data: {
             datasets: [{
                 label: 'Market Concentration',
-                data: data.map(item => ({
-                    x: item.market_cap,
-                    y: item.volatility,
-                    r: item.holding_size / 1000000 
-                })),
-                backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                data: chartData,
+                backgroundColor: 'rgba(147, 51, 234, 0.5)' // Matching purple theme
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: true } }
+            maintainAspectRatio: false
         }
     });
 }
+
+// Ensure data fetch triggers on page load
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/shareholders/concentration')
+        .then(res => res.json())
+        .then(data => renderBubbleChart(data))
+        .catch(err => console.error("Error loading bubble data:", err));
+});

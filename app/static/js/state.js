@@ -192,6 +192,8 @@ var shStockDetailData = ref(null);
 var shStockDetailLoading = ref(false);
 var shHolderPortfolio = ref(null);
 var shHolderPortfolioLoading = ref(false);
+var shBubbleData = ref([]);
+var shHolderSelected = ref(null);
 
 var shHolderActiveName = computed(function() {
   if (shHolderResult.value.length && shHolderSearched.value) return shHolderQuery.value.toUpperCase();

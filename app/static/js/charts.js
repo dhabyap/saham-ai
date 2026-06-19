@@ -255,3 +255,46 @@ function renderShareholderChartsEnhanced() {
     }
   }
 }
+
+var shStockDetailChartInstance = null;
+
+function renderStockDetailChart() {
+  var data = shStockResult.value;
+  if (!data || !data.length) return;
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var textColor = isDark ? '#aaa' : '#666';
+  var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+
+  var sorted = data.slice().sort(function(a,b) { return (b.share_percent||0) - (a.share_percent||0); });
+  var top15 = sorted.slice(0, 15);
+  var labels = top15.map(function(s) {
+    var n = s.shareholder_name || '';
+    return n.length > 25 ? n.substring(0,23)+'...' : n;
+  });
+  var vals = top15.map(function(s) { return parseFloat((s.share_percent||0).toFixed(2)); });
+
+  var ctx = document.getElementById('shStockDetailChart');
+  if (!ctx) return;
+  if (shStockDetailChartInstance) { shStockDetailChartInstance.destroy(); shStockDetailChartInstance = null; }
+  shStockDetailChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '% Kepemilikan',
+        data: vals,
+        backgroundColor: vals.map(function(v) { return v >= 5 ? 'rgba(239,68,68,0.7)' : 'rgba(124,58,237,0.6)'; }),
+        borderColor: vals.map(function(v) { return v >= 5 ? '#EF4444' : '#7C3AED'; }),
+        borderWidth: 1, borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: textColor, callback: function(v) { return v + '%'; } } },
+        y: { grid: { display: false }, ticks: { color: textColor, font: { size: 9 } } }
+      }
+    }
+  });
+}

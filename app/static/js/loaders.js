@@ -382,6 +382,44 @@ async function loadShareholdersByPeriod() {
   }
 }
 
+function totalSharePct(rows) {
+  return rows.reduce(function(sum, r) { return sum + (r.share_percent || 0); }, 0);
+}
+function dominantHolderPct(rows) {
+  if (!rows.length) return '-';
+  var top = rows.slice().sort(function(a,b) { return (b.share_percent||0) - (a.share_percent||0); })[0];
+  return top.share_percent.toFixed(1) + '%';
+}
+async function searchStockShareholders() {
+  var code = shStockQuery.value.trim().toUpperCase();
+  if (!code) return;
+  shStockLoading.value = true;
+  shStockError.value = '';
+  shStockSearched.value = true;
+  try {
+    var period = selectedPeriod.value || shareholdersLatestPeriod.value;
+    var res = await fetch('/api/shareholders/' + code + '?period=' + period);
+    var json = await res.json();
+    if (json.status === 'ok' && json.data && json.data.length) {
+      shStockResult.value = json.data;
+      shStockActiveLabel.value = code;
+      window.Vue.nextTick(function() { renderStockDetailChart(); });
+    } else {
+      shStockResult.value = [];
+      shStockError.value = 'Data tidak ditemukan untuk ' + code;
+    }
+  } catch(e) {
+    shStockError.value = 'Gagal memuat: ' + e.message;
+    shStockResult.value = [];
+  } finally {
+    shStockLoading.value = false;
+  }
+}
+function selectStockShareholder(code) {
+  shStockQuery.value = code;
+  searchStockShareholders();
+}
+
 // ── Watchlist ──
 async function loadWatchlistData() {
   try {

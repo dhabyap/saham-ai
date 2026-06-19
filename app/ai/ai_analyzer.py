@@ -158,6 +158,55 @@ Output JSON sesuai format sentiment_prompt.txt"""
             "confidence(0-100), reasoning, full_analysis."
         )
 
+    def _calculate_dynamic_confidence(self, data):
+        """Confidence based on technical indicators, not AI guess."""
+        score = 50
+
+        trend = data.get('trend', 'Sideways')
+        if trend in ('Bullish', 'Bearish'):
+            score += 10
+        elif trend in ('Bullish (short term)', 'Bearish (short term)'):
+            score += 5
+
+        rsi_status = data.get('rsi_status', 'Normal')
+        rsi = data.get('rsi')
+        if rsi_status == 'Overbought':
+            score += 8 if (rsi and rsi > 75) else 4
+        elif rsi_status == 'Oversold':
+            score += 8 if (rsi and rsi < 25) else 4
+
+        macd = data.get('macd_status', '')
+        if 'Golden Cross' in macd or 'Death Cross' in macd:
+            score += 15
+        elif macd in ('Bullish', 'Bearish'):
+            score += 7
+
+        if data.get('volume_spike'):
+            score += 10
+        elif data.get('volume_ratio', 1) > 2:
+            score += 7
+        elif data.get('volume_ratio', 1) > 1.5:
+            score += 4
+
+        change = abs(data.get('change_pct', 0))
+        if change > 5:
+            score += 10
+        elif change > 3:
+            score += 6
+        elif change > 1.5:
+            score += 3
+
+        if data.get('near_support') and 'Bullish' in trend:
+            score += 8
+        elif data.get('near_support'):
+            score += 2
+        if data.get('near_resistance') and 'Bearish' in trend:
+            score += 8
+        elif data.get('near_resistance'):
+            score += 2
+
+        return max(1, min(99, score))
+
     def _normalize_result(self, result, data, provider_name=""):
         def _to_python(val):
             """Convert numpy/pandas types to native Python for JSON serialization."""
@@ -181,7 +230,8 @@ Output JSON sesuai format sentiment_prompt.txt"""
                 confidence = int(float(raw_conf))
             except (ValueError, TypeError):
                 confidence = 50
-        confidence = max(1, min(99, confidence))
+        # Override with data-driven confidence 
+        confidence = self._calculate_dynamic_confidence(data)
 
         # Normalize recommendation
         rec = result.get("recommendation", "HOLD").upper()
@@ -238,7 +288,7 @@ Output JSON sesuai format sentiment_prompt.txt"""
             "support_level": _to_python(data.get("support")),
             "resistance_level": _to_python(data.get("resistance")),
             "recommendation": "HOLD",
-            "confidence": 50,
+            "confidence": self._calculate_dynamic_confidence(data),
             "reasoning": "AI analysis tidak tersedia. Menggunakan analisis rule-based.",
             "full_analysis": "AI analysis tidak tersedia karena API key belum dikonfigurasi.",
             "ai_provider": "",

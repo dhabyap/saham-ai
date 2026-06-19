@@ -49,11 +49,41 @@
       <template v-else>
         <div class="section">
 <div class="card p-4 mb-4">
-             <div class="font-semibold mb-2 text-accent">Distribusi Kepemilikan Semua Saham</div>
-             <div class="chart-container" style="position: relative; height:300px; width:100%">
-                 <canvas id="bubbleChart"></canvas>
+             <div class="font-semibold mb-2 text-accent">Daftar Semua Emiten &amp; Kepemilikan</div>
+             <div class="stock-table-wrapper" style="overflow-x:auto;height:400px;overflow-y:auto;min-height:0">
+               <table class="table-compact" style="width:100%;font-size:12px">
+                 <thead style="position:sticky;top:0;background:var(--bg-card)">
+                   <tr>
+                     <th @click="sortTable('stock_code')" style="cursor:pointer;padding:6px 8px">Kode ↕</th>
+                     <th @click="sortTable('holders')" style="cursor:pointer;padding:6px 8px">Pemegang ↕</th>
+                     <th @click="sortTable('top_pct')" style="cursor:pointer;padding:6px 8px">Top Holder % ↕</th>
+                     <th @click="sortTable('total_pct')" style="cursor:pointer;padding:6px 8px">Total % ↕</th>
+                     <th style="padding:6px 8px">Tingkat</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   <tr v-for="(s, i) in shSortedTable" :key="s.stock_code"
+                       :style="i%2===0 ? 'background:var(--bg-hover, rgba(0,0,0,0.02))' : ''">
+                     <td style="padding:4px 8px;font-weight:700">{{ s.stock_code }}</td>
+                     <td style="padding:4px 8px">{{ s.holders }}</td>
+                     <td style="padding:4px 8px;color:var(--text)">{{ (s.top_pct || 0).toFixed(2) }}%</td>
+                     <td style="padding:4px 8px">{{ (s.total_pct || 0).toFixed(2) }}%</td>
+                     <td style="padding:4px 8px">
+                       <span :style="{
+                         background: s.top_pct >= 50 ? 'rgba(239,68,68,0.2)' : s.top_pct >= 20 ? 'rgba(245,158,11,0.2)' : 'rgba(59,130,246,0.2)',
+                         color: s.top_pct >= 50 ? '#EF4444' : s.top_pct >= 20 ? '#F59E0B' : '#3B82F6',
+                         padding:'2px 8px', borderRadius:'10px', fontSize:'11px'
+                       }">
+                         {{ s.top_pct >= 50 ? 'Sangat Terkonsentrasi' : s.top_pct >= 20 ? 'Terkonsentrasi' : 'Tersebar' }}
+                       </span>
+                     </td>
+                   </tr>
+                 </tbody>
+               </table>
              </div>
-
+             <div class="text-xs text-muted mt-2" style="padding:4px 0">
+               {{ shScatterData.value ? shScatterData.value.length : 0 }} emiten — klik header kolom untuk urutkan
+             </div>
           </div>
           <!-- Row: 2 analysis charts side by side -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;margin-top:16px">

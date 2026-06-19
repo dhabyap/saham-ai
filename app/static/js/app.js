@@ -117,6 +117,7 @@ createApp({
       shDistribution: shDistribution, shTopStocks: shTopStocks,
       shConcentration: shConcentration, shDetailStats: shDetailStats,
       shDistLoading: shDistLoading, shScatterData: shScatterData,
+      shSortedTable: shSortedTable, sortTable: sortTable,
       shStockQuery: shStockQuery, shStockResult: shStockResult,
       shStockLoading: shStockLoading, shStockError: shStockError,
       shStockSearched: shStockSearched, searchShareholdersByStock: searchShareholdersByStock,

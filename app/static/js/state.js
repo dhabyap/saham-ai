@@ -189,6 +189,22 @@ var shConcentration = ref([]);
 var shDetailStats = ref(null);
 var shDistLoading = ref(false);
 var shScatterData = ref([]);
+var shSortKey = ref('holders');
+var shSortOrder = ref('desc');
+var shSortedTable = computed(function() {
+  var data = shScatterData.value || [];
+  var key = shSortKey.value;
+  var order = shSortOrder.value;
+  return data.slice().sort(function(a, b) {
+    var va = a[key], vb = b[key];
+    if (typeof va === 'string') return order === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    return order === 'asc' ? (va - vb) : (vb - va);
+  });
+});
+function sortTable(key) {
+  if (shSortKey.value === key) shSortOrder.value = shSortOrder.value === 'asc' ? 'desc' : 'asc';
+  else { shSortKey.value = key; shSortOrder.value = 'desc'; }
+}
 var shStockDetailData = ref(null);
 var shStockDetailLoading = ref(false);
 var shHolderPortfolio = ref(null);

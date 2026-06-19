@@ -258,6 +258,13 @@ function renderShareholderChartsEnhanced() {
   renderHistogramChart();
   renderConcBucketChart();
   renderTopConcentratedChart();
+  // Force re-render Top 10 Holders chart via nextTick chain
+  window.Vue.nextTick(function() {
+    var ch = document.getElementById('shTopHolderChart');
+    if (ch && shTopHolderChartInstance) {
+      shTopHolderChartInstance.resize();
+    }
+  });
 }
 
 var shStockDetailChartInstance = null;

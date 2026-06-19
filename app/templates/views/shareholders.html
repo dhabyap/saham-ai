@@ -55,6 +55,25 @@
              </div>
 
           </div>
+          <!-- Row: 2 analysis charts side by side -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;margin-top:16px">
+            <div class="card p-4">
+              <div class="font-semibold mb-2" style="font-size:13px">Distribusi Jumlah Pemegang Saham
+                <span class="help-tip" title="Berapa banyak emiten yang punya 1, 2, 3, ... pemegang saham.">ℹ️</span>
+              </div>
+              <div class="chart-container" style="height:220px">
+                <canvas id="shHistogramChart"></canvas>
+              </div>
+            </div>
+            <div class="card p-4">
+              <div class="font-semibold mb-2" style="font-size:13px">Tingkat Konsentrasi Kepemilikan
+                <span class="help-tip" title="Klasifikasi emiten berdasarkan seberapa besar kepemilikan pemegang saham terbesarnya.">ℹ️</span>
+              </div>
+              <div class="chart-container" style="height:220px">
+                <canvas id="shConcentrationBucketChart"></canvas>
+              </div>
+            </div>
+          </div>
           <div class="stats-row">
             <div class="card text-center p-3">
               <div class="font-bold text-accent" style="font-size: 24px">{{ shareholdersStats.total_records }}</div>
@@ -106,6 +125,16 @@
             </div>
             <div class="chart-container" style="max-height: 320px;">
               <canvas id="shTopStockChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart: 10 Emiten Paling Terkonsentrasi -->
+          <div class="card p-4 mt-4">
+            <div class="font-semibold mb-2">10 Emiten Paling Terkonsentrasi
+              <span class="help-tip" title="Emiten dengan kepemilikan pemegang saham terbesar tertinggi — dominasi sangat tinggi.">ℹ️</span>
+            </div>
+            <div class="chart-container" style="max-height: 320px;">
+              <canvas id="shTopConcentratedChart"></canvas>
             </div>
           </div>
 

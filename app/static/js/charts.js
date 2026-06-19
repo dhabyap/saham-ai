@@ -255,6 +255,9 @@ function renderShareholderChartsEnhanced() {
     }
   }
   renderScatterChart();
+  renderHistogramChart();
+  renderConcBucketChart();
+  renderTopConcentratedChart();
 }
 
 var shStockDetailChartInstance = null;
@@ -413,6 +416,172 @@ function renderScatterChart() {
           grid: { color: gridColor },
           ticks: { color: textColor, callback: function(v) { return v + '%'; } }
         }
+      }
+    }
+  });
+}
+
+var shHistogramChartInstance = null;
+
+function renderHistogramChart() {
+  var data = shScatterData.value;
+  if (!data || !data.length) return;
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var textColor = isDark ? '#aaa' : '#666';
+  var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+
+  var canvas = document.getElementById('shHistogramChart');
+  if (!canvas) return;
+  if (shHistogramChartInstance) { shHistogramChartInstance.destroy(); shHistogramChartInstance = null; }
+
+  var buckets = { '1':0,'2':0,'3':0,'4':0,'5':0,'6-10':0,'11-20':0,'21+':0 };
+  data.forEach(function(s) {
+    var h = s.holders;
+    if (h === 1) buckets['1']++;
+    else if (h === 2) buckets['2']++;
+    else if (h === 3) buckets['3']++;
+    else if (h === 4) buckets['4']++;
+    else if (h === 5) buckets['5']++;
+    else if (h <= 10) buckets['6-10']++;
+    else if (h <= 20) buckets['11-20']++;
+    else buckets['21+']++;
+  });
+
+  var labels = Object.keys(buckets);
+  var vals = labels.map(function(k) { return buckets[k]; });
+
+  shHistogramChartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Jumlah Emiten',
+        data: vals,
+        backgroundColor: vals.map(function(v) {
+          if (v >= 100) return 'rgba(239,68,68,0.7)';
+          if (v >= 50) return 'rgba(245,158,11,0.7)';
+          return 'rgba(59,130,246,0.6)';
+        }),
+        borderColor: 'transparent',
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } },
+        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } }
+      }
+    }
+  });
+}
+
+var shConcBucketChartInstance = null;
+
+function renderConcBucketChart() {
+  var data = shScatterData.value;
+  if (!data || !data.length) return;
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var textColor = isDark ? '#aaa' : '#666';
+  var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+
+  var canvas = document.getElementById('shConcentrationBucketChart');
+  if (!canvas) return;
+  if (shConcBucketChartInstance) { shConcBucketChartInstance.destroy(); shConcBucketChartInstance = null; }
+
+  var buckets = {};
+  for (var i = 0; i <= 90; i += 10) buckets[i + '-' + (i+10)] = 0;
+  buckets['0-10'] = 0;
+
+  data.forEach(function(s) {
+    var p = s.top_pct;
+    if (p < 10) buckets['0-10']++;
+    else if (p < 20) buckets['10-20']++;
+    else if (p < 30) buckets['20-30']++;
+    else if (p < 40) buckets['30-40']++;
+    else if (p < 50) buckets['40-50']++;
+    else if (p < 60) buckets['50-60']++;
+    else if (p < 70) buckets['60-70']++;
+    else if (p < 80) buckets['70-80']++;
+    else if (p < 90) buckets['80-90']++;
+    else buckets['90-100']++;
+  });
+
+  var labels = Object.keys(buckets);
+  var vals = labels.map(function(k) { return buckets[k]; });
+
+  shConcBucketChartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Jumlah Emiten',
+        data: vals,
+        backgroundColor: vals.map(function(v, i) {
+          if (i >= 7) return 'rgba(239,68,68,0.7)';
+          if (i >= 4) return 'rgba(245,158,11,0.7)';
+          return 'rgba(59,130,246,0.6)';
+        }),
+        borderColor: 'transparent',
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: textColor, font: { size: 9 }, maxRotation: 45 } },
+        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } }
+      }
+    }
+  });
+}
+
+var shTopConcentratedChartInstance = null;
+
+function renderTopConcentratedChart() {
+  var data = shScatterData.value;
+  if (!data || !data.length) return;
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var textColor = isDark ? '#aaa' : '#666';
+  var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+
+  var canvas = document.getElementById('shTopConcentratedChart');
+  if (!canvas) return;
+  if (shTopConcentratedChartInstance) { shTopConcentratedChartInstance.destroy(); shTopConcentratedChartInstance = null; }
+
+  var top10 = data.slice().sort(function(a,b) { return b.top_pct - a.top_pct; }).slice(0, 10);
+
+  shTopConcentratedChartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: top10.map(function(s) { return s.stock_code; }),
+      datasets: [{
+        label: 'Kepemilikan Terbesar (%)',
+        data: top10.map(function(s) { return s.top_pct; }),
+        backgroundColor: 'rgba(239,68,68,0.7)',
+        borderColor: '#EF4444',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            afterLabel: function(ctx) {
+              var item = top10[ctx.dataIndex];
+              return 'Pemegang: ' + item.holders + ' | Total: ' + item.total_pct.toFixed(1) + '%';
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: textColor, callback: function(v) { return v + '%'; } } },
+        y: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } }
       }
     }
   });

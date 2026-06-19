@@ -1654,6 +1654,34 @@ tbody tr:last-child td { border-bottom:none; }
   grid-column: 1 / -1;
 }
 
+/* === Shareholders Badges & Table Info === */
+.badge-collector {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(245,158,11,0.15);
+  color: #F59E0B;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+.table-info {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+.help-tip {
+  display: inline-block;
+  cursor: help;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 4px;
+  vertical-align: middle;
+  opacity: 0.6;
+}
+.help-tip:hover { opacity: 1; }
+
 /* === Shareholders Period Selector === */
 .period-selector {
   display: flex;

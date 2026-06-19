@@ -292,8 +292,46 @@ function renderStockDetailChart() {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { color: gridColor }, ticks: { color: textColor, callback: function(v) { return v + '%'; } } },
+        x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: textColor, callback: function(v) { return v + '%'; } } },
         y: { grid: { display: false }, ticks: { color: textColor, font: { size: 9 } } }
+      }
+    }
+  });
+}
+
+var shHolderPortfolioChartInstance = null;
+
+function renderHolderPortfolioChart() {
+  var data = shHolderResult.value;
+  if (!data || !data.length) return;
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var textColor = isDark ? '#aaa' : '#666';
+
+  var sorted = data.slice().sort(function(a,b) { return (b.share_percent||0) - (a.share_percent||0); }).slice(0, 15);
+  var labels = sorted.map(function(s) { return s.stock_code; });
+  var vals = sorted.map(function(s) { return parseFloat((s.share_percent||0).toFixed(2)); });
+
+  var ctx = document.getElementById('shHolderPortfolioChart');
+  if (!ctx) return;
+  if (shHolderPortfolioChartInstance) { shHolderPortfolioChartInstance.destroy(); shHolderPortfolioChartInstance = null; }
+  shHolderPortfolioChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '% Kepemilikan',
+        data: vals,
+        backgroundColor: 'rgba(16,185,129,0.6)',
+        borderColor: '#10B981',
+        borderWidth: 1, borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: textColor, callback: function(v) { return v + '%'; } } },
+        y: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } }
       }
     }
   });

@@ -712,28 +712,32 @@ async function onShStockSelect() {
   shStockLoading.value = false;
 }
 async function searchShareholdersByHolder() {
-  var q = shHolderQuery.value.trim();
-  if (!q) return;
-  shHolderLoading.value = true; shHolderError.value = ''; shHolderSearched.value = true;
+  var name = shHolderQuery.value.trim().toUpperCase();
+  if (!name) return;
+  shHolderLoading.value = true;
+  shHolderError.value = '';
+  shHolderSearched.value = true;
   try {
-    var period = shareholdersLatestPeriod.value || 'FEB2026';
-    var res = await fetch('/api/shareholders/search?name=' + encodeURIComponent(q) + '&period=' + period);
-    var data = await res.json();
-    if (data.status === 'ok') shHolderResult.value = data.data;
-    else { shHolderError.value = 'Gagal memuat data'; shHolderResult.value = []; }
-  } catch(e) { shHolderError.value = 'Gagal mengambil data: ' + e.message; shHolderResult.value = []; }
-  shHolderLoading.value = false;
+    var period = selectedPeriod.value || shareholdersLatestPeriod.value || 'FEB2026';
+    var res = await fetch('/api/shareholders/search/' + encodeURIComponent(name) + '?period=' + period);
+    var json = await res.json();
+    if (json.status === 'ok' && json.data && json.data.length) {
+      shHolderResult.value = json.data;
+      window.Vue.nextTick(function() { renderHolderPortfolioChart(); });
+    } else {
+      shHolderResult.value = [];
+      shHolderError.value = 'Data tidak ditemukan untuk "' + name + '"';
+    }
+  } catch(e) {
+    shHolderError.value = 'Gagal memuat: ' + e.message;
+    shHolderResult.value = [];
+  } finally {
+    shHolderLoading.value = false;
+  }
 }
-async function selectHolder(name) {
-  shHolderActiveName.value = name;
-  shHolderLoading.value = true; shHolderSearched.value = true; shHolderError.value = '';
-  try {
-    var period = shareholdersLatestPeriod.value || 'FEB2026';
-    var res = await fetch('/api/shareholders/holder/' + encodeURIComponent(name) + '?period=' + period);
-    var data = await res.json();
-    if (data.status === 'ok') shHolderResult.value = data.data;
-  } catch(e) { shHolderError.value = 'Gagal mengambil data'; }
-  shHolderLoading.value = false;
+function selectHolder(name) {
+  shHolderQuery.value = name;
+  searchShareholdersByHolder();
 }
 
 // ── Bootstrap load all ──

@@ -48,7 +48,9 @@
       </template>
       <template v-else>
         <div class="section">
-          <div class="section-title">Ringkasan Kepemilikan</div>
+          <div class="section-title">Ringkasan Kepemilikan
+            <span class="help-tip" title="Menampilkan ringkasan seluruh data kepemilikan saham di atas 1% yang tercatat di Bursa Efek Indonesia">ℹ️</span>
+          </div>
           <div class="stats-row">
             <div class="card text-center p-3">
               <div class="font-bold text-accent" style="font-size: 24px">{{ shareholdersStats.total_records }}</div>
@@ -69,9 +71,25 @@
             <p class="text-sm text-muted">Pemegang saham dominan: <strong>{{ shareholdersStats.top_holder || '-' }}</strong></p>
           </div>
 
+          <!-- Chart loading skeleton -->
+          <div v-if="shDistLoading && !shareholdersLoading" class="mt-4">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+              <div class="card p-4">
+                <div class="skeleton-text" style="width:160px;height:12px;margin-bottom:12px"></div>
+                <div class="skeleton-value" style="height:240px;border-radius:8px"></div>
+              </div>
+              <div class="card p-4">
+                <div class="skeleton-text" style="width:200px;height:12px;margin-bottom:12px"></div>
+                <div class="skeleton-value" style="height:240px;border-radius:8px"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Chart: Distribusi Kepemilikan -->
           <div class="card p-4 mt-4">
-            <div class="font-semibold mb-2">Distribusi Kepemilikan</div>
+            <div class="font-semibold mb-2">Distribusi Kepemilikan
+              <span class="help-tip" title="Mengelompokkan pemegang saham berdasarkan besaran kepemilikannya. ≥5% = pengendali (bisa punya pengaruh besar).">ℹ️</span>
+            </div>
             <div class="chart-container" style="max-height: 280px;">
               <canvas id="shDistChart"></canvas>
             </div>
@@ -79,7 +97,9 @@
 
           <!-- Chart: Top 10 Emiten -->
           <div class="card p-4 mt-4">
-            <div class="font-semibold mb-2">Top 10 Emiten dengan Holders Terbanyak</div>
+            <div class="font-semibold mb-2">Top 10 Emiten
+              <span class="help-tip" title="Emiten dengan jumlah pemegang saham terbanyak menunjukkan saham yang paling diminati investor institusi.">ℹ️</span>
+            </div>
             <div class="chart-container" style="max-height: 320px;">
               <canvas id="shTopStockChart"></canvas>
             </div>
@@ -95,23 +115,43 @@
 
           <!-- Insight Narrative -->
           <div v-if="shDetailStats" class="card p-4 mt-4 insight-card">
-            <div class="font-semibold mb-2">📊 Ringkasan Intelijen</div>
-            <div class="text-sm">
-              <p class="mb-2">
-                <strong>Total {{ shDetailStats.total_records }}</strong> catatan kepemilikan saham, 
-                tersebar di <strong>{{ shDetailStats.total_stocks }}</strong> emiten, 
-                dimiliki oleh <strong>{{ shDetailStats.total_holders }}</strong> pemegang saham berbeda.
-              </p>
-              <p class="mb-2">
-                <strong>{{ shDetailStats.top_holder }}</strong> adalah pemegang saham terbesar 
-                dengan total kepemilikan <strong>{{ shDetailStats.top_holder_pct.toFixed(2) }}%</strong> 
-                di berbagai emiten.
-              </p>
-              <p>
-                <strong>{{ shDetailStats.most_held_stock }}</strong> adalah emiten dengan jumlah 
-                pemegang saham terbanyak (<strong>{{ shDetailStats.most_held_count }}</strong> holders), 
-                menunjukkan minat investor yang tinggi terhadap saham ini.
-              </p>
+            <div class="font-semibold mb-3" style="font-size:14px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)">
+              Ringkasan Intelijen
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;line-height:1.6">
+              <div>
+                <span class="text-muted">📊 Total data:</span>
+                <strong>{{ shDetailStats.total_records }}</strong> catatan kepemilikan
+              </div>
+              <div>
+                <span class="text-muted">🏢 Emiten:</span>
+                <strong>{{ shDetailStats.total_stocks }}</strong> perusahaan terpantau
+              </div>
+              <div>
+                <span class="text-muted">👥 Pemegang saham:</span>
+                <strong>{{ shDetailStats.total_holders }}</strong> nama unik
+              </div>
+              <div>
+                <span class="text-muted">📈 Rata-rata:</span>
+                <strong>{{ shDetailStats.avg_holders_per_stock }}</strong> pemegang per emiten
+              </div>
+              <div v-if="shDetailStats.top_holder && shDetailStats.top_holder !== '-'">
+                <span class="text-muted">🥇 Pemegang dominan:</span>
+                <strong>{{ shDetailStats.top_holder }}</strong>
+                ({{ shDetailStats.top_holder_pct }}% di {{ shDetailStats.top_holder_stocks }} emiten)
+              </div>
+              <div v-if="shDetailStats.most_held_stock && shDetailStats.most_held_stock !== '-'">
+                <span class="text-muted">⭐ Emiten terpopuler:</span>
+                <strong>{{ shDetailStats.most_held_stock }}</strong>
+                ({{ shDetailStats.most_held_count }} pemegang)
+              </div>
+            </div>
+            <div v-if="shDistribution && shDistribution.total" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.7">
+              Dari <strong>{{ shDistribution.total }}</strong> data kepemilikan:
+              <span v-if="shDistribution.large"><strong>{{ shDistribution.large }}</strong> pengendali (≥5%), </span>
+              <span v-if="shDistribution.medium"><strong>{{ shDistribution.medium }}</strong> signifikan (1-5%), </span>
+              <span v-if="shDistribution.small"><strong>{{ shDistribution.small }}</strong> minoritas (0.5-1%), </span>
+              <span v-if="shDistribution.tiny"><strong>{{ shDistribution.tiny }}</strong> pemodal kecil (&lt;0.5%).</span>
             </div>
           </div>
         </div>
@@ -122,48 +162,103 @@
       <template v-if="shareholdersLoading">
         <div class="section">
           <div class="section-title">Memuat top holders...</div>
-          <div class="card p-4" style="padding: 0; overflow: hidden">
-            <div v-for="n in 8" :key="n" class="skeleton-table-row" style="grid-template-columns: 1fr 80px; margin-bottom: 4px; padding: 8px 12px">
-              <div></div>
-              <div></div>
-            </div>
+          <div class="card p-4" style="padding:0;overflow:hidden">
+            <div v-for="n in 8" :key="n" class="skeleton-table-row" style="grid-template-columns:1fr 80px;margin-bottom:4px;padding:8px 12px"><div></div><div></div></div>
           </div>
         </div>
       </template>
       <template v-else-if="shareholdersError">
         <div class="section">
-          <div class="card p-4" style="border-left: 4px solid var(--danger); color: var(--danger)">
+          <div class="card p-4" style="border-left:4px solid var(--danger);color:var(--danger)">
             <div class="font-semibold mb-2">Top holders gagal dimuat</div>
             <p class="text-sm">{{ shareholdersError }}</p>
           </div>
         </div>
       </template>
-      <template v-else-if="!topShareholders.length">
-        <div class="section">
-          <div class="card p-4" style="text-align: center">
-            <div class="font-semibold mb-2">Belum ada top holders</div>
-            <p class="text-sm text-muted">Tidak ada data top holders untuk periode yang sedang dipilih.</p>
-          </div>
-        </div>
-      </template>
       <template v-else>
         <div class="section">
-          <div class="section-title">Top Shareholders</div>
-          <div class="card card-table">
-            <table class="table-compact">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Total %</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="s in topShareholders" :key="s.shareholder_name">
-                  <td>{{ s.shareholder_name }}</td>
-                  <td>{{ (s.total_pct || 0).toFixed(2) }}%</td>
-                </tr>
-              </tbody>
-            </table>
+          <!-- Search holder -->
+          <div class="card p-4" style="margin-bottom:16px">
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <input type="text" v-model="shHolderQuery"
+                     placeholder="Cari nama pemegang saham..."
+                     @keyup.enter="searchShareholdersByHolder"
+                     style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:13px" />
+              <button class="btn btn-sm btn-accent" @click="searchShareholdersByHolder">Cari</button>
+            </div>
+            <div v-if="popularHolders.length && !shHolderResult.length && !shHolderLoading">
+              <div class="text-xs text-muted mb-1">Populer:</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px">
+                <div v-for="h in popularHolders.slice(0, 20)" :key="h.shareholder_name"
+                     @click="selectHolder(h.shareholder_name)"
+                     style="cursor:pointer;padding:3px 8px;border-radius:10px;background:var(--accent);color:#fff;font-size:11px;white-space:nowrap">
+                  {{ h.shareholder_name.length > 30 ? h.shareholder_name.substring(0,28)+'..' : h.shareholder_name }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Portfolio detail -->
+          <div v-if="shHolderResult.length && shHolderActiveName">
+            <div style="font-size:18px;font-weight:700;color:var(--accent);margin:0 0 12px">
+              Portofolio: {{ shHolderActiveName }}
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+              <div class="card text-center p-3">
+                <div class="font-bold text-accent" style="font-size:20px">{{ shHolderResult.length }}</div>
+                <div class="text-xs text-muted">Saham Dipegang</div>
+              </div>
+              <div class="card text-center p-3">
+                <div class="font-bold text-success" style="font-size:20px">{{ totalSharePct(shHolderResult).toFixed(1) }}%</div>
+                <div class="text-xs text-muted">Total Portofolio</div>
+              </div>
+              <div class="card text-center p-3">
+                <div class="font-bold text-warning" style="font-size:20px">{{ dominantHolderPct(shHolderResult) }}</div>
+                <div class="text-xs text-muted">Holding Terbesar</div>
+              </div>
+            </div>
+            <div style="height:200px;margin-bottom:16px">
+              <canvas id="shHolderPortfolioChart"></canvas>
+            </div>
+            <div class="card card-table" style="margin-bottom:16px">
+              <table class="table-compact">
+                <thead><tr><th>Stock</th><th>%</th><th>Kepemilikan</th></tr></thead>
+                <tbody>
+                  <tr v-for="s in shHolderResult" :key="s.stock_code">
+                    <td><strong>{{ s.stock_code }}</strong></td>
+                    <td>{{ s.share_percent.toFixed(2) }}%</td>
+                    <td class="text-muted">{{ s.share_count || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div v-if="shHolderLoading" class="text-center text-muted" style="padding:20px">Mencari portofolio...</div>
+          <div v-if="shHolderError" class="text-sm" style="color:var(--danger);padding:8px 0">{{ shHolderError }}</div>
+
+          <!-- Top holders chart (existing) -->
+          <div v-if="topShareholders.length">
+            <div style="font-size:16px;font-weight:700;color:var(--accent);margin:0 0 12px">Top Shareholders</div>
+            <div class="card card-table">
+              <table class="table-compact">
+                <thead><tr><th>Name</th><th>Jumlah Saham</th><th>Total %</th></tr></thead>
+                <tbody>
+                  <tr v-for="s in filteredTopShareholders" :key="s.shareholder_name"
+                      @click="selectHolder(s.shareholder_name)" style="cursor:pointer">
+                    <td>{{ s.shareholder_name }}</td>
+                    <td>
+                      {{ s.stock_count || 0 }}
+                      <span v-if="(s.stock_count||0) >= 30" class="badge-collector">Kolektor</span>
+                    </td>
+                    <td>{{ (s.total_pct || 0).toFixed(2) }}%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="table-info" v-if="topShareholders.length">
+                Menampilkan {{ topShareholders.length }} pemegang saham terbesar
+              </div>
+            </div>
           </div>
         </div>
       </template>

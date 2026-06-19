@@ -1,25 +1,24 @@
 // state_bubble.js - Bubble Chart Logic
-function renderBubbleChart(data) {
-    if (!data || data.length === 0) {
-        console.warn("Bubble chart data is empty");
-        return;
-    }
-    const ctx = document.getElementById('bubbleChart').getContext('2d');
+function renderBubbleChart(dominantStocks) {
+    console.log("Rendering chart with:", dominantStocks);
+    const canvas = document.getElementById('bubbleChart');
+    if (!canvas) return;
     
-    // Fallback data if API returns weird structure
-    const chartData = data.map(item => ({
-        x: item.market_cap || 0,
-        y: item.volatility || 0,
-        r: (item.holding_size || 1000000) / 100000 
-    }));
+    // Destroy existing chart if exists
+    if (window.myBubbleChart) window.myBubbleChart.destroy();
 
-    new Chart(ctx, {
+    const ctx = canvas.getContext('2d');
+    window.myBubbleChart = new Chart(ctx, {
         type: 'bubble',
         data: {
             datasets: [{
                 label: 'Market Concentration',
-                data: chartData,
-                backgroundColor: 'rgba(147, 51, 234, 0.5)' // Matching purple theme
+                data: dominantStocks.map(s => ({
+                    x: s.total_owned_pct,
+                    y: s.holder_count * 5, 
+                    r: s.top_holder_pct / 2
+                })),
+                backgroundColor: 'rgba(147, 51, 234, 0.6)'
             }]
         },
         options: {
@@ -29,12 +28,16 @@ function renderBubbleChart(data) {
     });
 }
 
-// Ensure data fetch triggers on page load
 document.addEventListener('DOMContentLoaded', () => {
-    // Ambil period dari state global (atau default)
-    const period = document.getElementById('period-select')?.value || '2026-02'; 
-    fetch(`/api/shareholders/concentration?period=${period}`)
+    // FEB2026 adalah periode valid
+    fetch('/api/shareholders/concentration?period=FEB2026')
         .then(res => res.json())
-        .then(data => renderBubbleChart(data))
+        .then(data => {
+            if (data.dominant_stocks && data.dominant_stocks.length > 0) {
+                renderBubbleChart(data.dominant_stocks);
+            } else {
+                console.warn("No dominant stocks data found.");
+            }
+        })
         .catch(err => console.error("Error loading bubble data:", err));
 });

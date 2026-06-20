@@ -3,6 +3,7 @@
     <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Overview</button>
     <button class="tab-btn" :class="{ active: currentTab === 'top' }" @click="currentTab = 'top'">Top Holders</button>
     <button class="tab-btn" :class="{ active: currentTab === 'stocks' }" @click="currentTab = 'stocks'">Per Emiten</button>
+    <button class="tab-btn" :class="{ active: currentTab === 'upload' }" @click="currentTab = 'upload'">Upload</button>
   </div>
   
   <!-- Period Selector -->
@@ -507,6 +508,47 @@
           <div v-if="shStockSearched && !shStockResult.length && !shStockLoading && !shStockError"
                class="text-center text-muted" style="padding:20px">
             Data tidak ditemukan. Coba kode saham lain.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Upload Tab ── -->
+      <div class="tab-pane" :class="{ active: currentTab === 'upload' }">
+        <div class="section">
+          <div class="section-title">Upload Data Shareholder</div>
+          <div class="card p-4 mb-4">
+            <div class="mb-3">
+              <label class="font-semibold text-sm">Periode (contoh: MAR2026)</label>
+              <input type="text" v-model="shUploadPeriod"
+                     placeholder="MAR2026"
+                     style="display:block;width:200px;margin-top:4px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)">
+            </div>
+            <div class="mb-3">
+              <label class="font-semibold text-sm">File CSV, XLSX, atau PDF</label>
+              <input type="file" ref="shUploadInput" accept=".csv,.xlsx,.pdf"
+                     @change="shUploadFile = $event.target.files[0]"
+                     style="display:block;margin-top:4px">
+              <div v-if="shUploadFile" class="text-xs text-muted mt-1">{{ shUploadFile.name }} ({{ (shUploadFile.size / 1024).toFixed(0) }} KB)</div>
+            </div>
+            <button class="btn btn-primary" @click="doUploadShareholder()"
+                    :disabled="shUploadLoading || !shUploadPeriod || !shUploadFile"
+                    style="padding:8px 20px">
+              <span v-if="shUploadLoading">⏳ Mengupload...</span>
+              <span v-else>📤 Upload & Import</span>
+            </button>
+            <div v-if="shUploadError" class="text-sm mt-2" style="color:var(--danger)">{{ shUploadError }}</div>
+          </div>
+
+          <!-- Result -->
+          <div v-if="shUploadResult" class="card p-4" style="border-left:4px solid var(--success)">
+            <div class="font-semibold text-sm mb-2" style="color:var(--success)">✅ Upload Berhasil</div>
+            <div class="text-sm">
+              <div>Periode: <strong>{{ shUploadResult.period }}</strong></div>
+              <div>Baris diimport: <strong>{{ shUploadResult.imported || 0 }}</strong></div>
+              <div v-if="shUploadResult.skipped">Baris dilewati: <strong>{{ shUploadResult.skipped }}</strong></div>
+            </div>
+            <button class="btn btn-sm mt-3" @click="shUploadResult=null;shUploadPeriod='';shUploadFile=null;$refs.shUploadInput.value=''"
+                    style="padding:4px 12px">Upload Lagi</button>
           </div>
         </div>
       </div>

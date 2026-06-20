@@ -794,6 +794,34 @@ async function loadShareholderInsight() {
   }
 }
 
+// ── Upload shareholder file ──
+async function doUploadShareholder() {
+  var period = shUploadPeriod.value.trim().toUpperCase();
+  var file = shUploadFile.value;
+  if (!period || !file) return;
+  shUploadLoading.value = true;
+  shUploadError.value = '';
+  shUploadResult.value = null;
+  try {
+    var fd = new FormData();
+    fd.append('period', period);
+    fd.append('file', file);
+    var res = await fetch('/api/shareholders/upload', { method: 'POST', body: fd });
+    var json = await res.json();
+    if (res.ok && json.status === 'ok') {
+      shUploadResult.value = json;
+      // Refresh shareholder data after upload
+      loadShareholders();
+    } else {
+      shUploadError.value = json.detail || json.message || 'Upload gagal';
+    }
+  } catch (e) {
+    shUploadError.value = e.message;
+  } finally {
+    shUploadLoading.value = false;
+  }
+}
+
 // ── Bootstrap load all ──
 async function loadAllDashboardData() {
   await Promise.allSettled([

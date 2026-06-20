@@ -522,8 +522,8 @@ async def shareholder_upload(
     if not file.filename:
         raise HTTPException(400, "No file provided")
     ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
-    if ext not in ('csv', 'xlsx'):
-        raise HTTPException(400, "Only .csv or .xlsx files accepted")
+    if ext not in ('csv', 'xlsx', 'pdf'):
+        raise HTTPException(400, "Only .csv, .xlsx, or .pdf files accepted")
 
     period = period.strip().upper()
     if not period:
@@ -579,6 +579,65 @@ async def shareholder_upload(
                     'share_percent': pct,
                     'share_count': cnt,
                 })
+        elif ext == 'pdf':
+            content = await file.read()
+            import pdfplumber
+            import re
+            with pdfplumber.open(io.BytesIO(content)) as pdf:
+                for page in pdf.pages:
+                    tables = page.extract_tables()
+                    for table in tables:
+                        if not table or len(table) < 2:
+                            continue
+                        header = table[0]
+                        header_lower = [str(h).strip().lower() if h else '' for h in header]
+                        # Helper inline
+                        def _find_col(haystack, needles):
+                            for i, h in enumerate(haystack):
+                                for n in needles:
+                                    if n in h:
+                                        return i
+                            return None
+                        col_code = _find_col(header_lower, ['kode', 'code', 'stock', 'saham', 'emiten'])
+                        col_name = _find_col(header_lower, ['nama', 'name', 'pemegang', 'shareholder', 'investor'])
+                        col_pct = _find_col(header_lower, ['%', 'persen', 'percent', 'pct', '%saham', 'saham%'])
+                        col_cnt = _find_col(header_lower, ['jumlah', 'amount', 'count', 'shares', 'lembar', 'qty'])
+                        if col_code is None and col_name is None:
+                            continue
+                        for row in table[1:]:
+                            if not row or len(row) <= max(col_code or 0, col_name or 0):
+                                continue
+                            sc = ''
+                            nm = ''
+                            pct = 0.0
+                            cnt = 0
+                            try:
+                                if col_code is not None:
+                                    val = str(row[col_code] or '').strip()
+                                    sc = re.sub(r'[^A-Z0-9]', '', val.upper())
+                                if col_name is not None:
+                                    nm = str(row[col_name] or '').strip().upper()
+                                    nm = re.sub(r'\s+', ' ', nm)
+                                if col_pct is not None:
+                                    val = str(row[col_pct] or '0').strip().replace(',', '.').replace('%', '')
+                                    m = re.search(r'[\d.]+', val)
+                                    if m:
+                                        pct = float(m.group())
+                                if col_cnt is not None:
+                                    val = str(row[col_cnt] or '0').strip().replace(',', '')
+                                    m = re.search(r'[\d]+', val)
+                                    if m:
+                                        cnt = int(m.group())
+                            except (ValueError, IndexError):
+                                continue
+                            if not sc or not nm or pct <= 0:
+                                continue
+                            rows.append({
+                                'stock_code': sc,
+                                'shareholder_name': nm,
+                                'share_percent': round(pct, 2),
+                                'share_count': cnt,
+                            })
     except Exception as e:
         raise HTTPException(400, f"Failed to parse file: {e}")
 

@@ -244,30 +244,49 @@
       </template>
       <template v-else>
         <div class="section">
-          <!-- Search holder -->
-          <div class="card p-4" style="margin-bottom:16px">
+          <div class="card p-4">
+            <div class="section-title">Cari Kepemilikan per Pemegang Saham</div>
             <div class="search-bar">
               <input type="text" v-model="shHolderQuery"
                      placeholder="Cari nama pemegang saham..."
-                     @keyup.enter="searchShareholdersByHolder" />
-              <button class="btn btn-sm btn-accent" @click="searchShareholdersByHolder">Cari</button>
+                     @keyup.enter="searchShareholdersByHolder"
+                     @input="shHolderSelected=''" />
+              <button class="btn btn-sm btn-accent" @click="shHolderSelected='';searchShareholdersByHolder()">Cari</button>
             </div>
-            <div v-if="popularHolders.length && !shHolderResult.length && !shHolderLoading">
-              <div class="text-xs text-muted mb-1">Populer:</div>
-              <div style="display:flex;flex-wrap:wrap;gap:4px">
-                <div v-for="h in popularHolders.slice(0, 20)" :key="h.shareholder_name"
+
+            <!-- Holder chip grid — always visible like Per Emiten -->
+            <div v-if="filteredHolders.length && !shHolderLoading"
+                 style="max-height:240px;overflow-y:auto;margin-bottom:12px">
+              <div v-if="filteredHolders.length === 0"
+                   class="text-center text-muted" style="padding:12px;font-size:12px">
+                Tidak ada pemegang saham cocok dengan "{{ shHolderQuery }}"
+              </div>
+              <div class="chip-grid" style="display:flex;flex-wrap:wrap;gap:6px">
+                <div v-for="h in filteredHolders" :key="h.shareholder_name"
                      @click="selectHolder(h.shareholder_name)"
-                     style="cursor:pointer;padding:3px 8px;border-radius:10px;background:var(--accent);color:#fff;font-size:11px;white-space:nowrap">
-                  {{ h.shareholder_name.length > 30 ? h.shareholder_name.substring(0,28)+'..' : h.shareholder_name }}
+                     :style="{
+                       cursor:'pointer', padding:'4px 10px', borderRadius:'12px', fontSize:'12px', whiteSpace:'nowrap',
+                       background: shHolderSelected === h.shareholder_name ? 'var(--success,#22c55e)' : 'var(--accent)',
+                       color:'#fff'
+                     }"
+                     :title="h.shareholder_name">
+                  {{ h.shareholder_name.length > 28 ? h.shareholder_name.substring(0,25)+'..' : h.shareholder_name }}
+                  <small style="opacity:0.7">({{ h.stock_count || 0 }})</small>
                 </div>
               </div>
             </div>
+
+            <!-- Loading / Error -->
+            <div v-if="shHolderLoading" class="text-center text-muted" style="padding:12px;font-size:13px">⏳ Mencari portofolio...</div>
+            <div v-if="shHolderError" class="text-sm" style="color:var(--danger);padding:8px 0">{{ shHolderError }}</div>
           </div>
 
-          <!-- Portfolio detail -->
-          <div v-if="shHolderResult.length && shHolderActiveName">
-            <div style="font-size:18px;font-weight:700;color:var(--accent);margin:0 0 12px">
-              Portofolio: {{ shHolderActiveName }}
+          <!-- Portfolio detail — appears below chip grid when holder selected -->
+          <div v-if="shHolderResult.length && shHolderActiveName" class="card p-4" style="margin-bottom:16px">
+            <div style="font-size:18px;font-weight:700;color:var(--accent);margin:0 0 12px;display:flex;align-items:center;gap:8px">
+              <span>Portofolio: {{ shHolderActiveName }}</span>
+              <span @click="clearHolderSelection()"
+                    style="cursor:pointer;margin-left:auto;font-size:12px;padding:3px 10px;border-radius:8px;background:var(--bg-hover,rgba(0,0,0,0.05));color:var(--text-muted)">✕ Tutup</span>
             </div>
             <div class="sh-grid-3">
                 <div class="card text-center p-3">
@@ -286,7 +305,7 @@
             <div style="height:200px;margin-bottom:16px">
               <canvas id="shHolderPortfolioChart"></canvas>
             </div>
-            <div class="card card-table" style="margin-bottom:16px">
+            <div class="card card-table">
               <table class="table-compact">
                 <thead><tr><th>Stock</th><th>%</th><th>Kepemilikan</th></tr></thead>
                 <tbody>
@@ -300,11 +319,8 @@
             </div>
           </div>
 
-          <div v-if="shHolderLoading" class="text-center text-muted" style="padding:20px">Mencari portofolio...</div>
-          <div v-if="shHolderError" class="text-sm" style="color:var(--danger);padding:8px 0">{{ shHolderError }}</div>
-
-          <!-- Top holders chart (existing) -->
-          <div v-if="topShareholders.length">
+          <!-- Top holders table (existing) -->
+          <div v-if="topShareholders.length" class="card p-4">
             <div style="font-size:16px;font-weight:700;color:var(--accent);margin:0 0 12px">Top Shareholders</div>
             <div class="card card-table">
               <table class="table-compact">

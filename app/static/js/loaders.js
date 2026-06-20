@@ -761,7 +761,15 @@ async function searchShareholdersByHolder() {
 }
 function selectHolder(name) {
   shHolderQuery.value = name;
+  shHolderSelected.value = name;
   searchShareholdersByHolder();
+}
+function clearHolderSelection() {
+  shHolderSelected.value = '';
+  shHolderQuery.value = '';
+  shHolderResult.value = [];
+  shHolderSearched.value = false;
+  shHolderError.value = '';
 }
 
 // ── Bootstrap load all ──

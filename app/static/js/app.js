@@ -135,7 +135,8 @@ createApp({
       shHolderSearched: shHolderSearched,
       searchShareholdersByHolder: searchShareholdersByHolder,
       shHolderActiveName: shHolderActiveName, popularHolders: popularHolders,
-      selectHolder: selectHolder,
+      filteredHolders: filteredHolders, shHolderSelected: shHolderSelected,
+      selectHolder: selectHolder, clearHolderSelection: clearHolderSelection,
       // Market Reports
       mrReports: mrReports, mrStats: mrStats, mrAnalysis: mrAnalysis,
       mrLoadingAnalysis: mrLoadingAnalysis, mrFilter: mrFilter, setMrFilter: setMrFilter,

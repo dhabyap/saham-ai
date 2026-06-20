@@ -201,6 +201,16 @@ var shHolderLoading = ref(false);
 var shHolderError = ref('');
 var shHolderSearched = ref(false);
 var popularHolders = ref([]);
+var shHolderSelected = ref('');
+
+// Live filter for Top Holders grid (like filteredStockList)
+var filteredHolders = computed(function() {
+  var q = (shHolderQuery.value || '').toUpperCase().trim();
+  if (!q) return popularHolders.value;
+  return popularHolders.value.filter(function(h) {
+    return (h.shareholder_name || '').toUpperCase().indexOf(q) !== -1;
+  });
+});
 var selectedPeriod = ref(''); // selected period for shareholders
 // ── Shareholders Enhanced ──
 var shDistribution = ref(null);

@@ -421,7 +421,17 @@ async function searchStockShareholders() {
 }
 function selectStockShareholder(code) {
   shStockQuery.value = code;
+  // Find and set company name
+  var found = shStockList.value.find(function(s) { return s.stock_code === code; });
+  shStockActiveName.value = found ? (found.stock_name || '') : '';
   searchStockShareholders();
+}
+function filterStockGrid() {
+  // Called on @input — clears previous result when typing new query
+  if (shStockResult.value.length && shStockQuery.value.toUpperCase().trim() !== (shStockActiveLabel.value || '')) {
+    shStockResult.value = [];
+    shStockActiveName.value = '';
+  }
 }
 
 // ── Watchlist ──

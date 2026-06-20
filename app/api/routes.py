@@ -140,9 +140,10 @@ def shareholder_top(
 
 @router.get("/shareholders/stocks")
 def shareholder_stocks(period: Optional[str] = None):
-    """List stocks that have shareholder data."""
+    """List stocks that have shareholder data (with name if known)."""
     try:
         from app.services.shareholder_service import get_db
+        from app.services.stock_service import STOCK_LIST
         with get_db() as conn:
             if period:
                 rows = conn.execute(
@@ -160,7 +161,11 @@ def shareholder_stocks(period: Optional[str] = None):
                        GROUP BY stock_code
                        ORDER BY stock_code ASC"""
                 )
-            result = [dict(r) for r in rows]
+            result = []
+            for r in rows:
+                d = dict(r)
+                d["stock_name"] = STOCK_LIST.get(d["stock_code"], "")
+                result.append(d)
             return {"status": "ok", "period": period or "all", "data": result}
     except Exception as e:
         import traceback

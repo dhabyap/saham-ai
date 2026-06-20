@@ -127,6 +127,8 @@ createApp({
  selectStockShareholder: selectStockShareholder,
       shStockList: shStockList, shStockSelected: shStockSelected,
       shStockActiveLabel: shStockActiveLabel, onShStockSelect: onShStockSelect,
+      shStockActiveName: shStockActiveName, filteredStockList: filteredStockList,
+      filterStockGrid: filterStockGrid,
       shHolderQuery: shHolderQuery, shHolderResult: shHolderResult,
       shHolderLoading: shHolderLoading, shHolderError: shHolderError,
       shHolderSearched: shHolderSearched,

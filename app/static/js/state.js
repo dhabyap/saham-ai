@@ -174,6 +174,14 @@ var shStockActiveLabel = computed(function() {
   if (shStockResult.value.length && shStockQuery.value) return shStockQuery.value.toUpperCase();
   return '';
 });
+var shStockActiveName = ref('');
+var filteredStockList = computed(function() {
+  var q = (shStockQuery.value || '').toUpperCase().trim();
+  if (!q) return shStockList.value;
+  return shStockList.value.filter(function(s) {
+    return s.stock_code.indexOf(q) !== -1 || (s.stock_name || '').toUpperCase().indexOf(q) !== -1;
+  });
+});
 
 var shHolderQuery = ref('');
 var shHolderResult = ref([]);

@@ -121,6 +121,8 @@ async function loadShareholdersView() {
   await loadShareholders();
   shareholdersLoading.value = false;
   _loadedViews.shareholders = true;
+  // Auto-load AI insight
+  loadShareholderInsight();
 }
 
 function applyMarketData(data) {
@@ -770,6 +772,26 @@ function clearHolderSelection() {
   shHolderResult.value = [];
   shHolderSearched.value = false;
   shHolderError.value = '';
+}
+
+// ── AI Insight ──
+async function loadShareholderInsight() {
+  if (shInsightLoading.value) return;
+  shInsightLoading.value = true;
+  shInsightError.value = '';
+  try {
+    var res = await fetch('/api/shareholders/insight');
+    var json = await res.json();
+    if (json.status === 'ok') {
+      shInsight.value = json;
+    } else {
+      shInsightError.value = json.message || 'Gagal load insight';
+    }
+  } catch (e) {
+    shInsightError.value = e.message;
+  } finally {
+    shInsightLoading.value = false;
+  }
 }
 
 // ── Bootstrap load all ──

@@ -345,6 +345,141 @@ def shareholder_scatter(period: str = Query("FEB2026")):
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
 
+@router.get("/shareholders/insight")
+async def shareholders_insight():
+    """AI-generated insight from shareholder data."""
+    from openai import OpenAI
+    from app.database.database import get_db
+
+    period = 'FEB2026'
+    data = {}
+
+    try:
+        with get_db() as conn:
+            total_records = conn.execute("SELECT COUNT(*) FROM shareholders WHERE data_period=?", (period,)).fetchone()[0]
+            total_stocks = conn.execute("SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE data_period=?", (period,)).fetchone()[0]
+            total_holders = conn.execute("SELECT COUNT(DISTINCT shareholder_name) FROM shareholders WHERE data_period=?", (period,)).fetchone()[0]
+
+            top_holders = conn.execute("""
+                SELECT shareholder_name, COUNT(DISTINCT stock_code) as stock_count,
+                       ROUND(SUM(share_percent), 2) as total_pct
+                FROM shareholders WHERE data_period=?
+                GROUP BY shareholder_name ORDER BY stock_count DESC LIMIT 10
+            """, (period,)).fetchall()
+
+            top_stocks = conn.execute("""
+                SELECT stock_code, COUNT(*) as holder_count,
+                       ROUND(SUM(share_percent), 2) as total_pct
+                FROM shareholders WHERE data_period=?
+                GROUP BY stock_code ORDER BY holder_count DESC LIMIT 10
+            """, (period,)).fetchall()
+
+            high_conc = conn.execute("""
+                SELECT COUNT(DISTINCT a.stock_code) FROM shareholders a
+                WHERE a.data_period=? AND a.share_percent > 50
+                  AND a.shareholder_name = (
+                      SELECT b.shareholder_name FROM shareholders b
+                      WHERE b.data_period=? AND b.stock_code=a.stock_code
+                      ORDER BY b.share_percent DESC LIMIT 1
+                  )
+            """, (period, period)).fetchone()[0]
+
+            spread = conn.execute("""
+                SELECT CASE WHEN cnt=1 THEN '1'
+                    WHEN cnt<=5 THEN '2-5'
+                    WHEN cnt<=10 THEN '6-10'
+                    WHEN cnt<=20 THEN '11-20'
+                    ELSE '>20' END as bucket,
+                    COUNT(*) as count FROM (
+                    SELECT stock_code, COUNT(*) as cnt
+                    FROM shareholders WHERE data_period=?
+                    GROUP BY stock_code
+                ) GROUP BY bucket ORDER BY bucket
+            """, (period,)).fetchall()
+
+            data = {
+                "total_records": total_records,
+                "total_stocks": total_stocks,
+                "total_holders": total_holders,
+                "avg_holders_per_stock": round(total_records / max(total_stocks, 1), 1),
+                "top_holders": [{"name": r[0], "stocks": r[1], "pct": r[2]} for r in top_holders],
+                "top_stocks": [{"code": r[0], "holders": r[1], "total_pct": r[2]} for r in top_stocks],
+                "high_concentration_stocks": high_conc,
+                "holder_distribution": {r[0]: r[1] for r in spread},
+            }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+    prompt = f"""Analyze this shareholder ownership data for the Indonesian stock market (period: {period}) and provide investment insights in BAHASA INDONESIA.
+
+DATA:
+- Total records: {data['total_records']}
+- Total stocks tracked: {data['total_stocks']}
+- Total unique shareholders: {data['total_holders']}
+- Average holders per stock: {data['avg_holders_per_stock']}
+- Stocks with dominant holder (>50%): {data['high_concentration_stocks']} ({round(data['high_concentration_stocks']/max(data['total_stocks'],1)*100)}%)
+
+Top 10 Shareholders (by number of stocks held):
+{chr(10).join(f"  {h['name']}: {h['stocks']} stocks, {h['pct']}% total" for h in data['top_holders'])}
+
+Top 10 Most-Held Stocks:
+{chr(10).join(f"  {s['code']}: {s['holders']} holders, {s['total_pct']}% total" for s in data['top_stocks'])}
+
+Holder Distribution (how many stocks have X holders):
+{chr(10).join(f"  {k} holders: {v} stocks" for k,v in data['holder_distribution'].items())}
+
+Return ONLY valid JSON (no markdown, no code fences):
+{{
+  "narrative": "2-3 paragraph analysis in BAHASA INDONESIA describing landscape, concentration risks, market structure",
+  "key_findings": ["3-5 bullet poin penting dalam BAHASA INDONESIA"],
+  "risks": ["2-4 risiko investasi terkait konsentrasi kepemilikan, in BAHASA INDONESIA"],
+  "opportunities": ["2-3 peluang atau sinyal positif, in BAHASA INDONESIA"],
+  "recommendations": ["2-4 rekomendasi actionable untuk investor, in BAHASA INDONESIA"]
+}}"""
+
+    try:
+        client = OpenAI(api_key=Config.NINE_ROUTER_API_KEY, base_url=Config.NINE_ROUTER_BASE_URL, timeout=30)
+        resp = client.chat.completions.create(
+            model=Config.NINE_ROUTER_MODEL,
+            messages=[
+                {"role": "system", "content": "You are an Indonesian stock market analyst. Analyze shareholder data and return ONLY valid JSON in BAHASA INDONESIA."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.5,
+            max_tokens=2000,
+        )
+        raw = resp.choices[0].message.content or ""
+        reasoning = getattr(resp.choices[0].message, "reasoning_content", None) or ""
+        if not raw.strip() and reasoning.strip():
+            raw = reasoning
+        import re
+        raw = re.sub(r'^```(?:json)?\s*', '', raw.strip())
+        raw = re.sub(r'\s*```$', '', raw)
+        parsed = json.loads(raw)
+        return {"status": "ok", "insight": parsed, "data": data}
+    except json.JSONDecodeError:
+        return {"status": "ok", "insight": {"narrative": raw[:1500], "key_findings": ["AI returned unstructured response"], "risks": [], "opportunities": [], "recommendations": []}, "data": data}
+    except Exception as e:
+        top_holder = data['top_holders'][0]['name'] if data['top_holders'] else 'N/A'
+        return {
+            "status": "ok",
+            "insight": {
+                "narrative": f"Overview {period}: {data['total_stocks']} saham dipantau dengan {data['total_holders']} pemegang saham unik. Top holder {top_holder} memegang {data['top_holders'][0]['stocks'] if data['top_holders'] else 0} saham. {data['high_concentration_stocks']} saham ({round(data['high_concentration_stocks']/max(data['total_stocks'],1)*100)}%) didominasi satu pemegang >50% — indikasi risiko konsentrasi.",
+                "key_findings": [
+                    f"{data['total_holders']} pemegang saham unik di {data['total_stocks']} saham",
+                    f"{top_holder} portofolio terluas: {data['top_holders'][0]['stocks'] if data['top_holders'] else 0} saham",
+                    f"{data['high_concentration_stocks']} saham ({round(data['high_concentration_stocks']/max(data['total_stocks'],1)*100)}%) dikuasai 1 pemegang >50%",
+                    f"Rata-rata {data['avg_holders_per_stock']} pemegang/saham — {'cukup tersebar' if data['avg_holders_per_stock'] > 5 else 'likuiditas rendah'}",
+                ],
+                "risks": [f"Konsentrasi tinggi: {data['high_concentration_stocks']} saham dikuasai 1 pemegang"],
+                "opportunities": ["Base holder diversified di saham top menjanjikan stabilitas"],
+                "recommendations": ["Fokus saham dengan distribusi holder merata untuk likuiditas lebih baik"],
+            },
+            "data": data,
+            "source": "template_fallback"
+        }
+
+
 @router.get("/shareholders/{stock_code}")
 def shareholder_by_stock(stock_code: str, period: Optional[str] = None):
     """Get shareholder >1% data for a stock."""

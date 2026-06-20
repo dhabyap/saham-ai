@@ -89,6 +89,86 @@
                {{ shScatterData.value ? shScatterData.value.length : 0 }} emiten — klik header kolom untuk urutkan
              </div>
           </div>
+
+          <!-- AI Insight Card -->
+          <div class="card p-4 mb-4">
+            <div class="font-semibold mb-2 text-accent" style="display:flex;align-items:center;gap:8px;font-size:14px">
+              AI Insight &amp; Rekomendasi
+              <span v-if="!shInsight && !shInsightLoading && !shInsightError"
+                    @click="loadShareholderInsight()"
+                    style="cursor:pointer;font-size:11px;color:var(--accent);text-decoration:underline">
+                [Muat]
+              </span>
+            </div>
+
+            <!-- Loading -->
+            <div v-if="shInsightLoading" class="text-sm text-muted" style="padding:12px 0">
+              <span class="spinner"></span> Menyusun insight...
+            </div>
+
+            <!-- Error -->
+            <div v-else-if="shInsightError" class="text-sm" style="color:var(--danger);padding:8px 0">
+              {{ shInsightError }}
+            </div>
+
+            <!-- Loaded -->
+            <template v-else-if="shInsight && shInsight.insight">
+              <div v-if="shInsight.insight.narrative" class="text-sm" style="line-height:1.7;padding:8px 0;color:var(--text)">
+                {{ shInsight.insight.narrative }}
+              </div>
+
+              <!-- Key Findings -->
+              <div v-if="shInsight.insight.key_findings && shInsight.insight.key_findings.length" class="mb-2">
+                <div class="text-xs font-semibold" style="color:var(--accent);margin-bottom:6px">📊 Temuan Utama</div>
+                <div v-for="(f,fi) in shInsight.insight.key_findings" :key="fi"
+                     style="padding:3px 0;font-size:12px;display:flex;gap:6px">
+                  <span style="color:var(--accent)">•</span>
+                  <span>{{ f }}</span>
+                </div>
+              </div>
+
+              <!-- Risks -->
+              <div v-if="shInsight.insight.risks && shInsight.insight.risks.length" class="mb-2">
+                <div class="text-xs font-semibold" style="color:#EF4444;margin-bottom:6px">⚠️ Risiko</div>
+                <div v-for="(r,ri) in shInsight.insight.risks" :key="ri"
+                     style="padding:3px 0;font-size:12px;display:flex;gap:6px">
+                  <span style="color:#EF4444">•</span>
+                  <span>{{ r }}</span>
+                </div>
+              </div>
+
+              <!-- Opportunities -->
+              <div v-if="shInsight.insight.opportunities && shInsight.insight.opportunities.length" class="mb-2">
+                <div class="text-xs font-semibold" style="color:#22C55E;margin-bottom:6px">✅ Peluang</div>
+                <div v-for="(o,oi) in shInsight.insight.opportunities" :key="oi"
+                     style="padding:3px 0;font-size:12px;display:flex;gap:6px">
+                  <span style="color:#22C55E">•</span>
+                  <span>{{ o }}</span>
+                </div>
+              </div>
+
+              <!-- Recommendations -->
+              <div v-if="shInsight.insight.recommendations && shInsight.insight.recommendations.length">
+                <div class="text-xs font-semibold" style="color:#3B82F6;margin-bottom:6px">💡 Rekomendasi</div>
+                <div v-for="(rc,rci) in shInsight.insight.recommendations" :key="rci"
+                     style="padding:3px 0;font-size:12px;display:flex;gap:6px">
+                  <span style="color:#3B82F6">•</span>
+                  <span>{{ rc }}</span>
+                </div>
+              </div>
+
+              <div v-if="!shInsight.insight.narrative && !shInsight.insight.key_findings"
+                   class="text-sm text-muted" style="padding:8px 0">
+                Insight tidak tersedia untuk periode ini.
+              </div>
+            </template>
+
+            <!-- Not loaded yet -->
+            <div v-else class="text-sm text-muted" style="padding:8px 0">
+              Klik <strong>[Muat]</strong> untuk generate AI insight dari data shareholder.
+            </div>
+          </div>
+
           <!-- Row: 2 analysis charts side by side -->
           <div class="sh-grid-2">
             <div class="card p-4">

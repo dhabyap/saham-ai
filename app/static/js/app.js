@@ -137,6 +137,8 @@ createApp({
       shHolderActiveName: shHolderActiveName, popularHolders: popularHolders,
       filteredHolders: filteredHolders, shHolderSelected: shHolderSelected,
       selectHolder: selectHolder, clearHolderSelection: clearHolderSelection,
+      shInsight: shInsight, shInsightLoading: shInsightLoading, shInsightError: shInsightError,
+      loadShareholderInsight: loadShareholderInsight,
       // Market Reports
       mrReports: mrReports, mrStats: mrStats, mrAnalysis: mrAnalysis,
       mrLoadingAnalysis: mrLoadingAnalysis, mrFilter: mrFilter, setMrFilter: setMrFilter,

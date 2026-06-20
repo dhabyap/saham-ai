@@ -50,10 +50,9 @@
         <div class="section">
           <div class="card p-4 mb-4">
             <div class="font-semibold mb-2 text-accent">Daftar Semua Emiten &amp; Kepemilikan</div>
-            <div style="display:flex;gap:8px;margin-bottom:8px">
+            <div class="overview-search">
               <input type="text" v-model="shOverviewQuery"
-                     placeholder="Cari kode saham..."
-                     style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:12px" />
+                     placeholder="Cari kode saham..." />
             </div>
             <div class="stock-table-wrapper" style="overflow-x:auto;height:400px;overflow-y:auto;min-height:0">
               <table class="table-compact" style="width:100%;font-size:12px">
@@ -91,7 +90,7 @@
              </div>
           </div>
           <!-- Row: 2 analysis charts side by side -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;margin-top:16px">
+          <div class="sh-grid-2">
             <div class="card p-4">
               <div class="font-semibold mb-2" style="font-size:13px">Distribusi Jumlah Pemegang Saham
                 <span class="help-tip" title="Berapa banyak emiten yang punya 1, 2, 3, ... pemegang saham.">ℹ️</span>
@@ -186,7 +185,7 @@
             <div class="font-semibold mb-3" style="font-size:14px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)">
               Ringkasan Intelijen
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;line-height:1.6">
+            <div class="sh-grid-2-no-gap">
               <div>
                 <span class="text-muted">📊 Total data:</span>
                 <strong>{{ shDetailStats.total_records }}</strong> catatan kepemilikan
@@ -247,11 +246,10 @@
         <div class="section">
           <!-- Search holder -->
           <div class="card p-4" style="margin-bottom:16px">
-            <div style="display:flex;gap:8px;margin-bottom:12px">
+            <div class="search-bar">
               <input type="text" v-model="shHolderQuery"
                      placeholder="Cari nama pemegang saham..."
-                     @keyup.enter="searchShareholdersByHolder"
-                     style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:13px" />
+                     @keyup.enter="searchShareholdersByHolder" />
               <button class="btn btn-sm btn-accent" @click="searchShareholdersByHolder">Cari</button>
             </div>
             <div v-if="popularHolders.length && !shHolderResult.length && !shHolderLoading">
@@ -271,20 +269,20 @@
             <div style="font-size:18px;font-weight:700;color:var(--accent);margin:0 0 12px">
               Portofolio: {{ shHolderActiveName }}
             </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
-              <div class="card text-center p-3">
-                <div class="font-bold text-accent" style="font-size:20px">{{ shHolderResult.length }}</div>
-                <div class="text-xs text-muted">Saham Dipegang</div>
+            <div class="sh-grid-3">
+                <div class="card text-center p-3">
+                  <div class="font-bold text-accent" style="font-size:20px">{{ shHolderResult.length }}</div>
+                  <div class="text-xs text-muted">Saham Dipegang</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-success" style="font-size:20px">{{ totalSharePct(shHolderResult).toFixed(1) }}%</div>
+                  <div class="text-xs text-muted">Total Portofolio</div>
+                </div>
+                <div class="card text-center p-3">
+                  <div class="font-bold text-warning" style="font-size:20px">{{ dominantHolderPct(shHolderResult) }}</div>
+                  <div class="text-xs text-muted">Holding Terbesar</div>
+                </div>
               </div>
-              <div class="card text-center p-3">
-                <div class="font-bold text-success" style="font-size:20px">{{ totalSharePct(shHolderResult).toFixed(1) }}%</div>
-                <div class="text-xs text-muted">Total Portofolio</div>
-              </div>
-              <div class="card text-center p-3">
-                <div class="font-bold text-warning" style="font-size:20px">{{ dominantHolderPct(shHolderResult) }}</div>
-                <div class="text-xs text-muted">Holding Terbesar</div>
-              </div>
-            </div>
             <div style="height:200px;margin-bottom:16px">
               <canvas id="shHolderPortfolioChart"></canvas>
             </div>
@@ -337,12 +335,11 @@
       <div class="section">
         <div class="card p-4">
           <div class="section-title">Cari Kepemilikan per Emiten</div>
-          <div style="display:flex;gap:8px;margin-bottom:12px">
+          <div class="search-bar">
             <input type="text" v-model="shStockQuery"
                    placeholder="Cari kode atau nama perusahaan..."
                    @keyup.enter="searchStockShareholders"
-                   @input="filterStockGrid"
-                   style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:13px" />
+                   @input="filterStockGrid" />
             <button class="btn btn-sm btn-accent" @click="searchStockShareholders">Cari</button>
           </div>
 
@@ -353,7 +350,7 @@
                  class="text-center text-muted" style="padding:12px;font-size:12px">
               Tidak ada saham cocok dengan "{{ shStockQuery }}"
             </div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <div class="chip-grid" style="display:flex;flex-wrap:wrap;gap:6px">
               <div v-for="s in filteredStockList" :key="s.stock_code"
                    @click="selectStockShareholder(s.stock_code)"
                    :style="{
@@ -379,7 +376,7 @@
                 <small v-if="shStockActiveName" style="font-size:12px;color:var(--text-muted);font-weight:400"> — {{ shStockActiveName }}</small>
                 <span @click="clearStockSelection" style="cursor:pointer;margin-left:auto;font-size:12px;padding:3px 10px;border-radius:8px;background:var(--bg-hover,rgba(0,0,0,0.05));color:var(--text-muted)">✕ Tutup</span>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+              <div class="sh-grid-3">
                 <div class="card text-center p-3">
                   <div class="font-bold text-accent" style="font-size:20px">{{ shStockResult.length }}</div>
                   <div class="text-xs text-muted">Pemegang Saham</div>

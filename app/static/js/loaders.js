@@ -434,6 +434,16 @@ function filterStockGrid() {
   }
 }
 
+function clearStockSelection() {
+  shStockSelected.value = '';
+  shStockActiveLabel.value = '';
+  shStockActiveName.value = '';
+  shStockResult.value = [];
+  shStockSearched.value = false;
+  shStockLoading.value = false;
+  shStockError.value = '';
+}
+
 // ── Watchlist ──
 async function loadWatchlistData() {
   try {

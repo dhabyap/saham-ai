@@ -175,11 +175,23 @@ var shStockActiveLabel = computed(function() {
   return '';
 });
 var shStockActiveName = ref('');
+
+// Live filter for Per Emiten grid
 var filteredStockList = computed(function() {
   var q = (shStockQuery.value || '').toUpperCase().trim();
   if (!q) return shStockList.value;
   return shStockList.value.filter(function(s) {
     return s.stock_code.indexOf(q) !== -1 || (s.stock_name || '').toUpperCase().indexOf(q) !== -1;
+  });
+});
+
+// Overview table search
+var shOverviewQuery = ref('');
+var shFilteredOverview = computed(function() {
+  var q = (shOverviewQuery.value || '').toUpperCase().trim();
+  if (!q) return shSortedTable.value;
+  return shSortedTable.value.filter(function(s) {
+    return s.stock_code.indexOf(q) !== -1;
   });
 });
 

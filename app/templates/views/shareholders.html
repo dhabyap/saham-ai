@@ -543,6 +543,9 @@
           <!-- Result -->
           <div v-if="shUploadResult" class="card p-4" style="border-left:4px solid var(--success)">
             <div class="font-semibold text-sm mb-2" style="color:var(--success)">✅ Upload Berhasil</div>
+            <div v-if="shUploadResult.exists" class="text-sm mb-2" style="color:var(--warning);background:rgba(245,158,11,0.1);padding:8px 12px;border-radius:8px">
+              ⚠️ Data untuk periode <strong>{{ shUploadResult.period }}</strong> sudah ada sebelumnya dan telah <strong>diperbarui</strong> ({{ shUploadResult.updated || 0 }} baris update, {{ shUploadResult.imported || 0 }} baris baru).
+            </div>
             <div class="text-sm">
               <div>Periode: <strong>{{ shUploadResult.period }}</strong></div>
               <div>Baris diimport: <strong>{{ shUploadResult.imported || 0 }}</strong></div>

@@ -40,6 +40,7 @@ from app.services.shareholder_service import (
     get_available_periods,
     get_top_shareholders,
     get_latest_period,
+    period_has_data,
     upsert_shareholder,
     bulk_import,
 )
@@ -644,8 +645,11 @@ async def shareholder_upload(
     if not rows:
         raise HTTPException(400, "No valid data found in file")
 
+    # Warn if this period already has data
+    exists = period_has_data(period)
+
     result = bulk_import(rows, period)
-    return {"status": "ok", "period": period, **result}
+    return {"status": "ok", "period": period, "exists": exists, **result}
 
 
 @router.get("/health")

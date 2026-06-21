@@ -144,7 +144,7 @@ def upsert_shareholder(
     data_period: str = '',
     source: str = 'manual',
 ) -> dict:
-    """Insert or update a shareholder record."""
+    """Insert or update a shareholder record. Returns {'action': 'inserted'|'updated'}."""
     _ensure_table()
     with get_db() as conn:
         existing = conn.execute(
@@ -157,17 +157,25 @@ def upsert_shareholder(
                    WHERE stock_code=? AND shareholder_name=? AND data_period=?""",
                 (share_count, share_percent, category, source, stock_code.upper(), shareholder_name.upper(), data_period)
             )
+            return {'action': 'updated'}
         else:
             conn.execute(
                 """INSERT INTO shareholders (stock_code, shareholder_name, share_count, share_percent, category, data_period, source)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (stock_code.upper(), shareholder_name.upper(), share_count, share_percent, category, data_period, source)
             )
+            return {'action': 'inserted'}
+
+
+def period_has_data(data_period: str) -> bool:
+    """Check if period already has any records."""
+    _ensure_table()
+    with get_db() as conn:
         row = conn.execute(
-            "SELECT * FROM shareholders WHERE stock_code = ? AND shareholder_name = ? AND data_period = ?",
-            (stock_code.upper(), shareholder_name.upper(), data_period)
+            "SELECT 1 FROM shareholders WHERE data_period = ? LIMIT 1",
+            (data_period,)
         ).fetchone()
-        return dict(row) if row else {}
+        return row is not None
 
 
 def bulk_import(data: list[dict], data_period: str) -> dict:
@@ -186,11 +194,14 @@ def bulk_import(data: list[dict], data_period: str) -> dict:
             if not stock_code or not name:
                 errors.append(f"Row {i}: missing stock_code or shareholder_name")
                 continue
-            upsert_shareholder(stock_code, name, pct, count, cat, data_period, 'manual')
-            inserted += 1
+            result = upsert_shareholder(stock_code, name, pct, count, cat, data_period, 'manual')
+            if result.get('action') == 'inserted':
+                inserted += 1
+            else:
+                updated += 1
         except Exception as e:
             errors.append(f"Row {i}: {e}")
-    return {"imported": inserted, "errors": errors, "total": len(data)}
+    return {"imported": inserted, "updated": updated, "errors": errors, "total": len(data)}
 
 
 def get_latest_period() -> Optional[str]:

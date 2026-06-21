@@ -66,6 +66,7 @@ createApp({
     return {
       // Appearance
       currentTheme: currentTheme, themes: themes, headerTitle: headerTitle,
+      switchTheme: switchTheme,
       // Navigation
       currentView: currentView, navItems: navItems, currentTab: currentTab,
       switchView: switchView, switchMrTab: switchMrTab,

@@ -181,6 +181,24 @@ class TelegramBot:
                 f"• MA50: Rp{result['ma50']:,.0f}\n"
                 f"• Support: Rp{result['support']:,.0f}\n"
                 f"• Resistance: Rp{result['resistance']:,.0f}\n\n"
+            )
+
+            # Foreign / Smart Money Flow
+            ff_days = result.get('accumulation_days', 0)
+            ff_net = result.get('foreign_net_buy', 0)
+            ff_status = result.get('accumulation_status', 'neutral')
+            if isinstance(ff_days, (int, float)) and ff_days > 0:
+                accum_icon = "✅" if ff_status == "accumulating" else "⚠️" if ff_status == "distributing" else "➖"
+                message += (
+                    f"🌍 *Money Flow Asing:*\n"
+                    f"{accum_icon} Akumulasi: {ff_days} hari | Status: {ff_status}\n"
+                )
+                if ff_net:
+                    sign = "+" if ff_net > 0 else ""
+                    message += f"💰 Net 5hari: {sign}Rp{ff_net:,.0f}\n"
+                message += "\n"
+
+            message += (
                 f"🎯 *Rekomendasi: {result['recommendation']}*\n"
                 f"📈 Confidence: {result['confidence']}%\n"
                 f"{src_icon} _Sumber: {src_text}_{ai_warn}\n\n"

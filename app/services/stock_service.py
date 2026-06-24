@@ -10,6 +10,7 @@ from app.constants import (
     RSI_OVERBOUGHT, RSI_OVERSOLD, OPENING_RANGE_MINUTES,
 )
 from app.http_client import get_http_client
+from app.database.foreign_flow_models import get_accumulation_status, get_foreign_flow
 
 
 STOCK_LIST = {
@@ -234,6 +235,31 @@ def get_latest_data(code: str, period: str = "3mo") -> Optional[dict]:
         "volume_avg": round(latest["Volume_MA"], 0) if pd.notna(latest["Volume_MA"]) else None,
         "dataframe": df,
     }
+
+    # Inject foreign flow & accumulation data
+    clean_code = code.upper().replace(".JK", "")
+    try:
+        accum = get_accumulation_status(clean_code)
+        if accum:
+            result["accumulation_days"] = accum.get("accumulation_days", 0)
+            result["distribution_days"] = accum.get("distribution_days", 0)
+            result["accumulation_status"] = accum.get("status", "neutral")
+            result["accumulation_strength"] = accum.get("strength", "weak")
+            result["accumulation_cumulative_net"] = round(accum.get("cumulative_net", 0), 0)
+
+        flow = get_foreign_flow(clean_code, days=5)
+        if flow:
+            result["foreign_net_buy"] = round(sum(r.get("foreign_net", 0) for r in flow), 0)
+            result["foreign_buy_total"] = round(sum(r.get("foreign_buy", 0) for r in flow), 0)
+            result["foreign_sell_total"] = round(sum(r.get("foreign_sell", 0) for r in flow), 0)
+            result["foreign_flow_days"] = len(flow)
+        else:
+            result["foreign_net_buy"] = 0
+            result["foreign_flow_days"] = 0
+    except Exception:
+        result["foreign_net_buy"] = 0
+        result["accumulation_days"] = 0
+        result["foreign_flow_days"] = 0
 
     # Convert numpy types to native Python for JSON serialization
     for k, v in result.items():

@@ -6,6 +6,8 @@
 <title>AI Stock Analyzer &mdash; Dashboard</title>
 <script src="/static/vendor/vue.global.prod.js"></script>
 <script src="/static/vendor/chart.umd.min.js"></script>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/vis-network/styles/vis-network.min.css">
 <link rel="stylesheet" href="/static/dashboard.css?v=4">
 </head>
 <body>
@@ -35,6 +37,7 @@
       {% include 'views/analysis.html' %}
       {% include 'views/marketreports.html' %}
       {% include 'views/shareholders.html' %}
+      {% include 'views/brokerdata.html' %}
       {% include 'views/settings.html' %}
     </div>
   </div>
@@ -46,6 +49,6 @@
     <script src="/static/js/charts.js?v=17"></script>
     <script src="/static/js/loaders.js?v=19"></script>
     <script src="/static/js/state_bubble.js?v=13"></script>
-    <script src="/static/js/app.js?v=16"></script>
+    <script src="/static/js/app.js?v=17"></script>
 </body>
 </html>

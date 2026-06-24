@@ -1,0 +1,183 @@
+<template v-if="currentView === 'brokerdata'">
+  <div class="tabs">
+    <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Ringkasan</button>
+    <button class="tab-btn" :class="{ active: currentTab === 'netflow' }" @click="currentTab = 'netflow'">Net Flow</button>
+    <button class="tab-btn" :class="{ active: currentTab === 'crossing' }" @click="currentTab = 'crossing'">Crossing</button>
+  </div>
+
+  <!-- Search bar -->
+  <div class="overview-search" style="margin-top:0">
+    <input type="text" v-model="bdStockQuery" placeholder="Cari kode saham..."
+           @input="onBdSearchInput" @keydown.down.prevent="bdHighlight++" @keydown.up.prevent="bdHighlight--"
+           @keydown.enter="bdSelectHighlighted" @focus="onBdSearchInput"
+           @blur="bdHideSuggestions" autocomplete="off" />
+    <button class="btn btn-sm btn-accent" @click="loadBrokerData(bdStockQuery.toUpperCase())"
+            :disabled="bdLoading">
+      <span v-if="!bdLoading">Cari</span><span v-else>⏳</span>
+    </button>
+  </div>
+
+  <!-- Suggestions dropdown -->
+  <div style="position:relative">
+    <div class="bd-suggestions" v-if="bdShowSuggestions && bdFiltered.length">
+      <div v-for="(s, i) in bdFiltered" :key="s.stock_code"
+           class="bd-suggestion-item" :class="{ active: bdHighlight === i }"
+           @mousedown.prevent="selectBdStock(s)" @mouseenter="bdHighlight = i">
+        <span class="s-code" style="font-weight:700;color:var(--accent);min-width:65px">{{ s.stock_code }}</span>
+        <span class="s-meta" style="flex:1;color:var(--text-secondary);font-size:12px">{{ s.latest_from || '?' }} → {{ s.latest_to || '?' }}</span>
+        <span class="badge">{{ s.entries }} entry</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty: tag chips like shareholder page -->
+  <div v-if="!bdData && !bdLoading && !bdError">
+    <div style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Pilih kode saham:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <div v-for="s in bdAvailable" :key="s.stock_code"
+           @click="selectBdStock(s)"
+           :title="s.latest_from+' → '+s.latest_to"
+           :style="{
+             cursor:'pointer', padding:'4px 12px', borderRadius:'12px', fontSize:'12px', whiteSpace:'nowrap',
+             background:'var(--accent)', color:'#fff'
+           }">
+        {{ s.stock_code }}
+        <small style="opacity:0.7">({{ s.entries }})</small>
+      </div>
+      <div v-if="!bdAvailable.length && !bdLoading" style="color:var(--text-secondary);font-size:13px;padding:12px 0">
+        Memuat daftar saham...
+      </div>
+    </div>
+  </div>
+
+  <!-- Active stock chip (visible when data loaded) -->
+  <div v-if="bdCurrentStock" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+    <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:12px;
+                background:var(--accent);color:#fff;font-weight:600">
+      {{ bdCurrentStock.stock_code }}
+      <small style="opacity:0.7">({{ bdCurrentStock.entries }} entry)</small>
+      <span @click="bdCurrentStock=null;bdData=null;bdStockQuery=''"
+            style="cursor:pointer;margin-left:4px;opacity:0.7;font-size:14px">&times;</span>
+    </div>
+  </div>
+
+  <!-- Overview Tab -->
+  <div class="tab-pane" :class="{ active: currentTab === 'overview' }">
+    <template v-if="bdLoading">
+      <div class="loading-box"><div class="spinner"></div><span>Memuat data broker...</span></div>
+    </template>
+    <template v-else-if="bdError">
+      <div class="error-card">
+        <div class="error-icon">⚠️</div>
+        <div class="error-msg">{{ bdError }}</div>
+        <div class="error-hint">Coba kode saham lain atau cek koneksi</div>
+      </div>
+    </template>
+    <template v-else-if="bdData">
+      <div class="stat-grid">
+        <div class="stat-card mint"><div class="stat-label">Periode</div><div class="stat-value-sm">{{ bdData.period_from || '-' }} → {{ bdData.period_to || '-' }}</div></div>
+        <div class="stat-card green"><div class="stat-label">Total Buy</div><div class="stat-value-sm">Rp{{ bdFmt(bdData.total_buy_value) }}</div></div>
+        <div class="stat-card red"><div class="stat-label">Total Sell</div><div class="stat-value-sm">Rp{{ bdFmt(bdData.total_sell_value) }}</div></div>
+        <div class="stat-card"><div class="stat-label">Buyer Brokers</div><div class="stat-value-sm">{{ bdData.buyer_count }}</div></div>
+        <div class="stat-card"><div class="stat-label">Seller Brokers</div><div class="stat-value-sm">{{ bdData.seller_count }}</div></div>
+      </div>
+      <div class="info-chip" v-if="bdData.is_gross"><span class="chip-icon">📊</span> GROSS: buy + sell dilaporkan terpisah</div>
+      <div class="insight-grid">
+        <div class="insight-card" v-if="bdData.top_two_way">
+          <div class="insight-header"><span class="insight-icon">🔄</span><span>Two-Way Broker</span></div>
+          <div class="insight-body">
+            <div class="two-way-bar">
+              <div class="bar-labels"><span>Buy</span><span>Sell</span></div>
+              <div class="bar-track"><div class="bar-fill buy-fill" :style="{ width: bdData.top_two_way.two_way_percentage+'%' }"></div></div>
+              <div class="bar-pct">{{ bdData.top_two_way.two_way_percentage.toFixed(1) }}% 2-way</div>
+            </div>
+            <div class="insight-detail"><span class="detail-label">Tertinggi:</span><span class="detail-val">{{ bdData.top_two_way.broker_code }}</span><span class="detail-sub">B={{ bdData.top_two_way.buy_lots.toLocaleString() }} S={{ bdData.top_two_way.sell_lots.toLocaleString() }} Vol={{ bdData.top_two_way.total_volume.toLocaleString() }}</span></div>
+            <div class="insight-detail" v-if="bdData.most_one_way"><span class="detail-label">1-way:</span><span class="detail-val">{{ bdData.most_one_way.broker_code }}</span><span class="detail-sub">({{ bdData.most_one_way.two_way_percentage.toFixed(1) }}% 2-way)</span></div>
+          </div>
+        </div>
+        <div class="insight-card" v-if="bdData.crossing_count">
+          <div class="insight-header"><span class="insight-icon">✂️</span><span>Potential Crossings</span></div>
+          <div class="insight-body">
+            <div class="crossing-stat">
+              <div class="crossing-big">{{ bdData.crossing_count }}</div>
+              <div class="crossing-label">pairs detected</div>
+            </div>
+            <div class="crossing-metrics">
+              <div class="metric"><div class="metric-label">Avg Spread</div><div class="metric-val">Rp{{ (bdData.avg_spread || 0).toLocaleString('id') }}</div></div>
+              <div class="metric" v-if="bdData.widest_crossing">
+                <div class="metric-label">Widest</div>
+                <div class="metric-val" style="color:var(--danger);font-size:13px">{{ bdData.widest_crossing.buyer_broker }}→{{ bdData.widest_crossing.seller_broker }}</div>
+                <div class="metric-sub">Rp{{ Math.round(bdData.widest_crossing.spread).toLocaleString('id') }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- Net Flow Tab -->
+  <div class="tab-pane" :class="{ active: currentTab === 'netflow' }">
+    <template v-if="bdError">
+      <div class="error-card" style="margin-top:12px">
+        <div class="error-icon">⚠️</div>
+        <div class="error-msg">{{ bdError }}</div>
+        <div class="error-hint">Coba kode saham lain atau cek koneksi</div>
+      </div>
+    </template>
+    <template v-else-if="bdData && bdData.net_flow">
+      <div class="section"><div class="section-title">💰 Net Flow per Broker</div>
+      <div class="table-wrap" style="max-height:500px;overflow-y:auto">
+        <table class="table-compact" style="width:100%;font-size:12px">
+          <thead style="position:sticky;top:0;background:var(--bg-card)">
+            <tr><th style="padding:6px 8px">Broker</th><th style="padding:6px 8px">Net Flow</th><th style="padding:6px 8px">Buy Value</th><th style="padding:6px 8px">Sell Value</th><th style="padding:6px 8px">Side</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="b in bdData.net_flow" :key="b.broker_code" :style="b.net >= 0 ? 'background:rgba(34,197,94,0.06)' : 'background:rgba(239,68,68,0.06)'">
+              <td style="padding:4px 8px;font-weight:700">{{ b.broker_code }}</td>
+              <td style="padding:4px 8px;font-weight:600" :style="{ color: b.net >= 0 ? 'var(--success)' : 'var(--danger)' }">{{ b.net >= 0 ? '+' : '' }}Rp{{ Math.abs(b.net).toLocaleString('id') }}</td>
+              <td style="padding:4px 8px">Rp{{ b.buy_value.toLocaleString('id') }}</td>
+              <td style="padding:4px 8px">Rp{{ b.sell_value.toLocaleString('id') }}</td>
+              <td style="padding:4px 8px"><span class="badge" :class="b.net >= 0 ? 'badge-success' : 'badge-danger'">{{ b.net >= 0 ? 'BUY' : 'SELL' }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div></div>
+    </template>
+    <template v-else-if="!bdData"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">{{ bdCurrentStock ? 'Belum ada data net flow untuk ' + bdCurrentStock.stock_code : 'Cari saham dulu' }}</div></div></template>
+    <template v-else><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Tidak ada data net flow</div></div></template>
+  </div>
+
+  <!-- Crossing Tab -->
+  <div class="tab-pane" :class="{ active: currentTab === 'crossing' }">
+    <template v-if="bdError">
+      <div class="error-card" style="margin-top:12px">
+        <div class="error-icon">⚠️</div>
+        <div class="error-msg">{{ bdError }}</div>
+        <div class="error-hint">Coba kode saham lain atau cek koneksi</div>
+      </div>
+    </template>
+    <template v-else-if="bdData && bdData.crossings && bdData.crossings.length">
+      <div class="section"><div class="section-title">✂️ Potential Crossings ({{ bdData.crossings.length }})</div>
+      <div class="table-wrap" style="max-height:500px;overflow-y:auto">
+        <table class="table-compact" style="width:100%;font-size:11px">
+          <thead style="position:sticky;top:0;background:var(--bg-card)">
+            <tr><th style="padding:4px 6px">Buyer</th><th style="padding:4px 6px">Seller</th><th style="padding:4px 6px">Lots</th><th style="padding:4px 6px">Buy Avg</th><th style="padding:4px 6px">Sell Avg</th><th style="padding:4px 6px">Spread</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="c in bdData.crossings" :key="c.buyer_broker + c.seller_broker">
+              <td style="padding:3px 6px;font-weight:600;color:var(--success)">{{ c.buyer_broker }}</td>
+              <td style="padding:3px 6px;color:var(--danger)">{{ c.seller_broker }}</td>
+              <td style="padding:3px 6px">{{ c.potential_lots.toLocaleString('id') }}</td>
+              <td style="padding:3px 6px">Rp{{ Math.round(c.buyer_avg_price).toLocaleString('id') }}</td>
+              <td style="padding:3px 6px">Rp{{ Math.round(c.seller_avg_price).toLocaleString('id') }}</td>
+              <td style="padding:3px 6px;font-weight:600" :style="{ color: c.spread >= 0 ? 'var(--success)' : 'var(--danger)' }">Rp{{ Math.round(c.spread).toLocaleString('id') }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div></div>
+    </template>
+    <template v-else-if="!bdData"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">{{ bdCurrentStock ? 'Belum ada data crossing untuk ' + bdCurrentStock.stock_code : 'Cari saham dulu' }}</div></div></template>
+    <template v-else><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Tidak ada crossing data</div></div></template>
+  </div>
+</template>

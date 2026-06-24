@@ -261,6 +261,45 @@
             </div>
           </div>
 
+          <!-- Chart: Force Graph Jaringan Pemegang Saham -->
+          <div class="card p-4 mt-4">
+            <div class="font-semibold mb-2">Jaringan Pemegang Saham
+              <span class="help-tip" title="Force-directed graph. Node lingkaran = pemegang saham (ukuran = total %). Node kotak = saham. Garis = kepemilikan. Drag node untuk eksplorasi.">ℹ️</span>
+            </div>
+            <div class="chart-container" style="height: 500px;position:relative;border:1px solid var(--border,#333);border-radius:8px;overflow:hidden">
+              <div id="shForceGraph" style="width:100%;height:100%;min-height:480px"></div>
+              <div v-if="shForceLoading" class="chart-overlay-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);border-radius:8px;z-index:5;color:#fff;font-size:14px">
+                ⏳ Memuat jaringan...
+              </div>
+            </div>
+            <div v-if="shForceSelected" class="card p-3 mt-3" style="border:1px solid var(--accent)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <span style="font-weight:700;font-size:15px;color:var(--accent)">{{ shForceSelected.label }}</span>
+                <span @click="shForceSelected=null" style="cursor:pointer;margin-left:auto;font-size:12px;padding:2px 8px;border-radius:6px;background:var(--bg-hover,rgba(0,0,0,0.05));color:var(--text-muted)">✕ Tutup</span>
+              </div>
+              <div v-if="shForceSelected.type === 'shareholder'" class="sh-grid-3" style="margin-bottom:8px">
+                <div class="card text-center p-2">
+                  <div class="font-bold text-accent" style="font-size:18px">{{ shForceSelected.total_pct }}%</div>
+                  <div class="text-xs text-muted">Total Portofolio</div>
+                </div>
+                <div class="card text-center p-2">
+                  <div class="font-bold text-success" style="font-size:18px">{{ shForceSelected.stock_count }}</div>
+                  <div class="text-xs text-muted">Saham Dipegang</div>
+                </div>
+                <div class="card text-center p-2">
+                  <div class="font-bold" style="color:#EF4444;font-size:18px">Pengendali</div>
+                  <div class="text-xs text-muted">Kategori</div>
+                </div>
+              </div>
+              <div v-if="shForceSelected.type === 'stock'" class="mb-2">
+                <div class="text-xs text-muted">Saham ini dimiliki oleh beberapa pemegang saham besar.</div>
+              </div>
+              <button v-if="shForceSelected.type === 'shareholder'" class="btn btn-sm btn-accent" @click="searchForceHolder(shForceSelected.id)" style="width:100%">
+                🔍 Lihat Detail Portofolio
+              </button>
+            </div>
+          </div>
+
           <!-- Insight Narrative -->
           <div v-if="shDetailStats" class="card p-4 mt-4 insight-card">
             <div class="font-semibold mb-3" style="font-size:14px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)">

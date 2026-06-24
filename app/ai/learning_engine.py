@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from app.database import ai_crud
 from app.config import Config
+from app.database.foreign_flow_models import get_accumulation_status, get_foreign_flow
 
 
 class LearningEngine:
@@ -155,6 +156,61 @@ class LearningEngine:
         reasons = []
         details = {}
 
+        # === FOREIGN FLOW — PRIMARY GATE ===
+        stock_code = data.get("stock_code", "").replace(".JK", "")
+        foreign_score = 0
+        foreign_reason = ""
+        try:
+            accum = get_accumulation_status(stock_code)
+            if accum:
+                data["accumulation_days"] = accum.get("accumulation_days", 0)
+                data["accumulation_status"] = accum.get("status", "neutral")
+                accum_days = accum.get("accumulation_days", 0)
+                status = accum.get("status", "neutral")
+                if accum_days >= 5 and status == "accumulating":
+                    foreign_score = 5
+                    foreign_reason = f"Asing akumulasi {accum_days} hari berturut-turut"
+                elif accum_days >= 3:
+                    foreign_score = 4
+                    foreign_reason = f"Asing mulai akumulasi {accum_days} hari"
+                elif accum_days >= 1:
+                    foreign_score = 2
+                    foreign_reason = f"Asing beli 1 hari ({accum_days}d)"
+                elif status == "distributing":
+                    foreign_score = -3
+                    foreign_reason = f"Asing distribusi, waspada"
+                else:
+                    foreign_score = 0
+                    foreign_reason = "Netral"
+
+            flow = get_foreign_flow(stock_code, days=5)
+            if flow:
+                net = sum(r.get("foreign_net", 0) for r in flow)
+                data["foreign_net_buy"] = round(net, 0)
+                if net > 0:
+                    foreign_score += 2
+                    foreign_reason += f" | Net asing 5hari: +Rp{net:,.0f}"
+                elif net < 0:
+                    foreign_score -= 2
+                    foreign_reason += f" | Net asing 5hari: Rp{net:,.0f} (jual)"
+                else:
+                    foreign_reason += " | Net asing 5hari: flat"
+            else:
+                foreign_reason = "Data asing tidak tersedia"
+        except Exception:
+            foreign_reason = "Gagal ambil data asing"
+
+        data["foreign_score"] = foreign_score
+        data["foreign_reason"] = foreign_reason
+        if foreign_score > 0:
+            score += foreign_score
+            reasons.append(foreign_reason)
+        elif foreign_score < 0:
+            score += foreign_score
+            reasons.append(foreign_reason)
+        details["foreign_flow"] = {"score": foreign_score, "reason": foreign_reason}
+
+        # Teknikal sebagai supplementary insight
         rsi = data.get("rsi")
         if rsi is not None:
             rsi_weight = weights.get("rsi_weight", 1.0)
@@ -239,8 +295,13 @@ class LearningEngine:
         else:
             threshold = 2
 
+        # FOREIGN FLOW GATE: tanpa akumulasi asing, max HOLD
         if score >= threshold:
-            recommendation = "BUY"
+            if foreign_score > 0:
+                recommendation = "BUY"
+            else:
+                recommendation = "HOLD"
+                reasons.append("Asing tidak akumulasi")
         elif score <= -threshold:
             recommendation = "SELL"
         else:

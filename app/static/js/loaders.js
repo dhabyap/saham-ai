@@ -331,6 +331,7 @@ async function loadShareholdersEnhanced() {
       fetch('/api/shareholders/stats/detail?period=' + period).then(function(r) { return r.json(); }),
       fetch('/api/shareholders/concentration?period=' + period + '&threshold=5').then(function(r) { return r.json(); }),
       fetch('/api/shareholders/scatter-data?period=' + period).then(function(r) { return r.json(); }),
+      fetch('/api/shareholders/force-graph?period=' + period).then(function(r) { return r.json(); }),
     ]);
 
     if (results[0].status === 'fulfilled' && results[0].value && results[0].value.status === 'ok')
@@ -348,7 +349,10 @@ async function loadShareholdersEnhanced() {
     if (results[4].status === 'fulfilled' && results[4].value && results[4].value.status === 'ok')
       shScatterData.value = results[4].value.data || [];
 
-    window.Vue.nextTick(function() { renderShareholderChartsEnhanced(); });
+    if (results[5].status === 'fulfilled' && results[5].value && results[5].value.status === 'ok')
+      shForceData.value = results[5].value;
+
+    window.Vue.nextTick(function() { renderShareholderChartsEnhanced(); renderForceGraph(); });
   } catch(e) {
     console.error('Enhanced shareholders load failed:', e);
   } finally {
@@ -773,6 +777,17 @@ function clearHolderSelection() {
   shHolderSearched.value = false;
   shHolderError.value = '';
 }
+async function searchForceHolder(name) {
+  if (!name) return;
+  // remove "sh:" prefix if present
+  var cleanName = name.startsWith('sh:') ? name.substring(3) : name;
+  // Switch to Top tab and search
+  currentTab.value = 'top';
+  shHolderQuery.value = cleanName;
+  shHolderSelected.value = cleanName;
+  await searchShareholdersByHolder();
+  shForceSelected.value = null;
+}
 
 // ── AI Insight ──
 async function loadShareholderInsight() {
@@ -832,4 +847,62 @@ async function loadAllDashboardData() {
 };
 
 // ⚠ DEPRECATED — kept for reference, use per-view loaders instead
+
+// ── Broker Data ──
+async function loadBrokerData(stockCode) {
+  if (!stockCode) return;
+  bdLoading.value = true;
+  bdError.value = null;
+  bdData.value = null;
+  try {
+    var r = await fetch('/api/broker-summary/' + encodeURIComponent(stockCode));
+    var d = await r.json();
+    if (d.status === 'error') {
+      bdError.value = d.message;
+    } else {
+      bdData.value = d;
+    }
+  } catch (e) {
+    bdError.value = e.message || 'Gagal load data';
+  } finally {
+    bdLoading.value = false;
+  }
+}
+
+async function loadBdAvailable() {
+  if (bdAvailable.value.length) return;
+  try {
+    var r = await fetch('/api/broker-summary/stocks');
+    var d = await r.json();
+    if (d.stocks) bdAvailable.value = d.stocks;
+  } catch (e) {
+    console.error('Gagal load daftar saham broker:', e);
+  }
+}
+
+function onBdSearchInput() {
+  if (!bdAvailable.value.length) loadBdAvailable();
+  bdShowSuggestions.value = bdStockQuery.value.length >= 1;
+  bdHighlight.value = -1;
+}
+
+function bdSelectHighlighted() {
+  if (bdHighlight.value >= 0 && bdFiltered.value[bdHighlight.value]) {
+    selectBdStock(bdFiltered.value[bdHighlight.value]);
+  } else if (bdStockQuery.value) {
+    loadBrokerData(bdStockQuery.value.toUpperCase());
+  }
+  bdShowSuggestions.value = false;
+}
+
+function selectBdStock(s) {
+  bdStockQuery.value = s.stock_code;
+  bdCurrentStock.value = s;
+  bdShowSuggestions.value = false;
+  loadBrokerData(s.stock_code);
+}
+
+function bdHideSuggestions() {
+  setTimeout(function () { bdShowSuggestions.value = false; }, 200);
+}
 

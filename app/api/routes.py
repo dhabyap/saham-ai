@@ -139,6 +139,273 @@ def shareholder_top(
     }
 
 
+@router.get("/shareholders/bubble-data")
+def shareholder_bubble_data(period: Optional[str] = None):
+    """Bubble chart data: top shareholders with has_majority flag (any holding >=5%)."""
+    try:
+        from app.services.shareholder_service import get_db
+        with get_db() as conn:
+            if period:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct,
+                           MAX(CASE WHEN share_percent >= 5 THEN 1 ELSE 0 END) as has_majority
+                    FROM shareholders
+                    WHERE data_period = ? AND share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT 80
+                """, (period,))
+            else:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct,
+                           MAX(CASE WHEN share_percent >= 5 THEN 1 ELSE 0 END) as has_majority
+                    FROM shareholders
+                    WHERE share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT 80
+                """)
+            data = []
+            for r in rows:
+                d = dict(r)
+                d["has_majority"] = bool(d["has_majority"])
+                data.append(d)
+            return {"status": "ok", "data": data}
+    except Exception as e:
+        logger.error("bubble-data error: %s", e)
+        return {"status": "error", "data": [], "error": str(e)}
+@router.get("/shareholders/force-graph")
+def shareholder_force_graph(period: Optional[str] = None):
+    """Force-directed graph: top shareholders + their stock connections."""
+    try:
+        from app.services.shareholder_service import get_db
+        with get_db() as conn:
+            if period:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct
+                    FROM shareholders
+                    WHERE data_period = ? AND share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT 40
+                """, (period,))
+            else:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct
+                    FROM shareholders
+                    WHERE share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT 40
+                """)
+            top_holders = [dict(r) for r in rows]
+            if not top_holders:
+                return {"status": "ok", "nodes": [], "edges": []}
+
+            holder_names = [h["shareholder_name"] for h in top_holders]
+            placeholders = ",".join("?" for _ in holder_names)
+            name_upper = [n.upper() for n in holder_names]
+
+            if period:
+                edge_rows = conn.execute(f"""
+                    SELECT shareholder_name, stock_code, share_percent
+                    FROM shareholders
+                    WHERE UPPER(shareholder_name) IN ({placeholders})
+                      AND data_period = ? AND share_percent >= 0.5
+                    ORDER BY share_percent DESC
+                """, (*name_upper, period))
+            else:
+                edge_rows = conn.execute(f"""
+                    SELECT shareholder_name, stock_code, share_percent
+                    FROM shareholders
+                    WHERE UPPER(shareholder_name) IN ({placeholders})
+                      AND share_percent >= 0.5
+                    ORDER BY share_percent DESC
+                """, (*name_upper,))
+
+            edges_raw = [dict(r) for r in edge_rows]
+
+        stock_set = set()
+        nodes = []
+        edges = []
+        node_ids = set()
+
+        for h in top_holders:
+            nid = "sh:" + h["shareholder_name"]
+            nodes.append({
+                "id": nid, "label": h["shareholder_name"][:30],
+                "type": "shareholder", "value": h["total_pct"],
+                "size": min(50, max(15, round(h["total_pct"] / 10))),
+                "stock_count": h["stock_count"],
+                "total_pct": h["total_pct"]
+            })
+            node_ids.add(nid)
+
+        for e in edges_raw:
+            sid = "st:" + e["stock_code"]
+            if sid not in node_ids:
+                nodes.append({
+                    "id": sid, "label": e["stock_code"],
+                    "type": "stock", "value": 10, "size": 10
+                })
+                node_ids.add(sid)
+                stock_set.add(e["stock_code"])
+            edges.append({
+                "from": "sh:" + e["shareholder_name"],
+                "to": sid,
+                "value": max(1, e["share_percent"]),
+                "title": f"{e['share_percent']}%"
+            })
+
+        return {
+            "status": "ok", "nodes": nodes, "edges": edges,
+            "meta": {
+                "holders": len(top_holders),
+                "stocks": len(stock_set),
+                "connections": len(edges_raw)
+            }
+        }
+    except Exception as e:
+        logger.error("force-graph error: %s", e)
+        return {"status": "error", "nodes": [], "edges": [], "error": str(e)}
+
+@router.get("/shareholders/network-data")
+def shareholder_network_data(period: Optional[str] = None, limit: int = 40):
+    """Force-directed graph data: top shareholders connected to stocks they hold."""
+    try:
+        from app.services.shareholder_service import get_db
+        from app.services.stock_service import STOCK_LIST
+        with get_db() as conn:
+            # 1. Get top shareholders
+            if period:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct
+                    FROM shareholders
+                    WHERE data_period = ? AND share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT ?
+                """, (period, limit))
+            else:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct
+                    FROM shareholders
+                    WHERE share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT ?
+                """, (limit,))
+            top_holders = [dict(r) for r in rows]
+            holder_names = [h["shareholder_name"] for h in top_holders]
+
+            if not holder_names:
+                return {"status": "ok", "nodes": [], "edges": []}
+
+            # 2. Get their stock holdings (edges)
+            placeholders = ",".join("?" * len(holder_names))
+            if period:
+                rows2 = conn.execute(f"""
+                    SELECT s.stock_code, s.shareholder_name,
+                           ROUND(s.share_percent, 2) as share_percent
+                    FROM shareholders s
+                    WHERE s.shareholder_name IN ({placeholders})
+                    AND s.data_period = ? AND s.share_percent >= 0.5
+                    ORDER BY s.share_percent DESC
+                """, holder_names + [period])
+            else:
+                rows2 = conn.execute(f"""
+                    SELECT s.stock_code, s.shareholder_name,
+                           ROUND(s.share_percent, 2) as share_percent
+                    FROM shareholders s
+                    WHERE s.shareholder_name IN ({placeholders})
+                    AND s.share_percent >= 0.5
+                    ORDER BY s.share_percent DESC
+                """, holder_names)
+            edges_raw = [dict(r) for r in rows2]
+
+            # 3. Build nodes + edges
+            stock_codes = set()
+            edges = []
+            seen_edges = set()
+            for e in edges_raw:
+                key = f"{e['shareholder_name']}|{e['stock_code']}"
+                if key in seen_edges:
+                    continue
+                seen_edges.add(key)
+                stock_codes.add(e["stock_code"])
+                edges.append({
+                    "from": f"sh:{e['shareholder_name']}",
+                    "to": f"st:{e['stock_code']}",
+                    "value": max(0.5, e["share_percent"]),
+                    "title": f"{e['share_percent']}%"
+                })
+
+            # 4. Build nodes
+            nodes = []
+            seen_sh = set()
+            for h in top_holders:
+                nid = f"sh:{h['shareholder_name']}"
+                if nid in seen_sh:
+                    continue
+                seen_sh.add(nid)
+                sh_label = h["shareholder_name"]
+                if len(sh_label) > 30:
+                    sh_label = sh_label[:28] + "…"
+                nodes.append({
+                    "id": nid,
+                    "label": sh_label,
+                    "title": h["shareholder_name"],
+                    "type": "shareholder",
+                    "value": h["total_pct"],
+                    "color": "#EF4444",
+                    "shape": "dot",
+                    "size": min(50, 10 + h["total_pct"] / 10),
+                    "group": "shareholder"
+                })
+
+            seen_st = set()
+            for sc in sorted(stock_codes):
+                nid = f"st:{sc}"
+                if nid in seen_st:
+                    continue
+                seen_st.add(nid)
+                stock_name = STOCK_LIST.get(sc, "")
+                label = sc
+                if stock_name:
+                    sn = stock_name[:25]
+                    if len(stock_name) > 25:
+                        sn += "…"
+                    label = f"{sc} ({sn})"
+                nodes.append({
+                    "id": nid,
+                    "label": label,
+                    "title": f"{sc} — {stock_name}" if stock_name else sc,
+                    "type": "stock",
+                    "value": 1,
+                    "color": "#3B82F6",
+                    "shape": "square",
+                    "size": 15,
+                    "group": "stock"
+                })
+
+            return {"status": "ok", "nodes": nodes, "edges": edges}
+    except Exception as e:
+        logger.error("network-data error: %s", e)
+        return {"status": "error", "nodes": [], "edges": [], "error": str(e)}
+
+
 @router.get("/shareholders/stocks")
 def shareholder_stocks(period: Optional[str] = None):
     """List stocks that have shareholder data (with name if known)."""
@@ -1344,3 +1611,189 @@ def market_backtest():
         ],
         'daily': daily_details[-30:],  # last 30 days
     }
+
+
+@router.get("/broker-summary/stocks")
+def broker_summary_stocks():
+    """List stocks that have broker_summary data."""
+    from app.database.database import get_db
+    with get_db() as conn:
+        rows = conn.execute("""
+            SELECT stock_code, COUNT(*) as entries, 
+                   MAX(period_from) as latest_from, MAX(period_to) as latest_to
+            FROM broker_summary
+            GROUP BY stock_code
+            ORDER BY stock_code
+        """).fetchall()
+        stocks = []
+        for r in rows:
+            if hasattr(r, 'keys'):
+                stocks.append(dict(r))
+            else:
+                stocks.append({
+                    'stock_code': r[0],
+                    'entries': r[1],
+                    'latest_from': str(r[2]) if r[2] else None,
+                    'latest_to': str(r[3]) if r[3] else None,
+                })
+        return {'status': 'ok', 'stocks': stocks}
+
+
+@router.get("/broker-summary/{stock_code}")
+def broker_summary(stock_code: str):
+    """Get aggregated broker summary data for a stock."""
+    from app.database.database import get_db
+
+    with get_db() as conn:
+        # Get period
+        rows = conn.execute("""
+            SELECT DISTINCT period_from, period_to, is_gross
+            FROM broker_summary
+            WHERE stock_code = ?
+            ORDER BY period_from DESC
+            LIMIT 1
+        """, (stock_code.upper(),)).fetchall()
+        if not rows:
+            return {"status": "error", "message": f"No broker data for {stock_code.upper()}"}
+
+        row = rows[0]
+        period_from = row['period_from'] if hasattr(row, '__getitem__') else row[0]
+        period_to = row['period_to'] if hasattr(row, '__getitem__') else row[1]
+        is_gross = row['is_gross'] if hasattr(row, '__getitem__') else row[2]
+
+        # Buyers
+        buyers = conn.execute("""
+            SELECT broker_code, lots, value, avg_price
+            FROM broker_summary
+            WHERE stock_code=? AND side='buy'
+            ORDER BY value DESC
+        """, (stock_code.upper(),)).fetchall()
+
+        # Sellers
+        sellers = conn.execute("""
+            SELECT broker_code, lots, value, avg_price
+            FROM broker_summary
+            WHERE stock_code=? AND side='sell'
+            ORDER BY value DESC
+        """, (stock_code.upper(),)).fetchall()
+
+        # Convert to dicts
+        def row2dict(r):
+            if hasattr(r, 'keys'):
+                return dict(r)
+            return {'broker_code': r[0], 'lots': r[1], 'value': r[2], 'avg_price': r[3]}
+
+        buyers_list = [row2dict(r) for r in buyers]
+        sellers_list = [row2dict(r) for r in sellers]
+
+        # Net flow
+        bmap = {b['broker_code']: b for b in buyers_list}
+        smap = {b['broker_code']: b for b in sellers_list}
+        codes = set(list(bmap.keys()) + list(smap.keys()))
+        net_flow = []
+        for c in sorted(codes):
+            bv = bmap.get(c, {}).get('value', 0)
+            sv = smap.get(c, {}).get('value', 0)
+            net = bv - sv
+            net_flow.append({
+                'broker_code': c,
+                'net': net,
+                'buy_value': bv,
+                'sell_value': sv,
+                'buy_lots': bmap.get(c, {}).get('lots', 0),
+                'sell_lots': smap.get(c, {}).get('lots', 0),
+            })
+        net_flow.sort(key=lambda x: x['net'], reverse=True)
+
+        # Two-way analysis from broker_summary data
+        two_way_list = []
+        for b in buyers_list:
+            bc = b['broker_code']
+            sl = smap.get(bc, {})
+            b_lots = b.get('lots', 0)
+            s_lots = sl.get('lots', 0)
+            total_vol = b_lots + s_lots
+            if total_vol > 0:
+                min_side = min(b_lots, s_lots)
+                two_way_pct = (2 * min_side / total_vol) * 100
+                two_way_list.append({
+                    'broker_code': bc,
+                    'buy_lots': b_lots,
+                    'sell_lots': s_lots,
+                    'total_volume': total_vol,
+                    'two_way_percentage': round(two_way_pct, 2),
+                })
+        # also check sellers not in buyers
+        for b in sellers_list:
+            bc = b['broker_code']
+            if bc not in bmap:
+                b_lots = 0
+                s_lots = b.get('lots', 0)
+                total_vol = b_lots + s_lots
+                if total_vol > 0:
+                    two_way_list.append({
+                        'broker_code': bc,
+                        'buy_lots': b_lots,
+                        'sell_lots': s_lots,
+                        'total_volume': total_vol,
+                        'two_way_percentage': 0.0,
+                    })
+        two_way_list.sort(key=lambda x: x['total_volume'], reverse=True)
+        top_two_way = max(two_way_list, key=lambda x: x['two_way_percentage']) if two_way_list else None
+        most_one_way = min(two_way_list, key=lambda x: x['two_way_percentage']) if two_way_list else None
+
+        total_buy = sum(b['value'] for b in buyers_list)
+        total_sell = sum(b['value'] for b in sellers_list)
+
+        # Crossing analysis from broker_meta
+        crossing_info = None
+        try:
+            crossing_info = conn.execute("""
+                SELECT meta_value FROM broker_meta
+                WHERE stock_code=? AND meta_key='crossing_analysis'
+                ORDER BY created_at DESC LIMIT 1
+            """, (stock_code.upper(),)).fetchone()
+            logger.info(f"broker_meta query for {stock_code}: {crossing_info}")
+        except Exception as e:
+            logger.error(f"broker_meta query error: {e}")
+
+        crossings_data = {}
+        if crossing_info:
+            cv = crossing_info[0] if hasattr(crossing_info, '__getitem__') else crossing_info['meta_value']
+            if isinstance(cv, str):
+                crossings_data = json.loads(cv)
+            else:
+                crossings_data = cv
+
+        pc = crossings_data.get('potential_crossings', [])
+        tw = crossings_data.get('two_way_brokers', [])
+        avg_spread = crossings_data.get('average_spread', 0)
+        widest = None
+        if pc:
+            w = max(pc, key=lambda x: abs(x.get('spread', 0)))
+            widest = {
+                'buyer_broker': w.get('buyer_broker', ''),
+                'seller_broker': w.get('seller_broker', ''),
+                'spread': w.get('spread', 0),
+            }
+
+        return {
+            'status': 'ok',
+            'stock_code': stock_code.upper(),
+            'period_from': str(period_from) if period_from else None,
+            'period_to': str(period_to) if period_to else None,
+            'is_gross': bool(is_gross),
+            'buyer_count': len(buyers_list),
+            'seller_count': len(sellers_list),
+            'total_buy_value': format(int(total_buy), ','),
+            'total_sell_value': format(int(total_sell), ','),
+            'net_flow': net_flow,
+            'buyers': buyers_list,
+            'sellers': sellers_list,
+            'crossing_count': len(pc),
+            'crossings': pc[:200],
+            'top_two_way': top_two_way,
+            'most_one_way': most_one_way,
+            'avg_spread': avg_spread,
+            'widest_crossing': widest,
+        }

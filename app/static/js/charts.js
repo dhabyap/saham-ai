@@ -593,3 +593,117 @@ function renderTopConcentratedChart() {
     }
   });
 }
+
+var shForceNetwork = null;
+
+function renderForceGraph() {
+  var data = shForceData.value;
+  if (!data || !data.nodes || !data.edges || !data.nodes.length) return;
+  var container = document.getElementById('shForceGraph');
+  if (!container) return;
+  if (shForceNetwork) { shForceNetwork.destroy(); shForceNetwork = null; }
+
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var bgColor = isDark ? '#1a1a2e' : '#ffffff';
+  var nodeColor = isDark ? '#7C3AED' : '#7C3AED';
+  var textColor = isDark ? '#e0e0e0' : '#333';
+  var edgeColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+
+  var nodes = new vis.DataSet(data.nodes.map(function(n) {
+    var isSH = n.type === 'shareholder';
+    return {
+      id: n.id,
+      label: n.label,
+      size: isSH ? n.size : 12,
+      shape: isSH ? 'dot' : 'square',
+      color: isSH ? (isDark ? '#7C3AED' : '#7C3AED') : (isDark ? '#F59E0B' : '#F59E0B'),
+      title: isSH ? (n.label + '\\nTotal: ' + n.total_pct + '% | Saham: ' + n.stock_count) : n.label,
+      borderWidth: isSH ? 2 : 1,
+      font: { color: textColor, size: 10 },
+      group: isSH ? 'shareholder' : 'stock'
+    };
+  }));
+
+  var edges = new vis.DataSet(data.edges.map(function(e) {
+    var isMajority = e.value >= 5;
+    return {
+      from: e.from,
+      to: e.to,
+      width: isMajority ? 3 : 1,
+      title: e.title,
+      color: isMajority ? { color: '#EF4444', opacity: 0.7 } : { color: edgeColor, opacity: 0.25 },
+      smooth: { type: 'continuous' },
+      dashes: isMajority ? false : [5, 3]
+    };
+  }));
+
+  var options = {
+    nodes: {
+      borderWidth: 1,
+      borderWidthSelected: 2,
+      font: { size: 10, color: textColor },
+      color: {
+        background: '#7C3AED',
+        border: '#5B21B6',
+        highlight: { background: '#8B5CF6', border: '#7C3AED' }
+      }
+    },
+    edges: {
+      width: 1,
+      smooth: { type: 'continuous' },
+      color: { color: edgeColor, opacity: 0.3 }
+    },
+    physics: {
+      solver: 'barnesHut',
+      barnesHut: {
+        gravitationalConstant: -2000,
+        centralGravity: 0.3,
+        springLength: 95,
+        springConstant: 0.04,
+        damping: 0.5
+      },
+      stabilization: { iterations: 200 }
+    },
+    interaction: {
+      dragNodes: true,
+      dragView: true,
+      zoomView: true,
+      hover: true,
+      tooltipDelay: 200
+    },
+    layout: {
+      improvedLayout: true
+    },
+    background: bgColor
+  };
+
+  shForceNetwork = new vis.Network(container, { nodes: nodes, edges: edges }, options);
+
+  shForceNetwork.on('click', function(params) {
+    if (params.nodes.length) {
+      var nodeId = params.nodes[0];
+      var nodeData = nodes.get(nodeId);
+      if (nodeData && nodeData.group === 'shareholder') {
+        // find original data
+        var orig = data.nodes.find(function(n) { return n.id === nodeId; });
+        if (orig) {
+          shForceSelected.value = {
+            id: orig.id,
+            label: orig.label,
+            type: 'shareholder',
+            total_pct: orig.total_pct,
+            stock_count: orig.stock_count
+          };
+        }
+      } else if (nodeData && nodeData.group === 'stock') {
+        shForceSelected.value = {
+          id: nodeId,
+          label: nodeData.label,
+          type: 'stock'
+        };
+      }
+    } else {
+      shForceSelected.value = null;
+    }
+  });
+}

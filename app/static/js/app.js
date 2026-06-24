@@ -9,7 +9,7 @@ function navigateFromHash() {
   var hash = window.location.hash.replace(/^#\/?/, '');
   if (!hash) return null;
   var parts = hash.split('/');
-  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'settings', 'marketreports'];
+  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'brokerdata', 'settings', 'marketreports'];
   var view = validViews.indexOf(parts[0]) !== -1 ? parts[0] : null;
   return { view: view, tab: parts[1] || null };
 }
@@ -22,7 +22,7 @@ function getViewFromUrl() {
   if (pathMap[path]) return { view: pathMap[path], tab: null };
   var params = new URLSearchParams(window.location.search);
   var view = params.get('view');
-  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'settings', 'marketreports'];
+  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'brokerdata', 'settings', 'marketreports'];
   if (validViews.indexOf(view) !== -1) return { view: view, tab: null };
   return null;
 }
@@ -47,6 +47,10 @@ createApp({
         if (_viewChanging) { history.pushState(null, '', hash); _viewChanging = false; }
         else if (window.location.hash !== hash) { history.replaceState(null, '', hash); }
       }
+    });
+
+    watch(currentView, function(view) {
+      if (view === 'brokerdata') loadBdAvailable();
     });
 
     onMounted(function() {
@@ -138,11 +142,21 @@ createApp({
       shHolderActiveName: shHolderActiveName, popularHolders: popularHolders,
       filteredHolders: filteredHolders, shHolderSelected: shHolderSelected,
       selectHolder: selectHolder, clearHolderSelection: clearHolderSelection,
+      shForceData: shForceData, shForceLoading: shForceLoading, shForceSelected: shForceSelected,
+      searchForceHolder: searchForceHolder,
       shInsight: shInsight, shInsightLoading: shInsightLoading, shInsightError: shInsightError,
       loadShareholderInsight: loadShareholderInsight,
       shUploadPeriod: shUploadPeriod, shUploadFile: shUploadFile,
       shUploadLoading: shUploadLoading, shUploadError: shUploadError, shUploadResult: shUploadResult,
       doUploadShareholder: doUploadShareholder,
+      // Broker Data
+      bdData: bdData, bdLoading: bdLoading, bdError: bdError,
+      bdStockQuery: bdStockQuery, bdAvailable: bdAvailable, bdCurrentStock: bdCurrentStock, bdShowSuggestions: bdShowSuggestions,
+      bdFiltered: bdFiltered, bdHighlight: bdHighlight,
+      loadBrokerData: loadBrokerData, loadBdAvailable: loadBdAvailable,
+      onBdSearchInput: onBdSearchInput, bdSelectHighlighted: bdSelectHighlighted,
+      selectBdStock: selectBdStock, bdHideSuggestions: bdHideSuggestions,
+      bdSearchFocused: bdSearchFocused, bdFmt: bdFmt,
       // Market Reports
       mrReports: mrReports, mrStats: mrStats, mrAnalysis: mrAnalysis,
       mrLoadingAnalysis: mrLoadingAnalysis, mrFilter: mrFilter, setMrFilter: setMrFilter,

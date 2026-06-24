@@ -31,6 +31,7 @@ var navItems = [
   { view: 'longterm',      icon: '&#9670;', label: 'Long Term' },
   { view: 'analysis',      icon: '&#9776;', label: 'Analysis' },
   { view: 'shareholders',  icon: '&#128101;', label: 'Shareholders' },
+  { view: 'brokerdata',    icon: '&#128176;', label: 'Broker Data' },
   { view: 'marketreports', icon: '&#128202;', label: 'Market Reports' },
   { view: 'settings',      icon: '&#9881;', label: 'Settings' },
 ];
@@ -38,7 +39,8 @@ var navItems = [
 var headerTitle = computed(function() {
   var map = {
     dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term',
-    analysis: 'Analysis', shareholders: 'Shareholders', settings: 'Settings',
+    analysis: 'Analysis', shareholders: 'Shareholders', brokerdata: 'Broker Data',
+    settings: 'Settings',
     marketreports: 'Market Reports',
   };
   return map[currentView.value] || 'Dashboard';
@@ -55,6 +57,31 @@ var shareholdersLoading = ref(true);
 var analysisLoading = ref(true);
 var mrReportsLoading = ref(true);
 var foreignOverviewStocks = ref([]);
+
+// ── Broker Data ──
+var bdData = ref(null);
+var bdLoading = ref(false);
+var bdError = ref(null);
+var bdStockQuery = ref('');
+var bdAvailable = ref([]);
+var bdCurrentStock = ref(null);
+var bdShowSuggestions = ref(false);
+var bdFiltered = computed(function () {
+  if (!bdStockQuery.value || !bdAvailable.value.length) return [];
+  var q = bdStockQuery.value.toUpperCase();
+  return bdAvailable.value.filter(function (s) {
+    return s.stock_code.indexOf(q) !== -1;
+  }).slice(0, 20);
+});
+var bdHighlight = ref(-1);
+var bdSearchFocused = ref(false);
+
+function bdFmt(v) {
+  if (!v) return '0';
+  var s = String(v).replace(/,/g, '');
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
 var pahlawanBursaStocks = ref([]);
 var dailyNetTotal = ref(0);
 var foreignStockCount = ref(0);
@@ -247,8 +274,10 @@ var shStockDetailData = ref(null);
 var shStockDetailLoading = ref(false);
 var shHolderPortfolio = ref(null);
 var shHolderPortfolioLoading = ref(false);
-var shBubbleData = ref([]);
+var shForceData = ref(null);
 var shHolderSelected = ref(null);
+var shForceLoading = ref(false);
+var shForceSelected = ref(null);
 
 var shHolderActiveName = computed(function() {
   if (shHolderResult.value.length && shHolderSearched.value) return shHolderQuery.value.toUpperCase();

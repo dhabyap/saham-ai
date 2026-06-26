@@ -116,7 +116,7 @@
   </div>
 
   <!-- Active stock chip (visible when data loaded) -->
-  <div v-if="bdCurrentStock" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+  <div v-if="bdCurrentStock && !bdShowSuggestions && !bdStockQuery" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
     <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:12px;
                 background:var(--accent);color:#fff;font-weight:600">
       {{ bdCurrentStock.stock_code }}

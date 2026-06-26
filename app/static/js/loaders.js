@@ -870,7 +870,7 @@ async function loadBrokerData(stockCode) {
 }
 
 async function loadBdAvailable() {
-  if (bdAvailable.value.length) return;
+
   try {
     var r = await fetch('/api/broker-summary/stocks');
     var d = await r.json();
@@ -911,7 +911,7 @@ function bdSelectHighlighted() {
 
 function selectBdStock(s) {
   bdStockQuery.value = s.stock_code || s;
-  bdCurrentStock.value = { stock_code: s.stock_code || s, entries: 0 };
+  bdCurrentStock.value = { stock_code: s.stock_code || s, entries: s.entries || 0 };
   bdShowSuggestions.value = false;
   loadBrokerData(s.stock_code || s);
   loadBrokerRecommendation(s.stock_code || s);
@@ -921,7 +921,9 @@ function selectBdStock(s) {
 function searchBdStock() {
   var code = (bdStockQuery.value || '').toUpperCase();
   if (!code) return;
-  selectBdStock({ stock_code: code, entries: 0 });
+  // Find matching entry in bdAvailable to preserve proper entry count
+  var match = bdAvailable.value.find(stock => stock.stock_code === code);
+  selectBdStock(match || { stock_code: code, entries: 0 });
 }
 
 function bdHideSuggestions() {

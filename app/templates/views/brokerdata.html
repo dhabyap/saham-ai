@@ -1,4 +1,23 @@
 <template v-if="currentView === 'brokerdata'">
+  <style>
+    .overview-search {
+      position: relative;
+    }
+    .bd-suggestions {
+      position: absolute;
+      top: calc(100% + 5px); /* Position below the search input, adjust as needed */
+      left: 0;
+      width: 100%; /* Match width of parent overview-search */
+      z-index: 1000; /* Ensure it's above other elements */
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-height: 250px;
+      overflow-y: auto;
+    }
+  </style>
   <div class="tabs">
     <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Ringkasan</button>
     <button class="tab-btn" :class="{ active: currentTab === 'netflow' }" @click="currentTab = 'netflow'">Net Flow</button>

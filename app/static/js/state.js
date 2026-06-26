@@ -75,6 +75,10 @@ var bdFiltered = computed(function () {
 });
 var bdHighlight = ref(-1);
 var bdSearchFocused = ref(false);
+var bdRecommendation = ref(null);
+var bdRecLoading = ref(false);
+var bdSuggestUpload = ref(null);
+var bdSuggestLoading = ref(false);
 
 function bdFmt(v) {
   if (!v) return '0';
@@ -82,17 +86,31 @@ function bdFmt(v) {
   return s.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
+function recBgColor(rec) {
+  var colors = { BUY: '#065f4620', ACCUMULATE: '#1e3a5f20', WATCH: '#5f3a1e20', SELL: '#5f060620', HOLD: '#33333320' };
+  return colors[rec] || '#33333320';
+}
+
+function fmtRupiah(v) {
+  if (v === 0 || v === null || v === undefined) return '0';
+  return Math.round(Math.abs(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
 var pahlawanBursaStocks = ref([]);
 var dailyNetTotal = ref(0);
 var foreignStockCount = ref(0);
 var foreignActivitySummary = ref(null);
 
+var csData = ref(null);
+var csLoading = ref(false);
+var csError = ref(null);
+
 var market = ref({
-  fgi: { value: 50, label: 'Neutral' },
-  advancing: { count: 0, change: 0, pct: '0%' },
-  declining: { count: 0, change: 0, pct: '0%' },
-  avgChange: '0%', totalVolume: '0', volumeChange: '-',
-  status: 'Loading...', hours: '-',
+    fgi: { value: 50, label: 'Neutral' },
+    advancing: { count: 0, change: 0, pct: '0%' },
+    declining: { count: 0, change: 0, pct: '0%' },
+    avgChange: '0%', totalVolume: '0', volumeChange: '-',
+    status: 'Loading...', hours: '-',
 });
 
 var aiPerf = ref({
@@ -131,7 +149,6 @@ var filteredStocks = computed(function() {
     return s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
   });
 });
-
 // ── Analysis ──
 var analysisQuery = ref('');
 var analysisSector = ref('All');
@@ -266,6 +283,7 @@ var shSortedTable = computed(function() {
     return order === 'asc' ? (va - vb) : (vb - va);
   });
 });
+
 function sortTable(key) {
   if (shSortKey.value === key) shSortOrder.value = shSortOrder.value === 'asc' ? 'desc' : 'asc';
   else { shSortKey.value = key; shSortOrder.value = 'desc'; }
@@ -329,6 +347,7 @@ var mrSortedForeign = computed(function() {
     return (va - vb) * dir;
   });
 });
+
 
 var mrNetForeign = computed(function() {
   var map = {};

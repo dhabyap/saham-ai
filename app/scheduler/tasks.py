@@ -41,53 +41,32 @@ def check_watchlist_alerts():
             rsi_status = data.get("rsi_status", "")
             macd = data.get("macd_status", "")
             volume_spike = data.get("volume_spike", False)
-            near_resistance = data.get("near_resistance", False)
-            near_support = data.get("near_support", False)
 
-            if rsi_status == "Overbought":
-                alerts.append(
-                    (code, "RSI_OVERBOUGHT", f"⚠️ {code} RSI Overbought: {rsi:.1f}")
-                )
-            elif rsi_status == "Oversold":
-                alerts.append(
-                    (code, "RSI_OVERSOLD", f"⚡️ {code} RSI Oversold: {rsi:.1f}")
-                )
+            # Only actionable BUY signals
+            if rsi_status == "Oversold":
+                key = f"{code}_RSI_OVERSOLD"
+                if not crud.alert_sent_today(code, "RSI_OVERSOLD"):
+                    alerts.append(
+                        (code, "RSI_OVERSOLD", f"⚡️ {code} RSI Oversold: {rsi:.1f} — potensi bounce 🚀")
+                    )
 
             if macd == "Golden Cross":
-                alerts.append(
-                    (code, "GOLDEN_CROSS", f"🟢 {code} Golden Cross terjadi!")
-                )
-            elif macd == "Death Cross":
-                alerts.append(
-                    (code, "DEATH_CROSS", f"🔴 {code} Death Cross terjadi!")
-                )
+                key = f"{code}_GOLDEN_CROSS"
+                if not crud.alert_sent_today(code, "GOLDEN_CROSS"):
+                    alerts.append(
+                        (code, "GOLDEN_CROSS", f"🟢 {code} Golden Cross — sinyal beli! 🚀")
+                    )
 
             if volume_spike:
-                alerts.append(
-                    (
-                        code,
-                        "VOLUME_SPIKE",
-                        f"📊 {code} Volume spike {data['volume_ratio']}x rata-rata",
+                key = f"{code}_VOLUME_SPIKE"
+                if not crud.alert_sent_today(code, "VOLUME_SPIKE"):
+                    alerts.append(
+                        (
+                            code,
+                            "VOLUME_SPIKE",
+                            f"📊 {code} Volume spike {data['volume_ratio']}x rata-rata — akumulasi?",
+                        )
                     )
-                )
-
-            if near_resistance:
-                alerts.append(
-                    (
-                        code,
-                        "NEAR_RESISTANCE",
-                        f"📈 {code} Mendekati resistance Rp{data['resistance']:,.0f}",
-                    )
-                )
-
-            if near_support:
-                alerts.append(
-                    (
-                        code,
-                        "NEAR_SUPPORT",
-                        f"📉 {code} Mendekati support Rp{data['support']:,.0f}",
-                    )
-                )
 
         except Exception as e:
             print(f"  ✗ Error checking {code}: {e}")

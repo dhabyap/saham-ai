@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
@@ -65,6 +66,57 @@ class WatchlistRequest(BaseModel):
 class AnalyzeRequest(BaseModel):
     stock_code: str
     use_ai: Optional[bool] = True
+
+
+@router.get("/broker-summary/suggest-upload")
+def broker_suggest_upload():
+    """Suggest stocks WITHOUT broker data that are interesting for upload."""
+    from app.database.database import get_db
+    from app.services.stock_service import STOCK_LIST, fetch_stock_data
+
+    with get_db() as conn:
+        with_data = set(
+            r[0] for r in conn.execute(
+                "SELECT DISTINCT stock_code FROM broker_summary"
+            ).fetchall()
+        )
+
+    candidates = []
+    for code in sorted(set(STOCK_LIST.keys()) - with_data):
+        try:
+            d = fetch_stock_data(code, period="5d")
+            if not d:
+                continue
+            df = d["history"]
+            if len(df) < 2:
+                continue
+            price = float(df["Close"].iloc[-1])
+            prev = float(df["Close"].iloc[-2])
+            chg = ((price - prev) / prev) * 100
+            vol = int(df["Volume"].iloc[-1])
+            vol_ma = float(df["Volume"].iloc[-3]) if len(df) >= 3 else vol
+            vol_ratio = vol / vol_ma if vol_ma > 0 else 1
+            score = min(10, vol_ratio * 5) + (5 if chg > 1 else (3 if chg > 0 else 0))
+            name = STOCK_LIST.get(code, "")
+            reasons = []
+            if chg > 3:
+                reasons.append(f"naik {chg:.1f}%")
+            elif chg > 0:
+                reasons.append(f"naik {chg:.1f}%")
+            if vol_ratio > 2:
+                reasons.append("volume melonjak")
+            elif vol_ratio > 1.2:
+                reasons.append("volume di atas rata-rata")
+            reasons.append("belum ada data broker")
+            candidates.append({
+                "stock_code": code, "name": name, "price": round(price, 0),
+                "change_pct": round(chg, 2), "volume_ratio": round(vol_ratio, 1),
+                "score": round(score, 0), "reason": ", ".join(reasons),
+            })
+        except Exception:
+            continue
+    candidates.sort(key=lambda x: x["score"], reverse=True)
+    return {"status": "ok", "suggestions": candidates[:6]}
 
 
 @router.get("/shareholders/periods")
@@ -362,7 +414,7 @@ def shareholder_network_data(period: Optional[str] = None, limit: int = 40):
                 seen_sh.add(nid)
                 sh_label = h["shareholder_name"]
                 if len(sh_label) > 30:
-                    sh_label = sh_label[:28] + "…"
+                    sh_label = sh_label[:28] + "..."
                 nodes.append({
                     "id": nid,
                     "label": sh_label,
@@ -386,12 +438,12 @@ def shareholder_network_data(period: Optional[str] = None, limit: int = 40):
                 if stock_name:
                     sn = stock_name[:25]
                     if len(stock_name) > 25:
-                        sn += "…"
+                        sn += "..."
                     label = f"{sc} ({sn})"
                 nodes.append({
                     "id": nid,
                     "label": label,
-                    "title": f"{sc} — {stock_name}" if stock_name else sc,
+                    "title": f"{sc} - {stock_name}" if stock_name else sc,
                     "type": "stock",
                     "value": 1,
                     "color": "#3B82F6",
@@ -554,7 +606,7 @@ def shareholder_concentration(
     period: str = Query(...),
     threshold: float = Query(5.0, ge=0.1, le=100),
 ):
-    """Stock concentration — stocks with dominant holders."""
+    """Stock concentration - stocks with dominant holders."""
     try:
         from app.services.shareholder_service import get_db
         # Data fix
@@ -643,13 +695,13 @@ async def shareholders_insight():
             """, (period,)).fetchall()
 
             high_conc = conn.execute("""
-                SELECT COUNT(DISTINCT a.stock_code) FROM shareholders a
-                WHERE a.data_period=? AND a.share_percent > 50
-                  AND a.shareholder_name = (
-                      SELECT b.shareholder_name FROM shareholders b
-                      WHERE b.data_period=? AND b.stock_code=a.stock_code
-                      ORDER BY b.share_percent DESC LIMIT 1
-                  )
+                SELECT COUNT(DISTINCT a.stock_code) 
+                FROM shareholders a
+                JOIN (
+                    SELECT stock_code, MAX(share_percent) as max_pct 
+                    FROM shareholders WHERE data_period=? GROUP BY stock_code
+                ) as top_holders ON a.stock_code = top_holders.stock_code AND a.share_percent = top_holders.max_pct
+                WHERE a.data_period=?
             """, (period, period)).fetchone()[0]
 
             spread = conn.execute("""
@@ -732,12 +784,12 @@ Return ONLY valid JSON (no markdown, no code fences):
         return {
             "status": "ok",
             "insight": {
-                "narrative": f"Overview {period}: {data['total_stocks']} saham dipantau dengan {data['total_holders']} pemegang saham unik. Top holder {top_holder} memegang {data['top_holders'][0]['stocks'] if data['top_holders'] else 0} saham. {data['high_concentration_stocks']} saham ({round(data['high_concentration_stocks']/max(data['total_stocks'],1)*100)}%) didominasi satu pemegang >50% — indikasi risiko konsentrasi.",
+                "narrative": f"Overview {period}: {data['total_stocks']} saham dipantau dengan {data['total_holders']} pemegang saham unik. Top holder {top_holder} memegang {data['top_holders'][0]['stocks'] if data['top_holders'] else 0} saham. {data['high_concentration_stocks']} saham ({round(data['high_concentration_stocks']/max(data['total_stocks'],1)*100)}%) didominasi satu pemegang >50% - indikasi risiko konsentrasi.",
                 "key_findings": [
                     f"{data['total_holders']} pemegang saham unik di {data['total_stocks']} saham",
                     f"{top_holder} portofolio terluas: {data['top_holders'][0]['stocks'] if data['top_holders'] else 0} saham",
                     f"{data['high_concentration_stocks']} saham ({round(data['high_concentration_stocks']/max(data['total_stocks'],1)*100)}%) dikuasai 1 pemegang >50%",
-                    f"Rata-rata {data['avg_holders_per_stock']} pemegang/saham — {'cukup tersebar' if data['avg_holders_per_stock'] > 5 else 'likuiditas rendah'}",
+                    f"Rata-rata {data['avg_holders_per_stock']} pemegang/saham - {'cukup tersebar' if data['avg_holders_per_stock'] > 5 else 'likuiditas rendah'}",
                 ],
                 "risks": [f"Konsentrasi tinggi: {data['high_concentration_stocks']} saham dikuasai 1 pemegang"],
                 "opportunities": ["Base holder diversified di saham top menjanjikan stabilitas"],
@@ -1282,14 +1334,14 @@ async def get_market_report_analysis():
     if not reports:
         return {"status": "ok", "analysis": None, "message": "No reports yet."}
 
-    # ── Basic Stats ──
+    # -- Basic Stats --
     dates = sorted(set(r["date"] for r in reports))
     ihsg_vals = [r["ihsg_change"] for r in reports if r["ihsg_change"] is not None]
     avg_ihsg = round(sum(ihsg_vals) / len(ihsg_vals), 1) if ihsg_vals else 0
     red_days = sum(1 for v in ihsg_vals if v < 0)
     green_days = sum(1 for v in ihsg_vals if v > 0)
 
-    # ── Foreign Buy Aggregation ──
+    # -- Foreign Buy Aggregation --
     foreign_total = defaultdict(float)
     foreign_freq = Counter()
     foreign_by_month = defaultdict(lambda: defaultdict(float))
@@ -1317,9 +1369,9 @@ async def get_market_report_analysis():
             "top": [{"stock": s, "value": round(v, 2)} for s, v in top5]
         })
 
-    # ── IHSG Trend ──
+    # -- IHSG Trend --
     periods = [
-        {"label": "Mei–Jun 2026", "start": "2026-05-01", "end": "2026-06-30"},
+        {"label": "Mei-Jun 2026", "start": "2026-05-01", "end": "2026-06-30"},
         {"label": "April 2026", "start": "2026-04-01", "end": "2026-04-30"},
         {"label": "Maret 2026", "start": "2026-03-01", "end": "2026-03-31"},
     ]
@@ -1335,13 +1387,13 @@ async def get_market_report_analysis():
                 "total": len(vals)
             })
 
-    # ── Backtest ──
+    # -- Backtest --
     by_date = defaultdict(list)
     for r in reports:
         by_date[r["date"]].append(r)
     sorted_dates = sorted(by_date.keys())
 
-    # V1: Foreign buy → gainer in 3 days
+    # V1: Foreign buy -> gainer in 3 days
     win_v1 = 0
     loss_v1 = 0
     best_stocks = Counter()
@@ -1382,7 +1434,7 @@ async def get_market_report_analysis():
             for s in fb_stocks & gainer_stocks:
                 same_day_signal[s] += 1
 
-    # V2: Sesi1 gainer → sesi2 gainer (intraday)
+    # V2: Sesi1 gainer -> sesi2 gainer (intraday)
     win_v2 = 0
     loss_v2 = 0
     for d in sorted_dates:
@@ -1434,7 +1486,7 @@ async def get_market_report_analysis():
 
     same_day_list = [{"stock": s, "count": c} for s, c in same_day_signal.most_common(8)]
 
-    # ── Recent Foreign Buy (last 7 days) ──
+    # -- Recent Foreign Buy (last 7 days) --
     last_week = [d for d in sorted_dates if d >= "2026-06-01"]
     recent_foreign_raw = defaultdict(float)
     recent_freq = Counter()
@@ -1449,7 +1501,7 @@ async def get_market_report_analysis():
         for s, v in sorted(recent_foreign_raw.items(), key=lambda x: -x[1])[:8]
     ]
 
-    # ── IHSG Outlook ──
+    # -- IHSG Outlook --
     latest5 = ihsg_vals[:5]
     latest_avg = round(sum(latest5) / len(latest5), 1) if latest5 else 0
     if latest_avg < -2:
@@ -1468,9 +1520,9 @@ async def get_market_report_analysis():
             "monthly_flow": monthly_flow,
             "ihsg_trend": ihsg_trend,
             "backtest": {
-                "v1": {"label": "Beli Top 3 Foreign Buy → Gainer 3 hari", "trades": win_v1 + loss_v1, "wins": win_v1, "losses": loss_v1, "win_rate": round(win_v1 / max(win_v1 + loss_v1, 1) * 100)},
-                "v2": {"label": "Beli Top Gainer Sesi1 → jual akhir sesi", "trades": win_v2 + loss_v2, "wins": win_v2, "losses": loss_v2, "win_rate": round(win_v2 / max(win_v2 + loss_v2, 1) * 100)},
-                "v3": {"label": "Saham ≥2 foreign buy/minggu → gainer minggu depan", "trades": cons_win + cons_loss, "wins": cons_win, "losses": cons_loss, "win_rate": round(cons_win / max(cons_win + cons_loss, 1) * 100)},
+                "v1": {"label": "Beli Top 3 Foreign Buy -> Gainer 3 hari", "trades": win_v1 + loss_v1, "wins": win_v1, "losses": loss_v1, "win_rate": round(win_v1 / max(win_v1 + loss_v1, 1) * 100)},
+                "v2": {"label": "Beli Top Gainer Sesi1 -> jual akhir sesi", "trades": win_v2 + loss_v2, "wins": win_v2, "losses": loss_v2, "win_rate": round(win_v2 / max(win_v2 + loss_v2, 1) * 100)},
+                "v3": {"label": "Saham >=2 foreign buy/minggu -> gainer minggu depan", "trades": cons_win + cons_loss, "wins": cons_win, "losses": cons_loss, "win_rate": round(cons_win / max(cons_win + cons_loss, 1) * 100)},
             },
             "same_day_signals": same_day_list,
             "top_picks": top_picks[:5],
@@ -1485,13 +1537,13 @@ async def get_market_report_analysis():
 
 @router.get("/treemap")
 def treemap_data():
-    """Market heatmap treemap — stocks grouped by sector."""
+    """Market heatmap treemap - stocks grouped by sector."""
     return get_treemap_data()
 
 
 @router.get("/market-backtest")
 def market_backtest():
-    """Backtest: beli saham yg naik di Sesi 1 → tahan sampai akhir sesi."""
+    """Backtest: beli saham yg naik di Sesi 1 -> tahan sampai akhir sesi."""
     from app.database.database import get_market_reports
     from collections import defaultdict
 
@@ -1575,7 +1627,7 @@ def market_backtest():
         'strategies': [
             {
                 'id': 's1_gainers',
-                'name': 'Beli Top Gainer Sesi 1 → Tahan ke Akhir Sesi',
+                'name': 'Beli Top Gainer Sesi 1 -> Tahan ke Akhir Sesi',
                 'trades': total_s1_gainers,
                 'wins': total_still_win,
                 'losses': total_became_lose,
@@ -1588,7 +1640,7 @@ def market_backtest():
             },
             {
                 'id': 'fby',
-                'name': 'Beli Sesi 1 Naik Setelah Asing Beli → Tahan ke Akhir Sesi',
+                'name': 'Beli Sesi 1 Naik Setelah Asing Beli -> Tahan ke Akhir Sesi',
                 'trades': total_fby,
                 'wins': total_fby_win,
                 'losses': total_fby_lose,
@@ -1599,7 +1651,7 @@ def market_backtest():
             },
             {
                 'id': 'volspike',
-                'name': 'Beli Sesi 1 Lonjakan Volume → Tahan ke Akhir Sesi',
+                'name': 'Beli Sesi 1 Lonjakan Volume -> Tahan ke Akhir Sesi',
                 'trades': total_volspike,
                 'wins': total_volspike_win,
                 'losses': total_volspike_lose,
@@ -1611,6 +1663,8 @@ def market_backtest():
         ],
         'daily': daily_details[-30:],  # last 30 days
     }
+
+
 
 
 @router.get("/broker-summary/stocks")
@@ -1797,3 +1851,300 @@ def broker_summary(stock_code: str):
             'avg_spread': avg_spread,
             'widest_crossing': widest,
         }
+
+
+@router.get("/broker-summary/{stock_code}/recommendation")
+def broker_recommendation(stock_code: str):
+    """Generate AI recommendation signals from broker data.
+    
+    Classifies brokers -> Smart Money / Institusi Lokal / Retail.
+    Generates signals: retail concurrency, smart money flow, divergence.
+    """
+    from app.database.broker_models import (
+        get_broker_category, get_broker_category_label
+    )
+    from app.database.database import get_db
+
+    with get_db() as conn:
+        rows = conn.execute("""
+            SELECT DISTINCT period_from, period_to
+            FROM broker_summary WHERE stock_code = ?
+            ORDER BY period_from DESC LIMIT 1
+        """, (stock_code.upper(),)).fetchall()
+        if not rows:
+            return {"status": "error", "message": f"No broker data for {stock_code.upper()}"}
+
+        row = rows[0]
+        period_from = row['period_from'] if hasattr(row, '__getitem__') else row[0]
+        period_to = row['period_to'] if hasattr(row, '__getitem__') else row[1]
+
+        # Get all transactions
+        buyers = conn.execute("""
+            SELECT broker_code, lots, value, avg_price
+            FROM broker_summary WHERE stock_code=? AND side='buy'
+            ORDER BY value DESC
+        """, (stock_code.upper(),)).fetchall()
+
+        sellers = conn.execute("""
+            SELECT broker_code, lots, value, avg_price
+            FROM broker_summary WHERE stock_code=? AND side='sell'
+            ORDER BY value DESC
+        """, (stock_code.upper(),)).fetchall()
+
+    def r2d(r):
+        if hasattr(r, 'keys'):
+            return dict(r)
+        return {'broker_code': r[0], 'lots': r[1], 'value': r[2], 'avg_price': r[3]}
+
+    buyers_list = [r2d(r) for r in buyers]
+    sellers_list = [r2d(r) for r in sellers]
+
+    bmap = {b['broker_code']: b for b in buyers_list}
+    smap = {b['broker_code']: b for b in sellers_list}
+    codes = sorted(set(list(bmap.keys()) + list(smap.keys())))
+
+    # Classify each broker
+    classified = []
+    by_category = {"smart_money": [], "institutional": [], "retail": [], "unknown": []}
+
+    for c in codes:
+        cat = get_broker_category(c)
+        label, icon, color = get_broker_category_label(cat)
+        bv = bmap.get(c, {}).get('value', 0)
+        sv = smap.get(c, {}).get('value', 0)
+        bl = bmap.get(c, {}).get('lots', 0)
+        sl = smap.get(c, {}).get('lots', 0)
+        net = bv - sv
+
+        entry = {
+            "broker_code": c,
+            "category": cat,
+            "label": label,
+            "icon": icon,
+            "buy_value": bv,
+            "sell_value": sv,
+            "net": net,
+            "buy_lots": bl,
+            "sell_lots": sl,
+            "is_buyer": c in bmap,
+            "is_seller": c in smap,
+        }
+        classified.append(entry)
+        if cat in by_category:
+            by_category[cat].append(entry)
+
+    # Aggregated stats by category
+    def agg(cat_list):
+        total_buy = sum(b['buy_value'] for b in cat_list)
+        total_sell = sum(b['sell_value'] for b in cat_list)
+        total_buy_lots = sum(b['buy_lots'] for b in cat_list)
+        total_sell_lots = sum(b['sell_lots'] for b in cat_list)
+        net = total_buy - total_sell
+        brokers = list(set(b['broker_code'] for b in cat_list))
+        return {
+            "total_buy_value": total_buy,
+            "total_sell_value": total_sell,
+            "net_value": net,
+            "total_buy_lots": total_buy_lots,
+            "total_sell_lots": total_sell_lots,
+            "broker_count": len(brokers),
+            "brokers": sorted(brokers),
+        }
+
+    smart = agg(by_category["smart_money"])
+    inst = agg(by_category["institutional"])
+    retail = agg(by_category["retail"])
+
+    # === SIGNAL GENERATION ===
+
+    signals = []
+
+    # 1) Retail concurrency - how many retail brokers buy together
+    retail_buyers = [b for b in by_category["retail"] if b['is_buyer'] and b['buy_value'] > 0]
+    retail_sellers = [b for b in by_category["retail"] if b['is_seller'] and b['sell_value'] > 0]
+    retail_buyer_count = len(retail_buyers)
+    retail_seller_count = len(retail_sellers)
+
+    if retail_buyer_count >= 3:
+        signals.append({
+            "type": "retail_concurrency_buy",
+            "label": "👥 Retail Ramai Beli",
+            "message": f"{retail_buyer_count} broker retail kompak beli ({', '.join(b['broker_code'] for b in retail_buyers[:5])})",
+            "sentiment": "positive",
+            "strength": min(retail_buyer_count / 3, 1.0),
+        })
+    if retail_seller_count >= 3:
+        signals.append({
+            "type": "retail_concurrency_sell",
+            "label": "👥 Retail Ramai Jual",
+            "message": f"{retail_seller_count} broker retail kompak jual ({', '.join(b['broker_code'] for b in retail_sellers[:5])})",
+            "sentiment": "negative",
+            "strength": min(retail_seller_count / 3, 1.0),
+        })
+
+    # 2) Smart money flow
+    if smart["net_value"] > 0:
+        signals.append({
+            "type": "smart_money_buy",
+            "label": "🌍 Smart Money Beli",
+            "message": f"Smart Money net buy Rp{smart['net_value']:,.0f} dari {smart['broker_count']} broker asing",
+            "sentiment": "positive",
+            "strength": min(smart["net_value"] / (smart["total_buy_value"] + 1) * 2, 1.0),
+        })
+    elif smart["net_value"] < 0:
+        signals.append({
+            "type": "smart_money_sell",
+            "label": "🌍 Smart Money Jual",
+            "message": f"Smart Money net sell Rp{abs(smart['net_value']):,.0f} dari {smart['broker_count']} broker asing",
+            "sentiment": "negative",
+            "strength": min(abs(smart["net_value"]) / (smart["total_sell_value"] + 1) * 2, 1.0),
+        })
+
+    # 3) Institutional flow
+    if inst["net_value"] > 0:
+        signals.append({
+            "type": "institutional_buy",
+            "label": "🏦 Institusi Lokal Beli",
+            "message": f"Institusi lokal net buy Rp{inst['net_value']:,.0f} ({inst['broker_count']} broker)",
+            "sentiment": "positive",
+            "strength": 0.6,
+        })
+    elif inst["net_value"] < 0:
+        signals.append({
+            "type": "institutional_sell",
+            "label": "🏦 Institusi Lokal Jual",
+            "message": f"Institusi lokal net sell Rp{abs(inst['net_value']):,.0f} ({inst['broker_count']} broker)",
+            "sentiment": "negative",
+            "strength": 0.6,
+        })
+
+    # 4) Retail vs Smart Money divergence
+    if retail["net_value"] > 0 and smart["net_value"] < 0:
+        signals.append({
+            "type": "divergence_retail_buy_smart_sell",
+            "label": "!️ Divergence",
+            "message": f"Retail beli (Rp{retail['net_value']:,.0f}) tapi Smart Money jual (Rp{abs(smart['net_value']):,.0f}) - hati-hati",
+            "sentiment": "warning",
+            "strength": 0.8,
+        })
+    elif retail["net_value"] < 0 and smart["net_value"] > 0:
+        signals.append({
+            "type": "divergence_retail_sell_smart_buy",
+            "label": "[OK] Smart Money Akumulasi",
+            "message": f"Smart Money beli (Rp{smart['net_value']:,.0f}) sementara retail jual - sinyal bullish",
+            "sentiment": "positive",
+            "strength": 0.9,
+        })
+
+    # 5) Retail sentiment (total)
+    retail_total_value = retail["total_buy_value"] + retail["total_sell_value"]
+    if retail_total_value > 0:
+        retail_buy_ratio = retail["total_buy_value"] / retail_total_value
+        if retail_buy_ratio > 0.7:
+            signals.append({
+                "type": "retail_euphoria",
+                "label": "🔥 Retail Euphoria",
+                "message": f"{retail_buy_ratio*100:.0f}% transaksi retail adalah BUY - euforia, waspadai reversal",
+                "sentiment": "warning",
+                "strength": 0.7,
+            })
+        elif retail_buy_ratio < 0.3:
+            signals.append({
+                "type": "retail_panic",
+                "label": "😨 Retail Panic",
+                "message": f"{(1-retail_buy_ratio)*100:.0f}% transaksi retail adalah SELL - panic selling, potensi bottom",
+                "sentiment": "warning",
+                "strength": 0.7,
+            })
+
+    # === OVERALL RECOMMENDATION ===
+    total_net = smart["net_value"] + inst["net_value"] + retail["net_value"]
+    retail_buy_ratio = 0.5  # default neutral
+    if smart["net_value"] > 0 and retail["net_value"] > 0:
+        overall = "BUY"
+        reason = "Smart Money + Retail sama-sama beli"
+    elif smart["net_value"] > 0 and retail["net_value"] < 0:
+        overall = "ACCUMULATE"
+        reason = "Smart Money beli, retail jual - akumulasi diam-diam"
+    elif smart["net_value"] < 0 and retail["net_value"] > 0:
+        overall = "WATCH"
+        reason = "Smart Money jual, retail beli - waspadai distribusi"
+    elif smart["net_value"] < 0 and inst["net_value"] < 0:
+        overall = "SELL"
+        reason = "Smart Money + Institusi kompak jual"
+    else:
+        overall = "HOLD"
+        reason = "Belum ada sinyal jelas dari broker data"
+
+    # Calculate confidence based on signal strength
+    avg_strength = sum(s.get("strength", 0) for s in signals) / max(len(signals), 1)
+    confidence = min(95, max(15, int(avg_strength * 100)))
+
+    return {
+        "status": "ok",
+        "stock_code": stock_code.upper(),
+        "period_from": str(period_from) if period_from else None,
+        "period_to": str(period_to) if period_to else None,
+        "recommendation": overall,
+        "confidence": confidence,
+        "reason": reason,
+        "signals": signals,
+        "categories": {
+            "smart_money": smart,
+            "institutional": inst,
+            "retail": retail,
+        },
+        "classified": [
+            c for c in classified if c["buy_value"] > 0 or c["sell_value"] > 0
+        ],
+        "trade_summary": {
+            "total_buy_value": sum(c["buy_value"] for c in classified),
+            "total_sell_value": sum(c["sell_value"] for c in classified),
+        }
+    }
+
+
+@router.get("/crossing/summary/{stock_code}")
+def crossing_summary(stock_code: str):
+    import mysql.connector
+    conn = mysql.connector.connect(
+        host='localhost', user='root', password='', database='analisa_saham'
+    )
+    cur = conn.cursor(dictionary=True)
+    cur.execute("""
+        SELECT broker_code, SUM(lots) as total_lots, SUM(value) as total_value
+        FROM broker_summary
+        WHERE stock_code = %s
+        GROUP BY broker_code
+        ORDER BY total_value DESC
+    """, (stock_code.upper(),))
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+    return {"status": "ok", "data": data}
+    brokers = {}
+
+    for c in pc:
+        s = abs(c.get('spread', 0))
+        if s < 1:
+            dist["<1%"] += 1
+        elif s <= 3:
+            dist["1-3%"] += 1
+        else:
+            dist[">3%"] += 1
+
+        b = c.get('buyer_broker')
+        if b:
+            brokers[b] = brokers.get(b, 0) + 1
+        s_b = c.get('seller_broker')
+        if s_b:
+            brokers[s_b] = brokers.get(s_b, 0) + 1
+
+    top_brokers = sorted(brokers.items(), key=lambda x: x[1], reverse=True)[:5]
+
+    return {
+        "status": "ok",
+        "spread_dist": dist,
+        "top_brokers": top_brokers,
+        "total_crossing": len(pc),
+    }

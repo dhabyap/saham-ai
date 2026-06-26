@@ -3,6 +3,11 @@
     <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Ringkasan</button>
     <button class="tab-btn" :class="{ active: currentTab === 'netflow' }" @click="currentTab = 'netflow'">Net Flow</button>
     <button class="tab-btn" :class="{ active: currentTab === 'crossing' }" @click="currentTab = 'crossing'">Crossing</button>
+    <button class="tab-btn" :class="{ active: currentTab === 'crossing_sum' }" @click="currentTab = 'crossing_sum'">Crossing Sum</button>
+    <button class="tab-btn" :class="{ active: currentTab === 'airec' }" @click="currentTab = 'airec'">
+      🤖 AI Rekomendasi
+      <span v-if="bdRecommendation && bdRecommendation.recommendation" class="tab-badge" :style="{ background: bdRecommendation.recommendation === 'BUY' ? 'var(--success)' : bdRecommendation.recommendation === 'SELL' ? 'var(--danger)' : 'var(--warning)' }">{{ bdRecommendation.recommendation }}</span>
+    </button>
   </div>
 
   <!-- Search bar -->
@@ -30,8 +35,49 @@
     </div>
   </div>
 
-  <!-- Empty: tag chips like shareholder page -->
+  <!-- Suggest Upload Section (shown when no stock selected) -->
   <div v-if="!bdData && !bdLoading && !bdError">
+    <!-- Loading suggest -->
+    <div v-if="bdSuggestLoading" class="loading-box" style="margin-bottom:12px">
+      <div class="spinner"></div><span>Mencari saham menarik...</span>
+    </div>
+
+    <!-- Suggest cards -->
+    <div v-else-if="bdSuggestUpload && bdSuggestUpload.length" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:18px">💡</span>
+        <div>
+          <div style="font-weight:700;font-size:14px">Upload Data Broker untuk Saham Ini</div>
+          <div style="font-size:12px;color:var(--text-secondary)">
+            Saham berikut menarik — masukkan data broker untuk analisis lebih lanjut
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+        <div v-for="s in bdSuggestUpload" :key="s.stock_code"
+             @click="selectBdStock({stock_code:s.stock_code,entries:0})"
+             style="background:var(--bg-card);border:1px solid var(--border-color,rgba(0,0,0,0.06));border-radius:12px;padding:14px;cursor:pointer;transition:all .15s"
+             @mouseenter="$el.style.borderColor='var(--accent)'" @mouseleave="$el.style.borderColor='var(--border-color,rgba(0,0,0,0.06))'">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-weight:800;font-size:16px;color:var(--accent)">{{ s.stock_code }}</span>
+            <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(247,147,26,0.12);color:var(--accent);font-weight:700">{{ s.change_pct >= 0 ? '+' : '' }}{{ s.change_pct }}%</span>
+          </div>
+          <div v-if="s.name" style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">{{ s.name }}</div>
+          <div style="font-size:12px;color:var(--text-secondary, #666);line-height:1.4">
+            {{ s.reason }}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <span style="font-size:10px;padding:2px 8px;border-radius:8px;background:var(--accent);color:#fff;font-weight:600" v-if="s.volume_ratio >= 1.5">Volume {{ s.volume_ratio }}x</span>
+            <span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(0,210,106,0.1);color:var(--success);font-weight:600">Rp{{ (s.price || 0).toLocaleString('id') }}</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);text-align:center">
+        Klik saham di atas untuk melihat data broker yang sudah ada, atau
+      </div>
+    </div>
+
+    <!-- Stock picker -->
     <div style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Pilih kode saham:</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">
       <div v-for="s in bdAvailable" :key="s.stock_code"
@@ -148,8 +194,32 @@
     <template v-else><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Tidak ada data net flow</div></div></template>
   </div>
 
-  <!-- Crossing Tab -->
-  <div class="tab-pane" :class="{ active: currentTab === 'crossing' }">
+  <!-- Crossing Summary Tab -->
+  <div class="tab-pane" :class="{ active: currentTab === 'crossing_sum' }">
+    <div v-if="csLoading" class="loading-box"><div class="spinner"></div><span>Loading summary...</span></div>
+    <div v-else-if="csError" class="error-card">{{ csError }}</div>
+    <div v-else-if="csData">
+      <div class="stat-grid" style="grid-template-columns:repeat(auto-fit, minmax(120px, 1fr))">
+        <div class="stat-card">
+          <div class="stat-label">Total Crossing</div>
+          <div class="stat-value">{{ csData.total_crossing }}</div>
+        </div>
+      </div>
+      <div style="max-width:400px;margin:20px auto">
+        <canvas id="crossingSummaryChart"></canvas>
+      </div>
+      <div class="section">
+        <div class="section-title">Top 5 Broker Teraktif</div>
+        <div v-for="b in csData.top_brokers" :key="b[0]" style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee">
+          <strong>{{ b[0] }}</strong> <span>{{ b[1] }} crossing</span>
+        </div>
+      </div>
+    </div>
+    <div v-else class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-text">Pilih saham untuk melihat rangkuman crossing</div>
+    </div>
+  </div>
     <template v-if="bdError">
       <div class="error-card" style="margin-top:12px">
         <div class="error-icon">⚠️</div>
@@ -179,5 +249,74 @@
     </template>
     <template v-else-if="!bdData"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">{{ bdCurrentStock ? 'Belum ada data crossing untuk ' + bdCurrentStock.stock_code : 'Cari saham dulu' }}</div></div></template>
     <template v-else><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Tidak ada crossing data</div></div></template>
+  </div>
+
+  <!-- AI Rekomendasi Tab -->
+  <div class="tab-pane" :class="{ active: currentTab === 'airec' }">
+    <template v-if="bdRecLoading">
+      <div class="loading-box"><div class="spinner"></div><span>Menganalisa data broker...</span></div>
+    </template>
+    <template v-else-if="!bdData && !bdLoading">
+      <div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Cari saham dulu untuk lihat rekomendasi</div></div>
+    </template>
+    <template v-else-if="bdRecommendation">
+      <!-- Overall Recommendation Card -->
+      <div class="section" style="margin-bottom:12px">
+        <div class="section-title">📊 Rekomendasi Berbasis Broker</div>
+        <div class="stat-grid">
+          <div class="stat-card" v-if="bdRecommendation.recommendation" :style="{ background: recBgColor(bdRecommendation.recommendation) }">
+            <div class="stat-label">Rekomendasi</div>
+            <div class="stat-value-sm" style="font-size:24px;font-weight:800">{{ bdRecommendation.recommendation }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Keyakinan</div>
+            <div class="stat-value-sm">{{ bdRecommendation.confidence }}%</div>
+          </div>
+          <div class="stat-card mint" style="grid-column:span 2">
+            <div class="stat-label">Alasan</div>
+            <div class="stat-value-sm" style="font-size:13px;color:var(--text-secondary)">{{ bdRecommendation.reason }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Breakdown — placed BEFORE signals so NET data visible first -->
+      <div class="section" v-if="bdRecommendation && bdRecommendation.categories">
+        <div class="section-title">📋 Breakdown per Kategori — NET</div>
+        <div class="insight-grid">
+          <template v-for="(cat, catKey) in bdRecommendation.categories" :key="catKey">
+            <div class="insight-card" v-if="cat && cat.broker_count > 0" style="overflow:hidden">
+            <div class="insight-header"><span class="insight-icon">{{ catKey === 'smart_money' ? '🌍' : catKey === 'institutional' ? '🏦' : '👤' }}</span><span>{{ catKey === 'smart_money' ? 'Smart Money' : catKey === 'institutional' ? 'Institusi Lokal' : 'Retail' }}</span><span style="margin-left:auto;font-weight:700;font-size:16px" :style="{ color: cat.net_value >= 0 ? 'var(--success)' : 'var(--danger)' }">{{ cat.net_value >= 0 ? '+' : '' }}Rp{{ fmtRupiah(cat.net_value) }}</span></div>
+            <div class="insight-body" style="font-size:12px">
+              <!-- Visual Buy vs Sell bar -->
+              <div style="margin:4px 0 8px;height:18px;display:flex;border-radius:9px;overflow:hidden;background:var(--bg-card)">
+                <div :style="{ width: cat.total_buy_value + cat.total_sell_value > 0 ? (cat.total_buy_value/(cat.total_buy_value+cat.total_sell_value)*100)+'%' : '50%', background:'var(--success)', opacity:0.7, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:600, color:'#fff' }">{{ cat.total_buy_value > 0 ? 'BUY Rp'+fmtRupiah(cat.total_buy_value) : '' }}</div>
+                <div :style="{ width: cat.total_buy_value + cat.total_sell_value > 0 ? (cat.total_sell_value/(cat.total_buy_value+cat.total_sell_value)*100)+'%' : '50%', background:'var(--danger)', opacity:0.7, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:600, color:'#fff' }">{{ cat.total_sell_value > 0 ? 'SELL Rp'+fmtRupiah(cat.total_sell_value) : '' }}</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary)">
+                <span>Broker: <strong>{{ cat.broker_count }}</strong></span>
+                <span v-if="cat.net_value > 0">🔥 Net Beli <strong :style="{color:'var(--success)'}">Rp{{ fmtRupiah(cat.net_value) }}</strong></span>
+                <span v-else-if="cat.net_value < 0">🔻 Net Jual <strong :style="{color:'var(--danger)'}">Rp{{ fmtRupiah(cat.net_value) }}</strong></span>
+                <span v-else>⚖️ Net Imbang</span>
+              </div>
+              <div style="margin-top:6px;font-size:10px;color:var(--text-secondary);opacity:0.7">Broker: {{ cat.brokers.join(', ') }}</div>
+            </div>
+          </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Signals -->
+      <div class="section" style="margin-bottom:12px" v-if="bdRecommendation.signals.length">
+        <div class="section-title">🚦 Sinyal</div>
+        <div v-for="s in bdRecommendation.signals" :key="s.type" class="insight-card" style="margin-bottom:8px"
+             :style="{ borderLeft: '4px solid ' + (s.sentiment === 'positive' ? 'var(--success)' : s.sentiment === 'warning' ? 'var(--warning)' : 'var(--danger)') }">
+          <div class="insight-header"><span class="insight-icon">{{ s.label }}</span><span class="badge" :class="{ 'badge-success': s.sentiment === 'positive', 'badge-warning': s.sentiment === 'warning', 'badge-danger': s.sentiment === 'negative' }">{{ s.sentiment }}</span></div>
+          <div class="insight-body" style="padding:4px 8px 8px;font-size:13px;color:var(--text-secondary)">{{ s.message }}</div>
+        </div>
+      </div>
+    </template>
+    <template v-else>
+      <div class="empty-state"><div class="empty-icon">🤖</div><div class="empty-text">Memuat rekomendasi...</div></div>
+    </template>
   </div>
 </template>

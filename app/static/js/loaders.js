@@ -880,6 +880,20 @@ async function loadBdAvailable() {
   }
 }
 
+async function loadBdSuggestUpload() {
+  if (bdSuggestUpload.value) return;
+  bdSuggestLoading.value = true;
+  try {
+    var r = await fetch('/api/broker-summary/suggest-upload');
+    var d = await r.json();
+    if (d.suggestions) bdSuggestUpload.value = d.suggestions;
+  } catch (e) {
+    console.error('Gagal load suggest upload:', e);
+  } finally {
+    bdSuggestLoading.value = false;
+  }
+}
+
 function onBdSearchInput() {
   if (!bdAvailable.value.length) loadBdAvailable();
   bdShowSuggestions.value = bdStockQuery.value.length >= 1;
@@ -900,9 +914,69 @@ function selectBdStock(s) {
   bdCurrentStock.value = s;
   bdShowSuggestions.value = false;
   loadBrokerData(s.stock_code);
+  loadBrokerRecommendation(s.stock_code);
+  loadCrossingSummary(s.stock_code);
 }
 
 function bdHideSuggestions() {
   setTimeout(function () { bdShowSuggestions.value = false; }, 200);
+}
+
+async function loadBrokerRecommendation(stockCode) {
+  if (!stockCode) return;
+  bdRecLoading.value = true;
+  bdRecommendation.value = null;
+  try {
+    const r = await fetch('/api/broker-summary/' + encodeURIComponent(stockCode) + '/recommendation');
+    const d = await r.json();
+    if (d.status === 'ok' && d.data) {
+      bdRecommendation.value = d.data;
+    } else {
+      bdRecommendation.value = null;
+    }
+  } catch (e) {
+    bdRecommendation.value = null;
+  } finally {
+    bdRecLoading.value = false;
+  }
+}
+
+async function loadCrossingSummary(stockCode) {
+  if (!stockCode) return;
+  csLoading.value = true;
+  csError.value = null;
+  csData.value = null;
+  try {
+    const r = await fetch('/api/crossing/summary/' + encodeURIComponent(stockCode));
+    const d = await r.json();
+    if (d.status !== 'ok') {
+      csError.value = d.message || 'No data';
+    } else {
+      csData.value = d;
+    }
+  } catch (e) {
+    csError.value = e.message || 'Gagal load summary';
+  } finally {
+    csLoading.value = false;
+    if (csData.value) renderCrossingChart();
+  }
+}
+
+function renderCrossingChart() {
+  const canvas = document.getElementById('crossingSummaryChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const data = csData.value;
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(data.spread_dist),
+      datasets: [{
+        label: 'Spread Distribution',
+        data: Object.values(data.spread_dist),
+        backgroundColor: ['#4caf50','#ff9800','#f44336']
+      }]
+    }
+  });
 }
 

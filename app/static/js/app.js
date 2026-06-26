@@ -50,7 +50,7 @@ createApp({
     });
 
     watch(currentView, function(view) {
-      if (view === 'brokerdata') loadBdAvailable();
+      if (view === 'brokerdata') { loadBdAvailable(); loadBdSuggestUpload(); }
     });
 
     onMounted(function() {
@@ -157,6 +157,11 @@ createApp({
       onBdSearchInput: onBdSearchInput, bdSelectHighlighted: bdSelectHighlighted,
       selectBdStock: selectBdStock, bdHideSuggestions: bdHideSuggestions,
       bdSearchFocused: bdSearchFocused, bdFmt: bdFmt,
+      bdRecommendation: bdRecommendation, bdRecLoading: bdRecLoading,
+      loadBrokerRecommendation: loadBrokerRecommendation,
+      bdSuggestUpload: bdSuggestUpload, bdSuggestLoading: bdSuggestLoading,
+      loadBdSuggestUpload: loadBdSuggestUpload,
+      recBgColor: recBgColor, fmtRupiah: fmtRupiah,
       // Market Reports
       mrReports: mrReports, mrStats: mrStats, mrAnalysis: mrAnalysis,
       mrLoadingAnalysis: mrLoadingAnalysis, mrFilter: mrFilter, setMrFilter: setMrFilter,

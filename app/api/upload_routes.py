@@ -1,274 +1,45 @@
-"""API routes for daily Excel uploads and analysis"""
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
-import shutil
-from pathlib import Path
-from datetime import datetime
+import mysql.connector
+from fastapi import APIRouter, HTTPException
 
-from app.database.database import get_db
-from app.services.daily_upload_service import DailyUploadService
+router = APIRouter()
 
-router = APIRouter(prefix="/api/uploads", tags=["uploads"])
+def get_mysql_conn():
+    return mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='',
+        database='analisa_saham'
+    )
 
-# Ensure upload folder exists
-UPLOAD_FOLDER = Path("uploads/daily_uploads")
-UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
-
-
-@router.post("/excel")
-async def upload_excel(file: UploadFile = File(...)):
-    """
-    Upload daily Excel file for analysis
-    
-    Expected columns in Excel:
-    - Kode: Stock code (e.g., BBCA, BMRI)
-    - Tanggal: Date
-    - Open, High, Low, Close: Price data
-    - Volume: Trading volume
-    - SMA_20, SMA_50: Moving averages (optional)
-    - RSI, MACD: Technical indicators (optional)
-    """
+@router.post("/api/broker/upload")
+def upload_broker_data(data: dict):
     try:
-        original_filename = Path(file.filename or "upload.xlsx").name
-        if not original_filename.lower().endswith(".xlsx"):
-            raise HTTPException(status_code=400, detail="Only .xlsx files are supported")
+        ticker = data.get('ticker')
+        if not ticker:
+            raise HTTPException(status_code=400, detail="Ticker missing")
+            
+        summary = data.get('broker_summary', {})
+        buyers = summary.get('buyers', [])
         
-        # Save uploaded file
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_path = UPLOAD_FOLDER / f"{timestamp}_{original_filename}"
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        conn = get_mysql_conn()
+        cur = conn.cursor()
         
-        # Process upload
-        with get_db() as db:
-            upload_service = DailyUploadService(db)
-            result = upload_service.process_excel_upload(str(file_path), original_filename)
+        cur.execute('DELETE FROM broker_summary WHERE stock_code = %s', (ticker,))
         
-        if "error" in result:
-            raise HTTPException(status_code=400, detail=result["error"])
+        sql = """INSERT INTO broker_summary 
+                 (stock_code, broker_code, side, lots, value, avg_price) 
+                 VALUES (%s, %s, %s, %s, %s, %s)"""
         
-        return result
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/latest")
-async def get_latest_upload():
-    """Get latest upload summary"""
-    try:
-        with get_db() as db:
-            cursor = db.cursor()
-            cursor.execute("""
-                SELECT * FROM daily_uploads 
-                ORDER BY upload_date DESC, uploaded_at DESC LIMIT 1
-            """)
-            upload = cursor.fetchone()
-            
-            if not upload:
-                return {"message": "No uploads found"}
-            
-            cursor.execute("""
-                SELECT * FROM upload_analysis_results 
-                WHERE upload_id = ? LIMIT 1
-            """, (upload['id'],))
-            analysis = cursor.fetchone()
-            
-            return {
-                "id": upload['id'],
-                "upload_date": upload['upload_date'],
-                "filename": upload['filename'],
-                "total_stocks": upload['total_stocks'],
-                "uploaded_at": upload['uploaded_at'],
-                "buy_signals": analysis['total_buy_signals'] if analysis else 0,
-                "sell_signals": analysis['total_sell_signals'] if analysis else 0,
-                "hold_signals": analysis['total_hold_signals'] if analysis else 0,
-                "confidence_score": analysis['confidence_score'] if analysis else 0
-            }
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/list/all")
-async def list_all_uploads():
-    """Get list of all uploads"""
-    try:
-        with get_db() as db:
-            cursor = db.cursor()
-            cursor.execute("""
-                SELECT * FROM daily_uploads 
-                ORDER BY upload_date DESC, uploaded_at DESC
-            """)
-            uploads = cursor.fetchall()
-            
-            return {
-                "total": len(uploads),
-                "uploads": [
-                    {
-                        "id": u['id'],
-                        "upload_date": u['upload_date'],
-                        "filename": u['filename'],
-                        "total_stocks": u['total_stocks'],
-                        "uploaded_at": u['uploaded_at']
-                    }
-                    for u in uploads
-                ]
-            }
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/training/summary")
-async def get_training_summary():
-    """Get AI training data summary"""
-    try:
-        with get_db() as db:
-            cursor = db.cursor()
-            
-            cursor.execute("SELECT label, COUNT(*) FROM ai_training_data GROUP BY label")
-            rows = cursor.fetchall()
-            
-            if not rows:
-                return {
-                    "total_records": 0,
-                    "success_rate": 0,
-                    "labels_distribution": {},
-                    "message": "No training data collected yet"
-                }
-            
-            # Calculate statistics
-            labels = {row['label']: row['COUNT(*)'] for row in rows}
-            total = sum(labels.values())
-            correct_predictions = sum(count for label, count in labels.items() if 'PROFIT' in label)
-            
-            success_rate = (correct_predictions / total * 100) if total > 0 else 0
-            
-            # Get unique stocks trained
-            cursor.execute("SELECT COUNT(DISTINCT stock_code) FROM ai_training_data")
-            stocks_trained = cursor.fetchone()
-            stocks_trained = stocks_trained['COUNT(DISTINCT stock_code)'] if stocks_trained else 0
-            
-            # Get average return
-            cursor.execute("SELECT AVG(actual_return) FROM ai_training_data")
-            avg_return_row = cursor.fetchone()
-            avg_return = avg_return_row['AVG(actual_return)'] if avg_return_row and avg_return_row['AVG(actual_return)'] else 0
-            
-            return {
-                "total_records": total,
-                "success_rate": round(success_rate, 2),
-                "labels_distribution": labels,
-                "stocks_trained": stocks_trained,
-                "avg_profit_percentage": round(avg_return, 2)
-            }
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/{prediction_id}/actual-result")
-async def record_actual_result(
-    prediction_id: int,
-    actual_profit: float = Query(...),
-    was_correct: bool = Query(...)
-):
-    """
-    Record actual market result for a prediction (for AI training)
-    
-    This endpoint is called after market close to record whether
-    the prediction was correct and what the actual profit/loss was.
-    """
-    try:
-        with get_db() as db:
-            cursor = db.cursor()
-            cursor.execute("SELECT * FROM day_trade_predictions WHERE id = ?", (prediction_id,))
-            prediction = cursor.fetchone()
-            
-            if not prediction:
-                raise HTTPException(status_code=404, detail="Prediction not found")
-            
-            upload_service = DailyUploadService(db)
-            success = upload_service.add_actual_result(prediction_id, actual_profit, was_correct)
-            
-            if not success:
-                raise HTTPException(status_code=400, detail="Failed to record result")
-            
-            return {
-                "success": True,
-                "message": "Actual result recorded successfully",
-                "stock_code": prediction['stock_code'],
-                "actual_profit": actual_profit,
-                "was_correct": was_correct
-            }
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/{upload_id}")
-async def get_upload_details(upload_id: int):
-    """Get detailed analysis of a specific upload"""
-    try:
-        with get_db() as db:
-            cursor = db.cursor()
-            
-            cursor.execute("SELECT * FROM daily_uploads WHERE id = ?", (upload_id,))
-            upload = cursor.fetchone()
-            
-            if not upload:
-                raise HTTPException(status_code=404, detail="Upload not found")
-            
-            cursor.execute("""
-                SELECT * FROM day_trade_predictions WHERE stock_data_id IN
-                (SELECT id FROM daily_stock_data WHERE upload_id = ?)
-                ORDER BY stock_code
-            """, (upload_id,))
-            predictions = cursor.fetchall()
-            
-            # Parse predictions
-            buy_stocks = [p for p in predictions if p['trade_signal'] == 'BUY']
-            sell_stocks = [p for p in predictions if p['trade_signal'] == 'SELL']
-            hold_stocks = [p for p in predictions if p['trade_signal'] == 'HOLD']
-            
-            # Get analysis summary
-            cursor.execute("""
-                SELECT * FROM upload_analysis_results 
-                WHERE upload_id = ? LIMIT 1
-            """, (upload_id,))
-            analysis = cursor.fetchone()
-            
-            def format_prediction(p, include_reasoning=True):
-                data = {
-                    "code": p['stock_code'],
-                    "confidence": p['confidence'],
-                    "expected_profit": p['expected_profit_percentage'],
-                    "risk_level": p['risk_level'],
-                }
-                if include_reasoning:
-                    data["reasoning"] = p['reasoning']
-                return data
-            
-            return {
-                "id": upload['id'],
-                "upload_date": upload['upload_date'],
-                "filename": upload['filename'],
-                "total_stocks": upload['total_stocks'],
-                "buy_recommendations": [format_prediction(p) for p in buy_stocks],
-                "sell_recommendations": [format_prediction(p) for p in sell_stocks],
-                "hold_recommendations": [format_prediction(p, include_reasoning=False) for p in hold_stocks],
-                "summary": {
-                    "total_buy": len(buy_stocks),
-                    "total_sell": len(sell_stocks),
-                    "total_hold": len(hold_stocks),
-                    "average_confidence": analysis['confidence_score'] if analysis else 0
-                }
-            }
-    
-    except HTTPException:
-        raise
+        # side can be inferred if not present, default to BUY
+        vals = [
+            (ticker, b['broker_code'], b.get('side', 'BUY'), b['lots'], b['value'], b['avg_price']) 
+            for b in buyers
+        ]
+        
+        cur.executemany(sql, vals)
+        conn.commit()
+        conn.close()
+        
+        return {"status": "success", "imported": len(buyers), "ticker": ticker}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

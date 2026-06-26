@@ -39,7 +39,9 @@ KNOWN_FOREIGN_BROKERS = {
 # Sumber: kode anggota bursa BEI
 BROKER_CODE_MAP = {
     "AG": ("Anugerah Sekuritas", False),
-    "AK": ("Ajaib Sekuritas", False),
+    "AI": ("AI Sekuritas", False),
+    "AK": ("Ajaib Sekuritas", True),
+    "AO": ("AO Sekuritas", False),
     "AP": ("Aspac Sekuritas", False),
     "AR": ("Artha Sekuritas", False),
     "AZ": ("Alfa Sekuritas", False),
@@ -122,6 +124,168 @@ BROKER_CODE_MAP = {
     "YU": ("Citigroup Sekuritas", True),
     "ZP": ("ZPA Sekuritas", False),
 }
+
+
+# Broker classification for AI recommendation signals
+# Based on: https://www.idx.co.id/id/anggota-bursa-dan-partisipan/daftar-anggota-bursa
+# Categories:
+#   smart_money  → foreign brokers + global investment banks
+#   institutional → domestic institutional brokers (bank securities, big local)
+#   retail       → domestic retail brokers (individual investors)
+BROKER_CLASSIFICATION = {
+    # === SMART MONEY (Foreign / Global) ===
+    "BB": "smart_money",  # BCA Sekuritas (JV foreign)
+    "BK": "smart_money",  # Barclays Capital
+    "CC": "smart_money",  # CLSA Sekuritas
+    "CG": "smart_money",  # CGS-CIMB Sekuritas
+    "CI": "smart_money",  # Citigroup Sekuritas
+    "CS": "smart_money",  # Credit Suisse
+    "DB": "smart_money",  # Deutsche Bank
+    "DS": "smart_money",  # DBS Vickers
+    "GS": "smart_money",  # Goldman Sachs
+    "HS": "smart_money",  # HSBC Sekuritas
+    "JP": "smart_money",  # JP Morgan
+    "KI": "smart_money",  # Kim Eng Sekuritas
+    "KZ": "smart_money",  # Macquarie Sekuritas
+    "MB": "smart_money",  # Maybank Sekuritas
+    "MC": "smart_money",  # Macquarie Sekuritas
+    "MI": "smart_money",  # Mirae Asset
+    "MR": "smart_money",  # Merrill Lynch
+    "MS": "smart_money",  # Morgan Stanley
+    "NM": "smart_money",  # Nomura Sekuritas
+    "OC": "smart_money",  # OCBC Sekuritas
+    "PH": "smart_money",  # Phillip Sekuritas
+    "RB": "smart_money",  # Royal Bank
+    "RG": "smart_money",  # RHB OSK
+    "RX": "smart_money",  # RHB Sekuritas Indonesia
+    "ST": "smart_money",  # Standard Chartered
+    "UB": "smart_money",  # UOB Kay Hian
+    "UO": "smart_money",  # UOB Kay Hian
+    "YA": "smart_money",  # Yuanta Sekuritas
+    "YU": "smart_money",  # Citigroup Sekuritas
+
+    # === INSTITUSIONAL LOKAL ===
+    "BN": "institutional",  # BNI Sekuritas
+    "BR": "institutional",  # BRI Danareksa
+    "DR": "institutional",  # Danareksa Sekuritas
+    "IF": "institutional",  # Indo Premier Sekuritas
+    "IP": "institutional",  # Indopremier Sekuritas
+    "MA": "institutional",  # Mandiri Sekuritas
+    "MH": "institutional",  # Mandiri Sekuritas
+    "NH": "institutional",  # NH Korindo
+    "SA": "institutional",  # Samuel Sekuritas
+    "TP": "institutional",  # Trimegah Sekuritas
+
+    # === RETAIL ===
+    "AG": "retail",  # Anugerah Sekuritas
+    "AK": "smart_money",  # Ajaib Sekuritas (asing)
+    "AP": "retail",  # Aspac Sekuritas
+    "AR": "retail",  # Artha Sekuritas
+    "AT": "retail",  # (unknown retail)
+    "AZ": "retail",  # Alfa Sekuritas
+    "BQ": "retail",  # (unknown retail)
+    "BS": "retail",  # Binaartha Sekuritas
+    "CD": "retail",  # (unknown retail)
+    "CP": "retail",  # Ciptadana Sekuritas
+    "DH": "retail",  # (unknown retail)
+    "DP": "retail",  # (unknown retail)
+    "DU": "retail",  # (unknown retail)
+    "DX": "retail",  # Dxchange Sekuritas
+    "EP": "retail",  # (unknown retail)
+    "ER": "retail",  # Erdikha Elit Sekuritas
+    "ES": "retail",  # (unknown retail)
+    "FB": "retail",  # Firman Bima Sekuritas
+    "FG": "retail",  # Fauzan Gani Sekuritas
+    "FO": "retail",  # (unknown retail)
+    "FP": "retail",  # Fortis Asia
+    "FS": "retail",  # (unknown retail)
+    "FZ": "retail",  # (unknown retail)
+    "GI": "retail",  # (unknown retail)
+    "GR": "retail",  # Graham Reksa
+    "HD": "retail",  # HD Capital
+    "HP": "retail",  # (unknown retail)
+    "ID": "retail",  # (unknown retail)
+    "IG": "retail",  # Indo Ganeca Sekuritas
+    "IU": "retail",  # (unknown retail)
+    "JD": "retail",  # JD Bower
+    "KG": "retail",  # KGI Sekuritas
+    "KK": "retail",  # (unknown retail)
+    "KP": "retail",  # Kresna Graha Sekuritas
+    "LG": "retail",  # (unknown retail)
+    "LS": "retail",  # (unknown retail)
+    "MG": "retail",  # Mega Capital
+    "MN": "retail",  # MNC Sekuritas
+    "MP": "retail",  # MNC Kapital
+    "NC": "retail",  # NC Sekuritas
+    "NI": "retail",  # (unknown retail)
+    "NS": "retail",  # Nusantara Sekuritas
+    "OD": "retail",  # Oscar Dharma
+    "OK": "retail",  # Oto Kredit
+    "OP": "retail",  # Optima Kharya
+    "OS": "retail",  # OSK Nusadana
+    "PC": "retail",  # (unknown retail)
+    "PD": "retail",  # Mandiri Sekuritas (retail desk)
+    "PF": "retail",  # (unknown retail)
+    "PG": "retail",  # Panin Sekuritas
+    "PP": "retail",  # (unknown retail)
+    "QA": "retail",  # (unknown retail)
+    "RF": "retail",  # (unknown retail)
+    "RO": "retail",  # (unknown retail)
+    "RS": "retail",  # (unknown retail)
+    "SB": "retail",  # Sinarmas Sekuritas
+    "SF": "retail",  # (unknown retail)
+    "SG": "retail",  # Sugeng Santoso
+    "SH": "retail",  # (unknown retail)
+    "SM": "retail",  # Semesta Indovest
+    "SQ": "retail",  # Sucor Sekuritas
+    "SS": "retail",  # (unknown retail)
+    "TF": "retail",  # (unknown retail)
+    "TS": "retail",  # (unknown retail)
+    "UF": "retail",  # UFO Sekuritas
+    "VP": "retail",  # Valbury Sekuritas
+    "XA": "retail",  # XAsia Sekuritas
+    "XC": "retail",  # Xcelencia
+    "XL": "retail",  # XL Sekuritas
+    "YB": "retail",  # (unknown retail)
+    "YJ": "retail",  # Yujin Sekuritas
+    "YO": "retail",  # (unknown retail)
+    "YP": "retail",  # YP Sekuritas
+    "ZP": "retail",  # ZPA Sekuritas
+    "ZR": "retail",  # (unknown retail)
+}
+
+
+def get_broker_category(broker_code: str) -> str:
+    """Get broker classification: smart_money, institutional, retail, or unknown.
+    
+    Priority:
+    1. Explicit BROKER_CLASSIFICATION override
+    2. is_foreign flag from BROKER_CODE_MAP:
+       - foreign (True) → smart_money (never retail)
+       - domestic (False) → retail
+    3. Not in CODE_MAP → unknown
+    """
+    code = broker_code.strip().upper()
+    # Explicit override first
+    if code in BROKER_CLASSIFICATION:
+        return BROKER_CLASSIFICATION[code]
+    # Fall back to is_foreign flag
+    entry = BROKER_CODE_MAP.get(code)
+    if entry:
+        _, is_foreign = entry
+        return "smart_money" if is_foreign else "retail"
+    return "unknown"
+
+
+def get_broker_category_label(category: str) -> tuple:
+    """Return (label, icon, color) for a broker category."""
+    labels = {
+        "smart_money": ("Smart Money", "🌍", "#2563eb"),
+        "institutional": ("Institusi", "🏦", "#7c3aed"),
+        "retail": ("Retail", "👤", "#10b981"),
+        "unknown": ("Unknown", "❓", "#6b7280"),
+    }
+    return labels.get(category, labels["unknown"])
 
 
 def _sql():

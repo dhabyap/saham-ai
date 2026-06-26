@@ -82,6 +82,16 @@ def has_active_alert(stock_code, alert_type):
         return row is not None
 
 
+def alert_sent_today(stock_code, alert_type):
+    """Check if same alert type for this stock was sent in last 24h."""
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id FROM alert_logs WHERE stock_code=? AND alert_type=? AND sent=1 AND created_at > datetime('now', '-1 day') LIMIT 1",
+            (stock_code.upper(), alert_type),
+        ).fetchone()
+        return row is not None
+
+
 def save_alert(user_id, stock_code, alert_type, message, value=None):
     # Skip if same stock+type already has unsent alert
     if has_active_alert(stock_code, alert_type):

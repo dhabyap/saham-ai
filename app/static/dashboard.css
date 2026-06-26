@@ -419,6 +419,18 @@ body {
     border-bottom-color:var(--accent);
 }
 
+.tab-badge {
+    display:inline-block;
+    font-size:9px;
+    font-weight:700;
+    color:#fff;
+    padding:1px 6px;
+    border-radius:6px;
+    margin-left:4px;
+    vertical-align:middle;
+    letter-spacing:0.3px;
+}
+
 .content {
     flex:1;
     overflow-y:auto;

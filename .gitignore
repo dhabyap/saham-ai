@@ -61,3 +61,4 @@ config/settings.json
 backtest_bpjs.py
 market_report_analysis.py
 market_report_scraper.py
+credentials.json

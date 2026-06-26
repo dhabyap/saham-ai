@@ -43,7 +43,7 @@
     </button>
     <!-- Suggestions dropdown -->
     <div class="bd-suggestions" v-if="bdShowSuggestions && bdFiltered.length"
-         style="position:absolute;top:calc(100% + 5px);left:0;width:calc(100% - 100px);z-index:1000;background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:8px 0;box-shadow:0 4px 12px rgba(0,0,0,0.1);max-height:250px;overflow-y:auto;">
+         style="position:absolute;top:calc(100% + 12px);left:0;width:100%;z-index:9999;background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:8px 0;box-shadow:0 8px 24px rgba(0,0,0,0.3);max-height:250px;overflow-y:auto;">
       <div v-for="(s, i) in bdFiltered" :key="s.stock_code"
            class="bd-suggestion-item" :class="{ active: bdHighlight === i }"
            @mousedown.prevent="selectBdStock(s)" @mouseenter="bdHighlight = i">

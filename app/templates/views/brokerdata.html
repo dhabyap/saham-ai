@@ -31,20 +31,19 @@
   </div>
 
   <!-- Search bar -->
-  <div class="overview-search" style="margin-top:0">
+  <div class="overview-search" style="position:relative;margin-top:0;display:flex;gap:8px;align-items:center;">
     <input type="text" v-model="bdStockQuery" placeholder="Cari kode saham..."
            @input="onBdSearchInput" @keydown.down.prevent="bdHighlight++" @keydown.up.prevent="bdHighlight--"
            @keydown.enter="bdSelectHighlighted" @focus="onBdSearchInput"
-           @blur="bdHideSuggestions" autocomplete="off" />
+           @blur="bdHideSuggestions($event)" autocomplete="off"
+           style="flex:1;max-width:none!important;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary)">
     <button class="btn btn-sm btn-accent" @click="searchBdStock()"
             :disabled="bdLoading">
       <span v-if="!bdLoading">Cari</span><span v-else>⏳</span>
     </button>
-  </div>
-
-  <!-- Suggestions dropdown -->
-  <div style="position:relative">
-    <div class="bd-suggestions" v-if="bdShowSuggestions && bdFiltered.length">
+    <!-- Suggestions dropdown -->
+    <div class="bd-suggestions" v-if="bdShowSuggestions && bdFiltered.length"
+         style="position:absolute;top:calc(100% + 5px);left:0;width:calc(100% - 100px);z-index:1000;background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:8px 0;box-shadow:0 4px 12px rgba(0,0,0,0.1);max-height:250px;overflow-y:auto;">
       <div v-for="(s, i) in bdFiltered" :key="s.stock_code"
            class="bd-suggestion-item" :class="{ active: bdHighlight === i }"
            @mousedown.prevent="selectBdStock(s)" @mouseenter="bdHighlight = i">

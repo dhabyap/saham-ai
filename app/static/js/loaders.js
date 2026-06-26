@@ -896,7 +896,15 @@ async function loadBdSuggestUpload() {
 
 function onBdSearchInput() {
   if (!bdAvailable.value.length) loadBdAvailable();
-  bdShowSuggestions.value = bdStockQuery.value.length >= 1;
+  bdShowSuggestions.value = true; // Always show suggestions if input is active
+  var query = bdStockQuery.value.toUpperCase();
+  if (query.length >= 1) { // Only filter if query has at least one character
+    bdFiltered.value = bdAvailable.value.filter(function(s) {
+      return s.stock_code.includes(query) || (s.name && s.name.toUpperCase().includes(query));
+    });
+  } else {
+    bdFiltered.value = bdAvailable.value; // Show all if query is empty
+  }
   bdHighlight.value = -1;
 }
 
@@ -926,8 +934,13 @@ function searchBdStock() {
   selectBdStock(match || { stock_code: code, entries: 0 });
 }
 
-function bdHideSuggestions() {
-  setTimeout(function () { bdShowSuggestions.value = false; }, 200);
+function bdHideSuggestions(event) {
+  // Check if the blur event was caused by clicking a suggestion item
+  if (event && event.relatedTarget && event.relatedTarget.closest('.bd-suggestion-item')) {
+    return; // Don't hide if clicking on a suggestion
+  }
+  bdShowSuggestions.value = false;
+  bdHighlight.value = -1;
 }
 
 async function loadBrokerRecommendation(stockCode) {

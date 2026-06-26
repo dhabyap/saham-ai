@@ -910,12 +910,18 @@ function bdSelectHighlighted() {
 }
 
 function selectBdStock(s) {
-  bdStockQuery.value = s.stock_code;
-  bdCurrentStock.value = s;
+  bdStockQuery.value = s.stock_code || s;
+  bdCurrentStock.value = { stock_code: s.stock_code || s, entries: 0 };
   bdShowSuggestions.value = false;
-  loadBrokerData(s.stock_code);
-  loadBrokerRecommendation(s.stock_code);
-  loadCrossingSummary(s.stock_code);
+  loadBrokerData(s.stock_code || s);
+  loadBrokerRecommendation(s.stock_code || s);
+  loadCrossingSummary(s.stock_code || s);
+}
+
+function searchBdStock() {
+  var code = (bdStockQuery.value || '').toUpperCase();
+  if (!code) return;
+  selectBdStock({ stock_code: code, entries: 0 });
 }
 
 function bdHideSuggestions() {
@@ -929,8 +935,8 @@ async function loadBrokerRecommendation(stockCode) {
   try {
     const r = await fetch('/api/broker-summary/' + encodeURIComponent(stockCode) + '/recommendation');
     const d = await r.json();
-    if (d.status === 'ok' && d.data) {
-      bdRecommendation.value = d.data;
+    if (d.status === 'ok' && (d.data || d.recommendation)) {
+      bdRecommendation.value = d.data || d;
     } else {
       bdRecommendation.value = null;
     }

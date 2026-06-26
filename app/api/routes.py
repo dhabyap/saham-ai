@@ -1699,7 +1699,7 @@ def broker_summary(stock_code: str):
     from app.database.database import get_db
 
     with get_db() as conn:
-        # Get period
+        # Get period (optional — data from upload may not have it)
         rows = conn.execute("""
             SELECT DISTINCT period_from, period_to, is_gross
             FROM broker_summary
@@ -1707,13 +1707,15 @@ def broker_summary(stock_code: str):
             ORDER BY period_from DESC
             LIMIT 1
         """, (stock_code.upper(),)).fetchall()
-        if not rows:
-            return {"status": "error", "message": f"No broker data for {stock_code.upper()}"}
-
-        row = rows[0]
-        period_from = row['period_from'] if hasattr(row, '__getitem__') else row[0]
-        period_to = row['period_to'] if hasattr(row, '__getitem__') else row[1]
-        is_gross = row['is_gross'] if hasattr(row, '__getitem__') else row[2]
+        
+        period_from = None
+        period_to = None
+        is_gross = False
+        if rows:
+            row = rows[0]
+            period_from = row['period_from'] if hasattr(row, '__getitem__') else row[0]
+            period_to = row['period_to'] if hasattr(row, '__getitem__') else row[1]
+            is_gross = row['is_gross'] if hasattr(row, '__getitem__') else row[2]
 
         # Buyers
         buyers = conn.execute("""

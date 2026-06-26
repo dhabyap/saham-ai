@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 class Config:
     TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -9,9 +9,9 @@ class Config:
     NINE_ROUTER_MODEL: str = os.getenv("NINE_ROUTER_MODEL", "test")
     NINE_ROUTER_API_KEY: str = os.getenv("NINE_ROUTER_API_KEY", "***")
     AI_PROVIDER: str = os.getenv("AI_PROVIDER", "9router")
-    DATABASE_TYPE: str = os.getenv("DATABASE_TYPE", "sqlite")
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///app/database/stock.db")
-    DATABASE_PATH: str = os.getenv("DATABASE_PATH", "app/database/stock.db")
+    DATABASE_TYPE: str = os.getenv("DATABASE_TYPE", "mysql")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "mysql+mysqlconnector://root:@localhost:3306/analisa_saham")
+    DATABASE_PATH: str = os.getenv("DATABASE_PATH", "")
     CHART_DIR: str = os.getenv("CHART_DIR", "app/static/charts")
     SCHEDULER_INTERVAL: int = int(os.getenv("SCHEDULER_INTERVAL", "15"))
     APP_PORT: int = int(os.getenv("APP_PORT", "8000"))

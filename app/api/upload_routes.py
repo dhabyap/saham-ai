@@ -20,26 +20,31 @@ def upload_broker_data(data: dict):
             
         summary = data.get('broker_summary', {})
         buyers = summary.get('buyers', [])
+        sellers = summary.get('sellers', [])
         
         conn = get_mysql_conn()
         cur = conn.cursor()
         
         cur.execute('DELETE FROM broker_summary WHERE stock_code = %s', (ticker,))
         
+        from datetime import date
+        today = date.today().isoformat()
+        
         sql = """INSERT INTO broker_summary 
-                 (stock_code, broker_code, side, lots, value, avg_price) 
-                 VALUES (%s, %s, %s, %s, %s, %s)"""
+                 (stock_code, broker_code, side, lots, value, avg_price, period_from, period_to) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
         
-        # side can be inferred if not present, default to BUY
-        vals = [
-            (ticker, b['broker_code'], b.get('side', 'BUY'), b['lots'], b['value'], b['avg_price']) 
-            for b in buyers
-        ]
+        vals = []
+        for b in buyers:
+            vals.append((ticker, b['broker_code'], 'buy', b['lots'], b['value'], b['avg_price'], today, today))
+        for b in sellers:
+            vals.append((ticker, b['broker_code'], 'sell', b['lots'], b['value'], b['avg_price'], today, today))
         
-        cur.executemany(sql, vals)
+        if vals:
+            cur.executemany(sql, vals)
         conn.commit()
         conn.close()
         
-        return {"status": "success", "imported": len(buyers), "ticker": ticker}
+        return {"status": "success", "imported": len(vals), "ticker": ticker}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

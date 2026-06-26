@@ -79,6 +79,52 @@ var bdRecommendation = ref(null);
 var bdRecLoading = ref(false);
 var bdSuggestUpload = ref(null);
 var bdSuggestLoading = ref(false);
+var uploadStatusText = ref('');
+
+function doUploadBrokerPaste() {
+  var text = document.getElementById('brokerUploadPaste').value;
+  if (!text.trim()) {
+    uploadStatusText.value = '❌ Paste data JSON dulu';
+    return;
+  }
+  try {
+    var json = JSON.parse(text);
+  } catch(e) {
+    uploadStatusText.value = '❌ Format JSON salah: ' + e.message;
+    return;
+  }
+  var ticker = json.ticker;
+  if (!ticker) {
+    uploadStatusText.value = '❌ Field "ticker" tidak ditemukan';
+    return;
+  }
+  uploadStatusText.value = '⏳ Uploading data ' + ticker + '...';
+  fetch('/api/broker/upload', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: text
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(result) {
+    if (result.status === 'success') {
+      uploadStatusText.value = '✅ ' + result.ticker + ': ' + result.imported + ' baris masuk MySQL!';
+      document.getElementById('brokerUploadPaste').value = '';
+      // Auto-load the stock
+      selectBdStock({stock_code: result.ticker, entries: result.imported});
+      currentTab.value = 'overview';
+    } else {
+      uploadStatusText.value = '❌ Gagal: ' + (result.detail || 'unknown error');
+    }
+  })
+  .catch(function(err) {
+    uploadStatusText.value = '❌ Error: ' + err.message;
+  });
+}
+
+function clearUploadPaste() {
+  document.getElementById('brokerUploadPaste').value = '';
+  uploadStatusText.value = '';
+}
 
 function bdFmt(v) {
   if (!v) return '0';

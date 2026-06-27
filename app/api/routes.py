@@ -762,7 +762,7 @@ Return ONLY valid JSON (no markdown, no code fences):
         resp = client.chat.completions.create(
             model=Config.NINE_ROUTER_MODEL,
             messages=[
-                {"role": "system", "content": "You are an Indonesian stock market analyst. Analyze shareholder data and return ONLY valid JSON in BAHASA INDONESIA."},
+                {"role": "system", "content": "You are an Indonesian stock market analyst. Analyze shareholder data and return ONLY valid JSON in BAHASA INDONESIA. When generating SQL, ensure all derived tables in SQL subqueries have explicit aliases (e.g., `(SELECT ... FROM table) AS alias_name`)."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.5,
@@ -833,30 +833,146 @@ def shareholder_import(req: ShareholderImportRequest):
     return {"status": "ok", "period": req.period, **result}
 
 
-def _detect_period_from_pdf(filename: str) -> str | None:
-    """Detect period (e.g. JUN2026) from PDF filename."""
+@router.get("/shareholders/trends")
+def shareholder_trends(period: str = Query(...), prev_period: str = Query(...)):
+    """Get month-over-month trends for top shareholders."""
+    from app.services.shareholder_service import get_shareholder_trends
+    trends = get_shareholder_trends(period, prev_period)
+    return {"status": "ok", "period": period, "prev_period": prev_period, "trends": trends}
+
+
+def _detect_period_from_pdf(filename: str, content: bytes = None) -> str | None:
+    """Detect period (e.g. JUN2026) from PDF filename or content."""
     import re
-    base = filename.rsplit('.', 1)[0].strip().upper()
     months_map = {'01':'JAN','02':'FEB','03':'MAR','04':'APR','05':'MAY','06':'JUN',
                   '07':'JUL','08':'AUG','09':'SEP','10':'OCT','11':'NOV','12':'DEC'}
     valid_months = set(months_map.values())
 
-    # Pattern 1: direct month+year like JUN2026
-    m = re.search(r'([A-Z]{3})(\d{4})', base)
-    if m and m.group(1) in valid_months:
-        return m.group(1) + m.group(2)
+    # Indonesian → EN month mapping
+    id_en = {
+        'JANUARI':'JAN','FEBRUARI':'FEB','MARET':'MAR','APRIL':'APR','MEI':'MAY','JUNI':'JUN',
+        'JULI':'JUL','AGUSTUS':'AUG','SEPTEMBER':'SEP','OKTOBER':'OCT','NOVEMBER':'NOV','DESEMBER':'DEC'
+    }
+    # English 3-letter → uppercase month
+    en_3 = {'JAN':'JAN','FEB':'FEB','MAR':'MAR','APR':'APR','MAY':'MAY','JUN':'JUN',
+            'JUL':'JUL','AUG':'AUG','SEP':'SEP','OCT':'OCT','NOV':'NOV','DEC':'DEC'}
 
-    # Pattern 2: numeric MMYYYY or YYYYMM
-    # Try MMYYYY first - only if first 2 digits are valid month (01-12)
-    m = re.search(r'(0[1-9]|1[012])(\d{4})', base)
-    if m:
-        return months_map.get(m.group(1), '') + m.group(2)
-    # Try YYYYMM - last 2 digits should be 01-12
-    m = re.search(r'(\d{4})(0[1-9]|1[012])', base)
-    if m:
-        return months_map.get(m.group(2), '') + m.group(1)
+    candidates = []
 
-    return None
+    # 1) Try filename patterns
+    if filename:
+        base = filename.rsplit('.', 1)[0].strip().upper()
+        m = re.search(r'([A-Z]{3})(\d{4})', base)
+        if m and m.group(1) in valid_months:
+            candidates.append(m.group(1) + m.group(2))
+        m = re.search(r'(0[1-9]|1[012])(\d{4})', base)
+        if m:
+            candidates.append(months_map.get(m.group(1), '') + m.group(2))
+        m = re.search(r'(\d{4})(0[1-9]|1[012])', base)
+        if m:
+            candidates.append(months_map.get(m.group(2), '') + m.group(1))
+
+    # 2) Try PDF content (first page text)
+    if not candidates and content:
+        try:
+            import fitz  # PyMuPDF
+            doc = fitz.open(stream=content, filetype="pdf")
+            for page in doc[:3]:  # first 3 pages
+                text = page.get_text() or ''
+                text_upper = text.upper()
+                # Pattern: month name + year (e.g. JUNI 2026)
+                for id_month, en_month in id_en.items():
+                    pat = rf'{id_month}\s*(\d{{4}})'
+                    m = re.search(pat, text_upper)
+                    if m:
+                        candidates.append(en_month + m.group(1))
+                # Pattern: Periode: 06/2026
+                m = re.search(r'PERIODE[:\s]*(\d{2})[/\s]*(\d{4})', text_upper)
+                if m:
+                    candidates.append(months_map.get(m.group(1).zfill(2), '') + m.group(2))
+                # Pattern: Periode: JUN 2026 / JUNI2026
+                m = re.search(r'PERIODE[:\s]*([A-Z]{3,})[\s/]*(\d{4})', text_upper)
+                if m:
+                    mon = m.group(1)[:3]
+                    if mon in valid_months:
+                        candidates.append(mon + m.group(2))
+                    elif m.group(1) in id_en:
+                        candidates.append(id_en[m.group(1)] + m.group(2))
+                # Pattern: DD Month YYYY (e.g. "30 Juni 2026")
+                for id_month, en_month in id_en.items():
+                    pat = rf'\d{{1,2}}\s+{id_month}\s+(\d{{4}})'
+                    m = re.search(pat, text_upper)
+                    if m:
+                        candidates.append(en_month + m.group(1))
+                # Pattern: DD-Mon-YYYY (e.g. "31-Mar-2026") — C-BEST, often no space after year
+                m = re.search(r'\b(\d{2})-([A-Z]{3})-(\d{4})', text_upper)
+                if m:
+                    mon = m.group(2).capitalize()
+                    mon3 = mon[:3].upper()
+                    if mon3 in en_3:
+                        candidates.append(en_3[mon3] + m.group(3))
+                if candidates:
+                    break
+            doc.close()
+        except Exception:
+            pass
+
+    return candidates[0] if candidates else None
+
+
+def _parse_pdf_table(content: bytes) -> list:
+    """Parse PDF table data using fitz (thread-safe, no blocking)."""
+    import fitz, re
+    doc = fitz.open(stream=content, filetype="pdf")
+    rows, seen = [], set()
+    max_pages = min(len(doc), 10)
+    for page in doc[:max_pages]:
+        for table in page.find_tables():
+            tbl = table.extract()
+            if not tbl or len(tbl) < 2:
+                continue
+            header = [str(h).strip().lower() if h else '' for h in tbl[0]]
+
+            def _find_col(needles):
+                for n in needles:
+                    for i, h in enumerate(header):
+                        if n in h:
+                            return i
+                return None
+
+            ci_code = _find_col(['kode', 'code', 'stock', 'saham', 'emiten'])
+            ci_name = _find_col(['investor', 'pemegang', 'shareholder', 'nama', 'name'])
+            ci_pct = _find_col(['%', 'persen', 'percent', 'pct', '%saham', 'saham%'])
+            ci_cnt = _find_col(['total', 'jumlah', 'amount', 'count', 'shares', 'lembar', 'qty'])
+            if ci_code is None and ci_name is None:
+                continue
+            for row in tbl[1:]:
+                if not row or len(row) <= max(ci_code or 0, ci_name or 0):
+                    continue
+                try:
+                    sc = re.sub(r'[^A-Z0-9]', '', (str(row[ci_code] or '')).upper()) if ci_code is not None else ''
+                    nm = re.sub(r'\s+', ' ', (str(row[ci_name] or '')).strip().upper()) if ci_name is not None else ''
+                    pct = 0.0
+                    cnt = 0
+                    if ci_pct is not None:
+                        val = str(row[ci_pct] or '0').strip().replace(',', '.').replace('%', '')
+                        m = re.search(r'[\d.]+', val)
+                        if m: pct = float(m.group())
+                    if ci_cnt is not None:
+                        val = str(row[ci_cnt] or '0').strip().replace(',', '')
+                        m = re.search(r'[\d]+', val)
+                        if m: cnt = int(m.group())
+                except (ValueError, IndexError):
+                    continue
+                if not sc or not nm or pct <= 0:
+                    continue
+                dedup = f'{sc}|{nm}|{pct:.4f}'
+                if dedup in seen:
+                    continue
+                seen.add(dedup)
+                rows.append(dict(stock_code=sc, shareholder_name=nm, share_percent=round(pct, 2), share_count=cnt))
+    doc.close()
+    return rows
 
 
 @router.post("/shareholders/upload")
@@ -873,9 +989,12 @@ async def shareholder_upload(
 
     period = period.strip().upper()
 
+    import io
+    content = await file.read()
+
     # Auto-detect period for PDF if not provided
     if not period and ext == 'pdf':
-        detected = _detect_period_from_pdf(file.filename)
+        detected = _detect_period_from_pdf(file.filename, content)
         if detected:
             period = detected
         else:
@@ -884,13 +1003,11 @@ async def shareholder_upload(
     if not period:
         raise HTTPException(400, "Period is required (e.g. JUN2026)")
 
-    import io
     import csv
 
     rows = []
     try:
         if ext == 'csv':
-            content = await file.read()
             text = content.decode('utf-8-sig')
             reader = csv.DictReader(io.StringIO(text))
             for row in reader:
@@ -912,7 +1029,6 @@ async def shareholder_upload(
                     'share_count': cnt,
                 })
         elif ext == 'xlsx':
-            content = await file.read()
             import pandas as pd
             df = pd.read_excel(io.BytesIO(content), dtype=str)
             df.columns = [c.strip().lower() for c in df.columns]
@@ -935,64 +1051,9 @@ async def shareholder_upload(
                     'share_count': cnt,
                 })
         elif ext == 'pdf':
-            content = await file.read()
-            import pdfplumber
-            import re
-            with pdfplumber.open(io.BytesIO(content)) as pdf:
-                for page in pdf.pages:
-                    tables = page.extract_tables()
-                    for table in tables:
-                        if not table or len(table) < 2:
-                            continue
-                        header = table[0]
-                        header_lower = [str(h).strip().lower() if h else '' for h in header]
-                        # Helper inline
-                        def _find_col(haystack, needles):
-                            for i, h in enumerate(haystack):
-                                for n in needles:
-                                    if n in h:
-                                        return i
-                            return None
-                        col_code = _find_col(header_lower, ['kode', 'code', 'stock', 'saham', 'emiten'])
-                        col_name = _find_col(header_lower, ['nama', 'name', 'pemegang', 'shareholder', 'investor'])
-                        col_pct = _find_col(header_lower, ['%', 'persen', 'percent', 'pct', '%saham', 'saham%'])
-                        col_cnt = _find_col(header_lower, ['jumlah', 'amount', 'count', 'shares', 'lembar', 'qty'])
-                        if col_code is None and col_name is None:
-                            continue
-                        for row in table[1:]:
-                            if not row or len(row) <= max(col_code or 0, col_name or 0):
-                                continue
-                            sc = ''
-                            nm = ''
-                            pct = 0.0
-                            cnt = 0
-                            try:
-                                if col_code is not None:
-                                    val = str(row[col_code] or '').strip()
-                                    sc = re.sub(r'[^A-Z0-9]', '', val.upper())
-                                if col_name is not None:
-                                    nm = str(row[col_name] or '').strip().upper()
-                                    nm = re.sub(r'\s+', ' ', nm)
-                                if col_pct is not None:
-                                    val = str(row[col_pct] or '0').strip().replace(',', '.').replace('%', '')
-                                    m = re.search(r'[\d.]+', val)
-                                    if m:
-                                        pct = float(m.group())
-                                if col_cnt is not None:
-                                    val = str(row[col_cnt] or '0').strip().replace(',', '')
-                                    m = re.search(r'[\d]+', val)
-                                    if m:
-                                        cnt = int(m.group())
-                            except (ValueError, IndexError):
-                                continue
-                            if not sc or not nm or pct <= 0:
-                                continue
-                            rows.append({
-                                'stock_code': sc,
-                                'shareholder_name': nm,
-                                'share_percent': round(pct, 2),
-                                'share_count': cnt,
-                            })
+            import asyncio
+            loop = asyncio.get_running_loop()
+            rows = await loop.run_in_executor(None, _parse_pdf_table, content)
     except Exception as e:
         raise HTTPException(400, f"Failed to parse file: {e}")
 

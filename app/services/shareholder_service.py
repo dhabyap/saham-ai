@@ -153,7 +153,7 @@ def upsert_shareholder(
         ).fetchone()
         if existing:
             conn.execute(
-                """UPDATE shareholders SET share_count=?, share_percent=?, category=?, source=?, updated_at=datetime('now')
+                """UPDATE shareholders SET share_count=?, share_percent=?, category=?, source=?, updated_at=NOW()
                    WHERE stock_code=? AND shareholder_name=? AND data_period=?""",
                 (share_count, share_percent, category, source, stock_code.upper(), shareholder_name.upper(), data_period)
             )
@@ -212,3 +212,39 @@ def get_latest_period() -> Optional[str]:
             "SELECT data_period FROM shareholders ORDER BY data_period DESC LIMIT 1"
         ).fetchone()
         return row['data_period'] if row else None
+
+
+def get_shareholder_trends(period: str, prev_period: str) -> list[dict]:
+    """
+    Calculates the month-over-month change in share_percent for each stock,
+    identifying accumulation or distribution.
+    """
+    _ensure_table()
+    with get_db() as conn:
+        # Get data for current and previous period, focusing on top 1% holders
+        # Join on stock_code and shareholder_name
+        rows = conn.execute(
+            """
+            SELECT
+                curr.stock_code,
+                curr.shareholder_name,
+                curr.share_percent AS current_pct,
+                prev.share_percent AS previous_pct,
+                (curr.share_percent - prev.share_percent) AS pct_change
+            FROM
+                shareholders curr
+            JOIN
+                shareholders prev ON curr.stock_code = prev.stock_code
+                                  AND curr.shareholder_name = prev.shareholder_name
+            WHERE
+                curr.data_period = ? AND prev.data_period = ?
+                AND curr.share_percent >= 1.0 AND prev.share_percent >= 1.0
+            HAVING
+                ABS(pct_change) >= 3.0 -- Only show changes >= 3%
+            ORDER BY
+                ABS(pct_change) DESC
+            """,
+            (period, prev_period)
+        ).fetchall()
+        return [dict(row) for row in rows]
+

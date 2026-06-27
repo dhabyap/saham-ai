@@ -212,3 +212,59 @@ def get_latest_period() -> Optional[str]:
             "SELECT data_period FROM shareholders ORDER BY data_period DESC LIMIT 1"
         ).fetchone()
         return row['data_period'] if row else None
+
+
+def get_shareholder_graph_data(period: Optional[str] = None) -> dict:
+    """
+    Get all shareholder data for the graph visualization (nodes and edges).
+    Includes stocks and shareholders with >1% ownership.
+    """
+    _ensure_table()
+    nodes = []
+    edges = []
+    
+    with get_db() as conn:
+        if period:
+            rows = conn.execute(
+                """SELECT stock_code, shareholder_name, share_percent
+                   FROM shareholders
+                   WHERE data_period = ? AND share_percent >= 1.0
+                   ORDER BY stock_code, shareholder_name""",
+                (period,)
+            )
+        else:
+            rows = conn.execute(
+                """SELECT stock_code, shareholder_name, share_percent, data_period
+                   FROM shareholders
+                   WHERE share_percent >= 1.0
+                   ORDER BY data_period DESC, stock_code, shareholder_name""",
+            )
+        
+        # Keep track of unique nodes to avoid duplicates
+        stock_nodes = set()
+        shareholder_nodes = set()
+
+        for r in rows:
+            record = dict(r)
+            stock_code = record['stock_code']
+            shareholder_name = record['shareholder_name']
+            share_percent = float(record['share_percent'])
+
+            if stock_code not in stock_nodes:
+                nodes.append({"id": stock_code, "label": stock_code, "group": "stock"})
+                stock_nodes.add(stock_code)
+            
+            if shareholder_name not in shareholder_nodes:
+                nodes.append({"id": shareholder_name, "label": shareholder_name, "group": "shareholder"})
+                shareholder_nodes.add(shareholder_name)
+            
+            edges.append({
+                "from": shareholder_name,
+                "to": stock_code,
+                "value": share_percent, # This can be used for edge thickness
+                "label": f"{share_percent:.2f}%",
+                "title": f"{shareholder_name} owns {share_percent:.2f}% of {stock_code}",
+                "arrows": "to"
+            })
+            
+    return {"nodes": nodes, "edges": edges}

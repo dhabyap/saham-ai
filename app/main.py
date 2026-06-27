@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse # Added HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 import threading
@@ -137,6 +137,13 @@ async def market_reports_page(request: Request):
 async def shareholders_page(request: Request):
     """Shareholder >1% tracking page"""
     return templates.TemplateResponse("dashboard_vue.html", {"request": request})
+
+
+# New route for the shareholder graph (Task 1)
+@app.get("/shareholders/graph", response_class=HTMLResponse)
+async def shareholders_graph_page(request: Request):
+    """Shareholder graph visualization page."""
+    return templates.TemplateResponse("views/shareholder_graph.html", {"request": request})
 
 
 @app.get("/api-docs")

@@ -813,13 +813,13 @@ async function loadShareholderInsight() {
 async function doUploadShareholder() {
   var period = shUploadPeriod.value.trim().toUpperCase();
   var file = shUploadFile.value;
-  if (!period || !file) return;
+  if (!file) return;
   shUploadLoading.value = true;
   shUploadError.value = '';
   shUploadResult.value = null;
   try {
     var fd = new FormData();
-    fd.append('period', period);
+    fd.append('period', period || '');
     fd.append('file', file);
     var res = await fetch('/api/shareholders/upload', { method: 'POST', body: fd });
     var json = await res.json();

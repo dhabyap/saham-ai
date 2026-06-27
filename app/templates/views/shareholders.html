@@ -558,7 +558,7 @@
           <div class="section-title">Upload Data Shareholder</div>
           <div class="card p-4 mb-4">
             <div class="mb-3">
-              <label class="font-semibold text-sm">Periode (contoh: MAR2026)</label>
+              <label class="font-semibold text-sm">Periode (contoh: MAR2026) — otomatis terdeteksi dari PDF</label>
               <input type="text" v-model="shUploadPeriod"
                      placeholder="MAR2026"
                      style="display:block;width:200px;margin-top:4px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)">
@@ -571,7 +571,7 @@
               <div v-if="shUploadFile" class="text-xs text-muted mt-1">{{ shUploadFile.name }} ({{ (shUploadFile.size / 1024).toFixed(0) }} KB)</div>
             </div>
             <button class="btn btn-primary" @click="doUploadShareholder()"
-                    :disabled="shUploadLoading || !shUploadPeriod || !shUploadFile"
+                    :disabled="shUploadLoading || !shUploadFile"
                     style="padding:8px 20px">
               <span v-if="shUploadLoading">⏳ Mengupload...</span>
               <span v-else>📤 Upload & Import</span>

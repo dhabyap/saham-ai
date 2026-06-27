@@ -833,10 +833,34 @@ def shareholder_import(req: ShareholderImportRequest):
     return {"status": "ok", "period": req.period, **result}
 
 
+def _detect_period_from_pdf(filename: str) -> str | None:
+    """Detect period (e.g. JUN2026) from PDF filename."""
+    import re
+    base = filename.rsplit('.', 1)[0].strip().upper()
+    months_map = {'01':'JAN','02':'FEB','03':'MAR','04':'APR','05':'MAY','06':'JUN',
+                  '07':'JUL','08':'AUG','09':'SEP','10':'OCT','11':'NOV','12':'DEC'}
+    valid_months = set(months_map.values())
+
+    # Pattern 1: direct month+year like JUN2026
+    m = re.search(r'([A-Z]{3})(\d{4})', base)
+    if m and m.group(1) in valid_months:
+        return m.group(1) + m.group(2)
+
+    # Pattern 2: numeric YYYYMM or MMYYYY like 202606 or 062026
+    m = re.search(r'(\d{4})(\d{2})', base)
+    if m:
+        return months_map.get(m.group(2), '') + m.group(1)
+    m = re.search(r'(\d{2})(\d{4})', base)
+    if m:
+        return months_map.get(m.group(1), '') + m.group(2)
+
+    return None
+
+
 @router.post("/shareholders/upload")
 async def shareholder_upload(
     file: UploadFile = File(...),
-    period: str = Form(...),
+    period: str = Form(""),
 ):
     """Upload CSV or Excel file to import shareholder data."""
     if not file.filename:
@@ -846,6 +870,15 @@ async def shareholder_upload(
         raise HTTPException(400, "Only .csv, .xlsx, or .pdf files accepted")
 
     period = period.strip().upper()
+
+    # Auto-detect period for PDF if not provided
+    if not period and ext == 'pdf':
+        detected = _detect_period_from_pdf(file.filename)
+        if detected:
+            period = detected
+        else:
+            raise HTTPException(400, "Tidak bisa mendeteksi periode dari file. Mohon masukkan periode manual (contoh: JUN2026)")
+
     if not period:
         raise HTTPException(400, "Period is required (e.g. JUN2026)")
 

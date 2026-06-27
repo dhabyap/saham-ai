@@ -1,9 +1,9 @@
-{% extends "layout.html" %}
-
-{% block title %}Shareholder Graph{% endblock %}
-
-{% block head %}
-    {{ super() }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shareholder Graph</title>
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <style type="text/css">
         #network {
@@ -22,9 +22,8 @@
             color: #ccc;
         }
     </style>
-{% endblock %}
-
-{% block content %}
+</head>
+<body>
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-gray-100 mb-6">Shareholder Network Graph</h1>
 
@@ -36,7 +35,7 @@
         <button id="refresh-graph" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Refresh Graph</button>
     </div>
 
-    <div id="network"></div>
+    <div id="network" style="width: 100%; height: 700px;"></div>
 </div>
 
 <script type="text/javascript">
@@ -135,17 +134,24 @@
                 }
             },
             physics: {
+                enabled: true,
                 forceAtlas2Based: {
                     gravitationalConstant: -100,
                     centralGravity: 0.005,
                     springLength: 200,
                     springConstant: 0.08,
-                    damping: 0.4
+                    damping: 0.4,
+                    // improvedLayout: false, // Disabling improvedLayout as suggested by console
                 },
                 maxVelocity: 50,
                 minVelocity: 0.75,
                 solver: 'forceAtlas2Based',
-                stabilization: { iterations: 2000 }
+                stabilization: {
+                    enabled: true,
+                    iterations: 1000, // Reduce iterations for faster stabilization
+                    updateInterval: 50,
+                    fit: true
+                }
             }
         };
 
@@ -172,4 +178,5 @@
 
     document.getElementById('refresh-graph').addEventListener('click', drawNetwork);
 </script>
-{% endblock %}
+</body>
+</html>

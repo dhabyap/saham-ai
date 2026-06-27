@@ -846,13 +846,15 @@ def _detect_period_from_pdf(filename: str) -> str | None:
     if m and m.group(1) in valid_months:
         return m.group(1) + m.group(2)
 
-    # Pattern 2: numeric YYYYMM or MMYYYY like 202606 or 062026
-    m = re.search(r'(\d{4})(\d{2})', base)
-    if m:
-        return months_map.get(m.group(2), '') + m.group(1)
-    m = re.search(r'(\d{2})(\d{4})', base)
+    # Pattern 2: numeric MMYYYY or YYYYMM
+    # Try MMYYYY first - only if first 2 digits are valid month (01-12)
+    m = re.search(r'(0[1-9]|1[012])(\d{4})', base)
     if m:
         return months_map.get(m.group(1), '') + m.group(2)
+    # Try YYYYMM - last 2 digits should be 01-12
+    m = re.search(r'(\d{4})(0[1-9]|1[012])', base)
+    if m:
+        return months_map.get(m.group(2), '') + m.group(1)
 
     return None
 

@@ -1,28 +1,35 @@
-## Issue 9 — Frontend: Visualisasi Bubble Chart Pemegang Saham
+# Issue: Enhancement of Shareholder Analysis (Time-Series)
 
-**Tujuan:**
-Mengganti atau menambah visualisasi pemegang saham menjadi **Bubble Chart** yang lebih intuitif untuk melihat distribusi kepemilikan. Setiap bubble mewakili satu pemegang saham, dengan ukuran bubble berdasarkan besaran persentase kepemilikan.
+## Overview
+We now have multi-month shareholder data (MAR2026, DEC3383, etc.). The current dashboard only shows static "Top Holder" snapshots. We need to leverage this time-series data to provide actionable intelligence regarding accumulation and distribution patterns.
 
-**Kriteria:**
-1. **Bubble Chart Overview:**
-   - Gunakan `Chart.js` (plugin `chartjs-chart-bubble` atau custom `scatter` dengan `radius`).
-   - Setiap bubble = 1 pemegang saham.
-   - Ukuran bubble = % Kepemilikan.
-   - Warna bubble = Berdasarkan kategori (Merah >=5%, Ungu <5%).
-2. **Interaktivitas:**
-   - **Click Bubble:** Saat di-klik, munculkan overlay atau panel samping (sidebar) yang menampilkan:
-     - Daftar lengkap saham yang dimiliki pemegang saham tersebut.
-     - Persentase kepemilikan per saham.
-     - Total nilai/jumlah saham (jika tersedia).
-3. **Pemisahan Kode:**
-   - Tambahkan fungsi baru `renderShareholderBubbleChart()` di `charts.js`.
-   - Pastikan tidak mengganggu chart yang sudah ada (Doughnut, Bar).
-   - Gunakan state baru `shBubbleData` dan `shHolderSelected` di `state.js`.
-4. **Isolasi:**
-   - Fokus hanya pada file: `app/templates/views/shareholders.html`, `app/static/js/loaders.js`, `app/static/js/charts.js`, `app/static/js/state.js`.
-   - **WAJIB:** Jangan ubah kode dashboard atau modul lain (Market Reports, Day Trading, dll).
+## Tasks
 
-**Verifikasi:**
-1. Chart bubble muncul di tab Overview atau tab baru "Visualisasi".
-2. Klik bubble → panel detail terbuka dengan list saham yang dimiliki.
-3. Tidak ada error pada chart existing.
+### 1. Backend: Accumulation/Distribution Detection
+- [ ] Create a new service function `get_shareholder_trends(stock_code)` that calculates the month-over-month (MoM) change in percentage for top shareholders.
+- [ ] Implement a logic to flag stocks with "Accumulation" (MoM increase > 3%) vs "Distribution" (MoM decrease > 3%).
+- [ ] Store these flags in a new temporary table or cache to prevent slow real-time recalculation.
+
+### 2. Backend: Whale Movement Tracker
+- [ ] Identify recurring `shareholder_name` entries across multiple stocks.
+- [ ] Flag "Smart Money" investors (those appearing in >3 top-holder lists).
+- [ ] Create an endpoint `/api/shareholders/smart-money` to list these entities and their combined portfolio.
+
+### 3. Dashboard UI: Trend Visualization
+- [ ] Update the `Shareholders` dashboard table to include a `TREND` column.
+- [ ] Use icons: ▲ (Green) for Accumulation, ▼ (Red) for Distribution, ▬ (Grey) for Stable.
+- [ ] Add a "Top Accumulation" section in the dashboard to highlight stocks currently being bought by major holders.
+
+### 4. Database Optimization
+- [ ] Add indexing on `(stock_code, data_period)` to speed up trend calculation queries.
+- [ ] Ensure the `bulk_import` logic correctly handles data overwrites if a specific period is re-uploaded.
+
+## Deliverables
+- API endpoint returning MoM percentage changes.
+- UI components (icons/badges) showing trend status.
+- A "Smart Money" tracking view.
+
+## Priority: Medium
+## Notes
+- Be careful with `Every derived table must have its own alias` MySQL error when writing these complex aggregate queries.
+- Refer to `shareholder_service.py` for existing data access patterns.

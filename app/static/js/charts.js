@@ -609,10 +609,10 @@ function renderForceGraph() {
 
   var nodes = new vis.DataSet(data.nodes.map(function(n) {
     var isSH = n.type === 'shareholder';
-    var size = isSH ? Math.min(8 + (n.total_pct || 5) * 1.5, 35) : 14;
+    var size = isSH ? Math.min(18 + (n.total_pct || 5) * 2, 50) : 22;
     return {
       id: n.id,
-      label: '',
+      label: n.label,
       size: size,
       shape: isSH ? 'dot' : 'square',
       color: {
@@ -622,7 +622,6 @@ function renderForceGraph() {
       },
       title: isSH ? (n.label + '\\nTotal: ' + n.total_pct + '% | ' + n.stock_count + ' saham') : n.label,
       borderWidth: isSH ? 2 : 1,
-      font: { size: 0 },
       group: isSH ? 'shareholder' : 'stock'
     };
   }));
@@ -644,7 +643,7 @@ function renderForceGraph() {
     nodes: {
       borderWidth: 1,
       borderWidthSelected: 2,
-      font: { size: 0 },
+      font: { size: 20, color: '#F9FAFB', face: 'monospace', strokeWidth: 5, strokeColor: '#111827' },
       color: {
         background: '#7C3AED',
         border: '#5B21B6',
@@ -719,7 +718,7 @@ function renderForceGraph() {
             shape: 'box',
             size: Math.min(20, 8 + leaves.length * 3),
             color: { background: '#374151', border: '#EF4444', highlight: { background: '#6B7280', border: '#EF4444' } },
-            font: { size: 10, color: '#F9FAFB', face: 'monospace' },
+            font: { size: 14, color: '#F9FAFB', face: 'monospace' },
             borderWidth: 2,
             shapeProperties: { borderRadius: 4 }
           }

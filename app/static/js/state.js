@@ -342,6 +342,9 @@ var shForceData = ref(null);
 var shHolderSelected = ref(null);
 var shForceLoading = ref(false);
 var shForceSelected = ref(null);
+var shForceMinPct = ref(5);
+var shForcePortfolio = ref([]);
+var shForcePortfolioLoading = ref(false);
 
 var shHolderActiveName = computed(function() {
   if (shHolderResult.value.length && shHolderSearched.value) return shHolderQuery.value.toUpperCase();

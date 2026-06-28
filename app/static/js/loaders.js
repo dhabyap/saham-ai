@@ -331,7 +331,6 @@ async function loadShareholdersEnhanced() {
       fetch('/api/shareholders/stats/detail?period=' + period).then(function(r) { return r.json(); }),
       fetch('/api/shareholders/concentration?period=' + period + '&threshold=5').then(function(r) { return r.json(); }),
       fetch('/api/shareholders/scatter-data?period=' + period).then(function(r) { return r.json(); }),
-      fetch('/api/shareholders/force-graph?period=' + period).then(function(r) { return r.json(); }),
     ]);
 
     if (results[0].status === 'fulfilled' && results[0].value && results[0].value.status === 'ok')
@@ -349,15 +348,14 @@ async function loadShareholdersEnhanced() {
     if (results[4].status === 'fulfilled' && results[4].value && results[4].value.status === 'ok')
       shScatterData.value = results[4].value.data || [];
 
-    if (results[5].status === 'fulfilled' && results[5].value && results[5].value.status === 'ok')
-      shForceData.value = results[5].value;
-
-    window.Vue.nextTick(function() { renderShareholderChartsEnhanced(); renderForceGraph(); });
+    window.Vue.nextTick(function() { renderShareholderChartsEnhanced(); });
   } catch(e) {
     console.error('Enhanced shareholders load failed:', e);
   } finally {
     shDistLoading.value = false;
   }
+  // Load force graph separately (respects min_pct slider)
+  loadForceGraphData();
 }
 
 async function loadShareholdersByPeriod() {
@@ -787,6 +785,84 @@ async function searchForceHolder(name) {
   shHolderSelected.value = cleanName;
   await searchShareholdersByHolder();
   shForceSelected.value = null;
+}
+
+function reloadForceGraph() {
+  loadForceGraphData();
+}
+
+async function loadForceGraphData() {
+  var period = selectedPeriod.value || shareholdersLatestPeriod.value;
+  if (!period) return;
+  shForceLoading.value = true;
+  shForceSelected.value = null;
+  shForcePortfolio.value = [];
+  try {
+    var res = await fetch('/api/shareholders/force-graph?period=' + period + '&min_pct=' + shForceMinPct.value);
+    var json = await res.json();
+    if (json.status === 'ok') {
+      shForceData.value = json;
+      window.Vue.nextTick(function() { renderForceGraph(); });
+    }
+  } catch(e) {
+    console.error('Force graph load failed:', e);
+  } finally {
+    shForceLoading.value = false;
+  }
+}
+
+async function loadForceStockHolders(stockCode) {
+  var period = selectedPeriod.value || shareholdersLatestPeriod.value;
+  if (!period || !stockCode) { shForcePortfolio.value = []; return; }
+  shForcePortfolioLoading.value = true;
+  try {
+    var res = await fetch('/api/shareholders/' + stockCode + '?period=' + period);
+    var json = await res.json();
+    if (json.status === 'ok' && json.data && json.data.length) {
+      shForcePortfolio.value = json.data;
+    } else {
+      shForcePortfolio.value = [];
+    }
+  } catch(e) {
+    shForcePortfolio.value = [];
+  } finally {
+    shForcePortfolioLoading.value = false;
+  }
+}
+
+async function showForceHolderPortfolio(name) {
+  if (!name) return;
+  shForceSelected.value = {
+    id: name,
+    label: name,
+    type: 'shareholder',
+    total_pct: 0,
+    stock_count: 0
+  };
+  // Find in current data for stats
+  if (shForceData.value && shForceData.value.nodes) {
+    var found = shForceData.value.nodes.find(function(n) { return n.id === name && n.type === 'shareholder'; });
+    if (found) {
+      shForceSelected.value.total_pct = found.total_pct;
+      shForceSelected.value.stock_count = found.stock_count;
+    }
+  }
+  shForcePortfolio.value = [];
+  // Load full portfolio
+  var period = selectedPeriod.value || shareholdersLatestPeriod.value;
+  if (!period) return;
+  shForcePortfolioLoading.value = true;
+  try {
+    var res = await fetch('/api/shareholders/' + name + '?period=' + period);
+    var json = await res.json();
+    if (json.status === 'ok' && json.data && json.data.length) {
+      shForcePortfolio.value = json.data;
+    }
+  } catch(e) {
+    shForcePortfolio.value = [];
+  } finally {
+    shForcePortfolioLoading.value = false;
+  }
 }
 
 // ── AI Insight ──

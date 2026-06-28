@@ -214,12 +214,11 @@ def get_latest_period() -> Optional[str]:
         return row['data_period'] if row else None
 
 
-def get_shareholder_graph_data(period: Optional[str] = None) -> dict:
+def get_shareholder_graph_data(period: Optional[str] = None, min_pct: float = 5.0) -> dict:
     """
-    Get all shareholder data for the graph visualization (nodes and edges).
-    Matches format expected by renderForceGraph() in charts.js:
-      - Nodes: {id, label, type, size, total_pct, stock_count}
-      - Edges: {from, to, value, title}
+    Get shareholder data for graph visualization (nodes and edges).
+    Matches format expected by renderForceGraph() in charts.js.
+    min_pct: minimum share_percent threshold to include (default 5%).
     """
     _ensure_table()
     nodes = []
@@ -230,16 +229,17 @@ def get_shareholder_graph_data(period: Optional[str] = None) -> dict:
             rows = conn.execute(
                 """SELECT stock_code, shareholder_name, share_percent
                    FROM shareholders
-                   WHERE data_period = ? AND share_percent >= 1.0
+                   WHERE data_period = ? AND share_percent >= ?
                    ORDER BY stock_code, shareholder_name""",
-                (period,)
+                (period, min_pct)
             )
         else:
             rows = conn.execute(
                 """SELECT stock_code, shareholder_name, share_percent, data_period
                    FROM shareholders
-                   WHERE share_percent >= 1.0
+                   WHERE share_percent >= ?
                    ORDER BY data_period DESC, stock_code, shareholder_name""",
+                (min_pct,)
             )
         
         stock_nodes = set()

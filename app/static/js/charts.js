@@ -684,7 +684,6 @@ function renderForceGraph() {
       var nodeId = params.nodes[0];
       var nodeData = nodes.get(nodeId);
       if (nodeData && nodeData.group === 'shareholder') {
-        // find original data
         var orig = data.nodes.find(function(n) { return n.id === nodeId; });
         if (orig) {
           shForceSelected.value = {
@@ -694,6 +693,7 @@ function renderForceGraph() {
             total_pct: orig.total_pct,
             stock_count: orig.stock_count
           };
+          shForcePortfolio.value = [];
         }
       } else if (nodeData && nodeData.group === 'stock') {
         shForceSelected.value = {
@@ -701,9 +701,11 @@ function renderForceGraph() {
           label: nodeData.label,
           type: 'stock'
         };
+        loadForceStockHolders(nodeId);
       }
     } else {
       shForceSelected.value = null;
+      shForcePortfolio.value = [];
     }
   });
 }

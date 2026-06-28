@@ -235,13 +235,12 @@ def shareholder_bubble_data(period: Optional[str] = None):
 
 
 @router.get("/shareholders/force-graph")
-def shareholder_force_graph(period: Optional[str] = None):
+def shareholder_force_graph(period: Optional[str] = None, min_pct: float = 5.0):
     """Force-directed graph data: top shareholders + their stock connections."""
     try:
-        graph_data = get_shareholder_graph_data(period=period)
+        graph_data = get_shareholder_graph_data(period, min_pct=min_pct)
         return {"status": "ok", **graph_data}
     except Exception as e:
-        logger.error("force-graph error: %s", e)
         return {"status": "error", "nodes": [], "edges": [], "error": str(e)}
 
 
@@ -293,6 +292,30 @@ def shareholder_search(name: str, period: Optional[str] = None):
         "period": period or "latest",
         "data": get_shareholder_portfolio(name, period),
     }
+
+
+@router.get("/shareholders/{stock_code}")
+def shareholder_stock_detail(stock_code: str, period: Optional[str] = None):
+    """Get shareholders for a specific stock code."""
+    from app.services.shareholder_service import _ensure_table, get_db
+    _ensure_table()
+    with get_db() as conn:
+        if period:
+            rows = conn.execute(
+                """SELECT shareholder_name, share_percent, share_count, category
+                   FROM shareholders WHERE stock_code = ? AND data_period = ?
+                   ORDER BY share_percent DESC""",
+                (stock_code.upper(), period)
+            )
+        else:
+            rows = conn.execute(
+                """SELECT shareholder_name, share_percent, share_count, category, data_period
+                   FROM shareholders WHERE stock_code = ?
+                   ORDER BY share_percent DESC""",
+                (stock_code.upper(),)
+            )
+        data = [dict(r) for r in rows]
+    return {"status": "ok", "stock_code": stock_code, "period": period or "latest", "data": data}
 
 
 @router.post("/shareholders/import")

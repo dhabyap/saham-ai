@@ -234,14 +234,14 @@ def shareholder_bubble_data(period: Optional[str] = None):
         return {"status": "error", "data": [], "error": str(e)}
 
 
-@router.get("/shareholders/network-data")
-def shareholder_network_data(period: Optional[str] = None):
+@router.get("/shareholders/force-graph")
+def shareholder_force_graph(period: Optional[str] = None):
     """Force-directed graph data: top shareholders + their stock connections."""
     try:
         graph_data = get_shareholder_graph_data(period=period)
         return {"status": "ok", **graph_data}
     except Exception as e:
-        logger.error("network-data error: %s", e)
+        logger.error("force-graph error: %s", e)
         return {"status": "error", "nodes": [], "edges": [], "error": str(e)}
 
 

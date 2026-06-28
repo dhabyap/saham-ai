@@ -217,7 +217,9 @@ def get_latest_period() -> Optional[str]:
 def get_shareholder_graph_data(period: Optional[str] = None) -> dict:
     """
     Get all shareholder data for the graph visualization (nodes and edges).
-    Includes stocks and shareholders with >1% ownership.
+    Matches format expected by renderForceGraph() in charts.js:
+      - Nodes: {id, label, type, size, total_pct, stock_count}
+      - Edges: {from, to, value, title}
     """
     _ensure_table()
     nodes = []
@@ -240,9 +242,8 @@ def get_shareholder_graph_data(period: Optional[str] = None) -> dict:
                    ORDER BY data_period DESC, stock_code, shareholder_name""",
             )
         
-        # Keep track of unique nodes to avoid duplicates
         stock_nodes = set()
-        shareholder_nodes = set()
+        shareholder_nodes: dict[str, dict] = {}
 
         for r in rows:
             record = dict(r)
@@ -251,20 +252,38 @@ def get_shareholder_graph_data(period: Optional[str] = None) -> dict:
             share_percent = float(record['share_percent'])
 
             if stock_code not in stock_nodes:
-                nodes.append({"id": stock_code, "label": stock_code, "group": "stock"})
+                nodes.append({
+                    "id": stock_code,
+                    "label": stock_code,
+                    "type": "stock",
+                    "size": 12,
+                })
                 stock_nodes.add(stock_code)
             
             if shareholder_name not in shareholder_nodes:
-                nodes.append({"id": shareholder_name, "label": shareholder_name, "group": "shareholder"})
-                shareholder_nodes.add(shareholder_name)
+                shareholder_nodes[shareholder_name] = {
+                    "id": shareholder_name,
+                    "label": shareholder_name,
+                    "type": "shareholder",
+                    "size": 0,
+                    "total_pct": 0.0,
+                    "stock_count": 0,
+                }
+            
+            sh = shareholder_nodes[shareholder_name]
+            sh["size"] += share_percent
+            sh["total_pct"] = round(sh["total_pct"] + share_percent, 2)
+            sh["stock_count"] += 1
             
             edges.append({
                 "from": shareholder_name,
                 "to": stock_code,
-                "value": share_percent, # This can be used for edge thickness
-                "label": f"{share_percent:.2f}%",
+                "value": share_percent,
                 "title": f"{shareholder_name} owns {share_percent:.2f}% of {stock_code}",
-                "arrows": "to"
             })
+    
+    # Add computed shareholder nodes
+    for sh in shareholder_nodes.values():
+        nodes.append(sh)
             
     return {"nodes": nodes, "edges": edges}

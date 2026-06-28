@@ -139,13 +139,6 @@ async def shareholders_page(request: Request):
     return templates.TemplateResponse("dashboard_vue.html", {"request": request})
 
 
-# New route for the shareholder graph (Task 1)
-@app.get("/shareholders/graph", response_class=HTMLResponse)
-async def shareholders_graph_page(request: Request):
-    """Shareholder graph visualization page."""
-    return templates.TemplateResponse("views/shareholder_graph.html", {"request": request})
-
-
 @app.get("/api-docs")
 async def api_docs():
     return {

@@ -605,21 +605,24 @@ function renderForceGraph() {
 
   var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   var bgColor = isDark ? '#1a1a2e' : '#ffffff';
-  var nodeColor = isDark ? '#7C3AED' : '#7C3AED';
   var textColor = isDark ? '#e0e0e0' : '#333';
-  var edgeColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
 
   var nodes = new vis.DataSet(data.nodes.map(function(n) {
     var isSH = n.type === 'shareholder';
+    var size = isSH ? Math.min(8 + (n.total_pct || 5) * 1.5, 35) : 14;
     return {
       id: n.id,
-      label: n.label,
-      size: isSH ? n.size : 12,
+      label: '',
+      size: size,
       shape: isSH ? 'dot' : 'square',
-      color: isSH ? (isDark ? '#7C3AED' : '#7C3AED') : (isDark ? '#F59E0B' : '#F59E0B'),
-      title: isSH ? (n.label + '\\nTotal: ' + n.total_pct + '% | Saham: ' + n.stock_count) : n.label,
+      color: {
+        background: isSH ? '#7C3AED' : '#F59E0B',
+        border: isSH ? '#5B21B6' : '#D97706',
+        highlight: { background: isSH ? '#8B5CF6' : '#FBBF24', border: '#7C3AED' }
+      },
+      title: isSH ? (n.label + '\\nTotal: ' + n.total_pct + '% | ' + n.stock_count + ' saham') : n.label,
       borderWidth: isSH ? 2 : 1,
-      font: { color: textColor, size: 10 },
+      font: { size: 0 },
       group: isSH ? 'shareholder' : 'stock'
     };
   }));
@@ -631,7 +634,7 @@ function renderForceGraph() {
       to: e.to,
       width: isMajority ? 3 : 1,
       title: e.title,
-      color: isMajority ? { color: '#EF4444', opacity: 0.7 } : { color: edgeColor, opacity: 0.25 },
+      color: isMajority ? { color: '#EF4444', opacity: 0.6 } : { color: 'rgba(255,255,255,0.08)', opacity: 0.15 },
       smooth: { type: 'continuous' },
       dashes: isMajority ? false : [5, 3]
     };
@@ -641,82 +644,110 @@ function renderForceGraph() {
     nodes: {
       borderWidth: 1,
       borderWidthSelected: 2,
-      font: { size: 10, color: textColor, face: 'monospace' },
+      font: { size: 0 },
       color: {
         background: '#7C3AED',
         border: '#5B21B6',
         highlight: { background: '#8B5CF6', border: '#7C3AED' }
-      },
-      scaling: {
-        min: 8,
-        max: 40,
-        label: { enabled: true, min: 12, max: 20 }
       }
     },
     edges: {
       width: 1,
       smooth: { type: 'continuous' },
-      color: { color: '#4a5568', opacity: 0.2 },
-      scaling: { min: 0.5, max: 3 }
+      color: { color: '#4a5568', opacity: 0.12 },
+      scaling: { min: 0.3, max: 2 }
     },
     physics: {
       solver: 'forceAtlas2Based',
       forceAtlas2Based: {
-        gravitationalConstant: -120,
-        centralGravity: 0.002,
-        springLength: 250,
-        springConstant: 0.02,
-        damping: 0.6,
-        avoidOverlap: 1
+        gravitationalConstant: -30,
+        centralGravity: 0.0002,
+        springLength: 600,
+        springConstant: 0.003,
+        damping: 0.85,
+        avoidOverlap: 3
       },
-      minVelocity: 2,
-      maxVelocity: 50,
-      stabilization: { iterations: 300 }
+      minVelocity: 0.3,
+      maxVelocity: 15,
+      stabilization: { iterations: 1200 }
     },
     interaction: {
       dragNodes: true,
       dragView: true,
       zoomView: true,
       hover: true,
-      tooltipDelay: 100,
-      hoverConnectedEdges: true
+      tooltipDelay: 50,
+      hoverConnectedEdges: false
     },
     layout: {
-      improvedLayout: false,
-      clusterThreshold: 150
+      improvedLayout: false
     },
     configure: {
-      filter: function (option, path) {
-        return false;
-      }
+      filter: function (option, path) { return false; }
     },
     background: bgColor
   };
 
   shForceNetwork = new vis.Network(container, { nodes: nodes, edges: edges }, options);
 
+  // Aggressive clustering: group leaf holders (≤1 connection) per stock
+  shForceNetwork.once('stabilizationIterationsDone', function() {
+    setTimeout(function() {
+    var edgeCount = {};
+    edges.forEach(function(e) { edgeCount[e.from] = (edgeCount[e.from] || 0) + 1; edgeCount[e.to] = (edgeCount[e.to] || 0) + 1; });
+    var clusterByStock = {};
+    edges.forEach(function(e) {
+      var src = data.nodes.find(function(n) { return n.id === e.from; });
+      var tgt = data.nodes.find(function(n) { return n.id === e.to; });
+      // Cluster shareholder leaf nodes (only connected to 1 stock)
+      if (src && tgt && src.type === 'stock' && tgt.type === 'shareholder' && edgeCount[e.to] <= 1) {
+        if (!clusterByStock[e.from]) clusterByStock[e.from] = [];
+        clusterByStock[e.from].push(e.to);
+      } else if (src && tgt && src.type === 'shareholder' && tgt.type === 'stock' && edgeCount[e.from] <= 1) {
+        if (!clusterByStock[e.to]) clusterByStock[e.to] = [];
+        clusterByStock[e.to].push(e.from);
+      }
+    });
+    Object.keys(clusterByStock).forEach(function(stockId) {
+      var leaves = clusterByStock[stockId];
+      if (leaves.length >= 1) {
+        shForceNetwork.cluster({
+          joinCondition: function(childOptions) { return leaves.indexOf(childOptions.id) !== -1; },
+          clusterNodeProperties: {
+            id: 'cluster_' + stockId,
+            label: '▼ ' + leaves.length,
+            shape: 'box',
+            size: Math.min(20, 8 + leaves.length * 3),
+            color: { background: '#374151', border: '#EF4444', highlight: { background: '#6B7280', border: '#EF4444' } },
+            font: { size: 10, color: '#F9FAFB', face: 'monospace' },
+            borderWidth: 2,
+            shapeProperties: { borderRadius: 4 }
+          }
+        });
+        }
+    });
+    }, 500); // small delay to let physics settle
+  });
+
   shForceNetwork.on('click', function(params) {
     if (params.nodes.length) {
       var nodeId = params.nodes[0];
+
+      // Handle cluster node click → expand
+      if (nodeId && (typeof nodeId === 'string' && nodeId.indexOf('cluster_') === 0)) {
+        shForceNetwork.openCluster(shForceNetwork.getNodeAt(params.pointer.DOM));
+        return;
+      }
+
       var nodeData = nodes.get(nodeId);
       if (nodeData && nodeData.group === 'shareholder') {
         var orig = data.nodes.find(function(n) { return n.id === nodeId; });
         if (orig) {
-          shForceSelected.value = {
-            id: orig.id,
-            label: orig.label,
-            type: 'shareholder',
-            total_pct: orig.total_pct,
-            stock_count: orig.stock_count
-          };
+          shForceSelected.value = { id: orig.id, label: orig.label, type: 'shareholder', total_pct: orig.total_pct, stock_count: orig.stock_count };
           shForcePortfolio.value = [];
         }
       } else if (nodeData && nodeData.group === 'stock') {
-        shForceSelected.value = {
-          id: nodeId,
-          label: nodeData.label,
-          type: 'stock'
-        };
+        shForceSelected.value = { id: nodeId, label: nodeData.label, type: 'stock' };
         loadForceStockHolders(nodeId);
       }
     } else {

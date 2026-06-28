@@ -853,7 +853,7 @@ async function showForceHolderPortfolio(name) {
   if (!period) return;
   shForcePortfolioLoading.value = true;
   try {
-    var res = await fetch('/api/shareholders/' + name + '?period=' + period);
+    var res = await fetch('/api/shareholders/search/' + encodeURIComponent(name) + '?period=' + period);
     var json = await res.json();
     if (json.status === 'ok' && json.data && json.data.length) {
       shForcePortfolio.value = json.data;

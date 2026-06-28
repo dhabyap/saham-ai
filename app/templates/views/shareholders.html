@@ -263,14 +263,21 @@
 
           <!-- Chart: Force Graph Jaringan Pemegang Saham -->
           <div class="card p-4 mt-4">
-            <div class="font-semibold mb-2" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="font-semibold mb-2" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
               <span>Jaringan Pemegang Saham
                 <span class="help-tip" title="Force-directed graph. Node lingkaran = pemegang saham (ukuran = total %). Node kotak = saham. Garis = kepemilikan. Drag node untuk eksplorasi.">ℹ️</span>
               </span>
-              <span style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px">
-                <span class="text-muted">Min kepemilikan:</span>
-                <input type="range" v-model.number="shForceMinPct" min="1" max="30" step="1" style="width:80px;accent-color:var(--accent)" @change="reloadForceGraph">
-                <span style="min-width:24px;font-weight:600;color:var(--accent)">{{ shForceMinPct }}%</span>
+              <span style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:12px">
+                <span class="text-muted">Filter:</span>
+                <span v-for="p in [3,5,10,20]" :key="p"
+                  @click="shForceMinPct=p; reloadForceGraph()"
+                  style="cursor:pointer;padding:2px 10px;border-radius:4px;font-weight:600;font-size:11px"
+                  :style="shForceMinPct===p ? 'background:var(--accent);color:#fff' : 'background:var(--bg-hover,rgba(0,0,0,0.06));color:var(--text-muted)'"
+                >≥{{ p }}%</span>
+                <input type="range" v-model.number="shForceMinPct" min="1" max="30" step="1"
+                  style="width:60px;accent-color:var(--accent);margin-left:4px"
+                  @change="reloadForceGraph">
+                <span style="min-width:22px;font-weight:600;color:var(--accent);font-size:11px">{{ shForceMinPct }}%</span>
               </span>
             </div>
             <div style="display:flex;gap:12px;flex-wrap:wrap">

@@ -641,38 +641,54 @@ function renderForceGraph() {
     nodes: {
       borderWidth: 1,
       borderWidthSelected: 2,
-      font: { size: 10, color: textColor },
+      font: { size: 10, color: textColor, face: 'monospace' },
       color: {
         background: '#7C3AED',
         border: '#5B21B6',
         highlight: { background: '#8B5CF6', border: '#7C3AED' }
+      },
+      scaling: {
+        min: 8,
+        max: 40,
+        label: { enabled: true, min: 12, max: 20 }
       }
     },
     edges: {
       width: 1,
       smooth: { type: 'continuous' },
-      color: { color: edgeColor, opacity: 0.3 }
+      color: { color: '#4a5568', opacity: 0.2 },
+      scaling: { min: 0.5, max: 3 }
     },
     physics: {
-      solver: 'barnesHut',
-      barnesHut: {
-        gravitationalConstant: -2000,
-        centralGravity: 0.3,
-        springLength: 95,
-        springConstant: 0.04,
-        damping: 0.5
+      solver: 'forceAtlas2Based',
+      forceAtlas2Based: {
+        gravitationalConstant: -120,
+        centralGravity: 0.002,
+        springLength: 250,
+        springConstant: 0.02,
+        damping: 0.6,
+        avoidOverlap: 1
       },
-      stabilization: { iterations: 200 }
+      minVelocity: 2,
+      maxVelocity: 50,
+      stabilization: { iterations: 300 }
     },
     interaction: {
       dragNodes: true,
       dragView: true,
       zoomView: true,
       hover: true,
-      tooltipDelay: 200
+      tooltipDelay: 100,
+      hoverConnectedEdges: true
     },
     layout: {
-      improvedLayout: true
+      improvedLayout: false,
+      clusterThreshold: 150
+    },
+    configure: {
+      filter: function (option, path) {
+        return false;
+      }
     },
     background: bgColor
   };

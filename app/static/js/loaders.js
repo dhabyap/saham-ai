@@ -811,6 +811,26 @@ async function loadForceGraphData() {
   }
 }
 
+// ── Network Scan ──
+async function scanNetwork() {
+  nwLoading.value = true;
+  nwError.value = '';
+  try {
+    var res = await fetch('/api/network/scan');
+    var json = await res.json();
+    if (json.status === 'ok') {
+      nwDevices.value = json.devices || [];
+    } else {
+      nwError.value = json.detail || 'Gagal scan jaringan';
+    }
+  } catch(e) {
+    nwError.value = e.message || 'Gagal scan jaringan';
+    nwDevices.value = [];
+  } finally {
+    nwLoading.value = false;
+  }
+}
+
 async function loadForceStockHolders(stockCode) {
   var period = selectedPeriod.value || shareholdersLatestPeriod.value;
   if (!period || !stockCode) { shForcePortfolio.value = []; return; }

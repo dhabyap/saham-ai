@@ -684,7 +684,9 @@ function renderForceGraph() {
     configure: {
       filter: function (option, path) { return false; }
     },
-    background: bgColor
+    canvas: {
+      backgroundColor: bgColor
+    }
   };
 
   shForceNetwork = new vis.Network(container, { nodes: nodes, edges: edges }, options);
@@ -744,6 +746,7 @@ function renderForceGraph() {
         if (orig) {
           shForceSelected.value = { id: orig.id, label: orig.label, type: 'shareholder', total_pct: orig.total_pct, stock_count: orig.stock_count };
           shForcePortfolio.value = [];
+          showForceHolderPortfolio(orig.id);
         }
       } else if (nodeData && nodeData.group === 'stock') {
         shForceSelected.value = { id: nodeId, label: nodeData.label, type: 'stock' };

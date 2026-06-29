@@ -16,8 +16,10 @@ from app.database.database import init_db
 from app.api.routes import router
 from app.api.learning_routes import router as learning_router
 from app.api.upload_routes import router as upload_router
+from app.api.network_routes import router as network_router # BARIS BARU
 from app.scheduler.scheduler import start_scheduler
 from app.constants import STATIC_DIR, CHARTS_DIR, TEMPLATES_DIR, DATABASE_DIR
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,7 @@ templates.env.comment_end_string = '#}'
 app.include_router(router)
 app.include_router(learning_router)
 app.include_router(upload_router)
+app.include_router(network_router) # BARIS BARU
 
 
 @app.on_event("startup")

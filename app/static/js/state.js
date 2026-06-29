@@ -33,6 +33,7 @@ var navItems = [
   { view: 'shareholders',  icon: '&#128101;', label: 'Shareholders' },
   { view: 'brokerdata',    icon: '&#128176;', label: 'Broker Data' },
   { view: 'marketreports', icon: '&#128202;', label: 'Market Reports' },
+  { view: 'network',       icon: '&#128752;', label: 'Network' },
   { view: 'settings',      icon: '&#9881;', label: 'Settings' },
 ];
 
@@ -40,7 +41,7 @@ var headerTitle = computed(function() {
   var map = {
     dashboard: 'Dashboard', daytrading: 'Day Trading', longterm: 'Long Term',
     analysis: 'Analysis', shareholders: 'Shareholders', brokerdata: 'Broker Data',
-    settings: 'Settings',
+    settings: 'Settings', network: 'Network Scan',
     marketreports: 'Market Reports',
   };
   return map[currentView.value] || 'Dashboard';
@@ -441,6 +442,11 @@ var mrMonths = computed(function() {
 function toggleMonth(key) {
   mrExpandedMonths.value[key] = !mrExpandedMonths.value[key];
 }
+
+// ── Network Scan ──
+var nwDevices = ref([]);
+var nwLoading = ref(false);
+var nwError = ref('');
 
 // ── Settings ──
 var settingsLanguage = ref('en');

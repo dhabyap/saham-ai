@@ -1,0 +1,40 @@
+<template v-if="currentView === 'network'">
+  <div class="view-container">
+    <div class="view-header">
+      <h2>📡 Network Scan</h2>
+      <button class="btn btn-accent" @click="scanNetwork()" :disabled="nwLoading">
+        <span v-if="nwLoading">⏳ Scanning...</span>
+        <span v-else>🔄 Scan Sekarang</span>
+      </button>
+    </div>
+
+    <div v-if="nwError" class="card" style="background: var(--danger-bg, #5f060620); padding: 16px; margin-bottom: 16px;">
+      <p style="color: var(--danger, #EF4444);">❌ {{ nwError }}</p>
+    </div>
+
+    <div v-if="nwDevices.length > 0" class="card" style="padding: 0; overflow: hidden;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>IP Address</th>
+            <th>MAC Address</th>
+            <th>Hostname</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(d, i) in nwDevices" :key="d.ip">
+            <td>{{ i + 1 }}</td>
+            <td><code>{{ d.ip }}</code></td>
+            <td><code>{{ d.mac }}</code></td>
+            <td>{{ d.hostname || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div v-else-if="!nwLoading && !nwError" class="card" style="padding: 32px; text-align: center;">
+      <p style="color: var(--muted);">Klik "Scan Sekarang" untuk melihat perangkat yang terhubung ke jaringan.</p>
+    </div>
+  </div>
+</template>

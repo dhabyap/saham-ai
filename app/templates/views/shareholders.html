@@ -287,30 +287,34 @@
                   ⏳ Memuat jaringan...
                 </div>
               </div>
-              <div v-if="shForceSelected" class="card p-3" style="width:320px;min-width:260px;border:1px solid var(--accent);align-self:flex-start">
+              <div v-if="shForceSelected" class="card p-3" style="width:400px;min-width:300px;border:1px solid var(--accent);align-self:flex-start">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-                  <span style="font-weight:700;font-size:14px;color:var(--accent)">{{ shForceSelected.type === 'shareholder' ? '👤 ' : '📈 ' }}{{ shForceSelected.label }}</span>
+                  <span style="font-weight:700;font-size:16px;color:var(--accent)">{{ shForceSelected.type === 'shareholder' ? '👤 ' : '📈 ' }}{{ shForceSelected.label }}</span>
                   <span @click="shForceSelected=null" style="cursor:pointer;margin-left:auto;font-size:11px;padding:1px 7px;border-radius:5px;background:var(--bg-hover,rgba(0,0,0,0.05));color:var(--text-muted)">✕</span>
                 </div>
                 <!-- Shareholder detail -->
                 <div v-if="shForceSelected.type === 'shareholder'" style="margin-bottom:10px">
-                  <div class="sh-grid-3" style="margin-bottom:10px">
-                    <div class="card text-center p-2" style="padding:8px 4px">
-                      <div class="font-bold text-accent" style="font-size:16px">{{ shForceSelected.total_pct }}%</div>
-                      <div class="text-xs text-muted">Portofolio</div>
+                  <div v-if="shForcePortfolio.length" style="max-height:400px;overflow-y:auto">
+                    <div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:10px">
+                      Portofolio Saham
                     </div>
-                    <div class="card text-center p-2" style="padding:8px 4px">
-                      <div class="font-bold text-success" style="font-size:16px">{{ shForceSelected.stock_count }}</div>
-                      <div class="text-xs text-muted">Saham</div>
-                    </div>
-                    <div class="card text-center p-2" style="padding:8px 4px">
-                      <div class="font-bold" style="font-size:16px;color:#EF4444">Pengendali</div>
-                      <div class="text-xs text-muted">Kategori</div>
-                    </div>
+                    <table class="table-compact" style="width:100%;font-size:13px">
+                      <thead>
+                        <tr>
+                          <th>Kode Saham</th>
+                          <th>Kepemilikan (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="s in shForcePortfolio" :key="s.stock_code">
+                          <td><strong>{{ s.stock_code }}</strong></td>
+                          <td>{{ s.share_percent.toFixed(2) }}%</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                  <button class="btn btn-sm btn-accent" @click="showForceHolderPortfolio(shForceSelected.id)" style="width:100%;font-size:12px">
-                    🔍 Detail Portofolio
-                  </button>
+                  <div v-else-if="shForcePortfolioLoading" class="text-center text-muted" style="font-size:12px;padding:16px">⏳ Memuat portofolio...</div>
+                  <div v-else class="text-xs text-muted">Pemegang saham ini tidak memiliki portofolio yang dapat ditampilkan.</div>
                 </div>
                 <!-- Stock detail: list holders -->
                 <div v-if="shForceSelected.type === 'stock'">

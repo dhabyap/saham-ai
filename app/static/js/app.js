@@ -9,7 +9,7 @@ function navigateFromHash() {
   var hash = window.location.hash.replace(/^#\/?/, '');
   if (!hash) return null;
   var parts = hash.split('/');
-  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'brokerdata', 'settings', 'marketreports'];
+  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'brokerdata', 'network', 'settings', 'marketreports'];
   var view = validViews.indexOf(parts[0]) !== -1 ? parts[0] : null;
   return { view: view, tab: parts[1] || null };
 }
@@ -22,7 +22,7 @@ function getViewFromUrl() {
   if (pathMap[path]) return { view: pathMap[path], tab: null };
   var params = new URLSearchParams(window.location.search);
   var view = params.get('view');
-  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'brokerdata', 'settings', 'marketreports'];
+  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'brokerdata', 'network', 'settings', 'marketreports'];
   if (validViews.indexOf(view) !== -1) return { view: view, tab: null };
   return null;
 }
@@ -51,6 +51,13 @@ createApp({
 
     watch(currentView, function(view) {
       if (view === 'brokerdata') { loadBdAvailable(); loadBdSuggestUpload(); }
+      if (view === 'shareholders') {
+        window.Vue.nextTick(function() {
+          if (shForceData.value && shForceData.value.nodes && shForceData.value.nodes.length > 0) {
+            renderForceGraph();
+          }
+        });
+      }
     });
 
     onMounted(function() {
@@ -148,6 +155,9 @@ createApp({
       reloadForceGraph: reloadForceGraph,
       showForceHolderPortfolio: showForceHolderPortfolio,
       searchForceHolder: searchForceHolder,
+      // Network Scan
+      nwDevices: nwDevices, nwLoading: nwLoading, nwError: nwError,
+      scanNetwork: scanNetwork,
       shInsight: shInsight, shInsightLoading: shInsightLoading, shInsightError: shInsightError,
       loadShareholderInsight: loadShareholderInsight,
       shUploadPeriod: shUploadPeriod, shUploadFile: shUploadFile,

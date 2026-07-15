@@ -9,7 +9,7 @@ function navigateFromHash() {
   var hash = window.location.hash.replace(/^#\/?/, '');
   if (!hash) return null;
   var parts = hash.split('/');
-  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'brokerdata', 'network', 'settings', 'marketreports'];
+  var validViews = ['dashboard', 'analysis', 'shareholders', 'brokerdata', 'marketreports'];
   var view = validViews.indexOf(parts[0]) !== -1 ? parts[0] : null;
   return { view: view, tab: parts[1] || null };
 }
@@ -22,7 +22,7 @@ function getViewFromUrl() {
   if (pathMap[path]) return { view: pathMap[path], tab: null };
   var params = new URLSearchParams(window.location.search);
   var view = params.get('view');
-  var validViews = ['dashboard', 'daytrading', 'longterm', 'analysis', 'shareholders', 'brokerdata', 'network', 'settings', 'marketreports'];
+  var validViews = ['dashboard', 'analysis', 'shareholders', 'brokerdata', 'marketreports'];
   if (validViews.indexOf(view) !== -1) return { view: view, tab: null };
   return null;
 }

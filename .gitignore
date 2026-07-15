@@ -62,3 +62,8 @@ backtest_bpjs.py
 market_report_analysis.py
 market_report_scraper.py
 credentials.json
+_x.py
+*.bak
+a.txt
+b.txt
+c.txt

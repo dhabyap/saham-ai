@@ -113,33 +113,25 @@ def _start_telegram_bot() -> None:
 @app.get("/")
 async def root(request: Request):
     """Vue 3 dashboard SPA"""
-    return templates.TemplateResponse(
-        "dashboard_vue.html",
-        {"request": request},
-        headers={
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache",
-            "Expires": "0",
-        }
-    )
+    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request})
 
 
 @app.get("/dashboard")
 async def dashboard_vue(request: Request):
     """Vue 3 dashboard with 3 themes"""
-    return templates.TemplateResponse("dashboard_vue.html", {"request": request})
+    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request})
 
 
 @app.get("/market-reports")
 async def market_reports_page(request: Request):
     """Market reports page - serves SPA with market view active"""
-    return templates.TemplateResponse("dashboard_vue.html", {"request": request})
+    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request})
 
 
 @app.get("/shareholders")
 async def shareholders_page(request: Request):
     """Shareholder >1% tracking page"""
-    return templates.TemplateResponse("dashboard_vue.html", {"request": request})
+    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request})
 
 
 @app.get("/api-docs")

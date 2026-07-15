@@ -102,10 +102,10 @@
       </div>
     </div>
 
-    <!-- Stock picker -->
-    <div style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Pilih kode saham:</div>
+    <!-- Stock picker (only show stocks with broker data) -->
+    <div style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Pilih kode saham (ada data):</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">
-      <div v-for="s in bdAvailable" :key="s.stock_code"
+      <div v-for="s in bdAvailable.filter(s => s.entries > 0)" :key="s.stock_code"
            @click="selectBdStock(s)"
            :title="s.latest_from+' → '+s.latest_to"
            :style="{
@@ -116,7 +116,10 @@
         <small style="opacity:0.7">({{ s.entries }})</small>
       </div>
       <div v-if="!bdAvailable.length && !bdLoading" style="color:var(--text-secondary);font-size:13px;padding:12px 0">
-        Memuat daftar saham...
+        Belum ada data broker — cari kode saham di atas untuk upload
+      </div>
+      <div v-if="bdAvailable.length && !bdAvailable.filter(s => s.entries > 0).length && !bdLoading" style="color:var(--text-secondary);font-size:13px;padding:12px 0">
+        Belum ada data broker. Ketik kode saham di atas lalu klik Cari atau upload
       </div>
     </div>
   </div>

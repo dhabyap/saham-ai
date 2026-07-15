@@ -303,18 +303,22 @@ class TrainingEngine:
             trades = []
             in_position = False
             entry_price = 0
+            entry_date = ""
             for s in signals:
                 if s["signal"] == "BUY" and not in_position:
                     in_position = True
                     entry_price = s["close"]
+                    entry_date = s["date"]
                 elif s["signal"] == "SELL" and in_position:
                     profit_pct = ((s["close"] - entry_price) / entry_price) * 100
                     trades.append({
-                        "entry_date": signals[signals.index(s) - 1]["date"] if signals.index(s) > 0 else "",
+                        "entry_date": entry_date,
                         "exit_date": s["date"],
                         "entry_price": round(entry_price, 2),
                         "exit_price": round(s["close"], 2),
                         "profit_pct": round(profit_pct, 2),
+                        "return_pct": round(profit_pct, 2),
+                        "result": "win" if profit_pct > 0 else "loss",
                     })
                     in_position = False
 

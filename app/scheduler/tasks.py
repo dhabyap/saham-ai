@@ -127,6 +127,46 @@ def run_send_telegram_alerts():
     asyncio.run(send_telegram_alerts())
 
 
+def send_evening_reminder():
+    """Send 20:30 reminder for next-day prep."""
+    import os
+    from dotenv import load_dotenv
+    load_dotenv(override=True)
+    from telegram import Bot
+    import asyncio
+
+    token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    chat_id_raw = os.getenv("TELEGRAM_CHAT_ID", "")
+    if not token or not chat_id_raw:
+        print("  ✗ Evening reminder: missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID")
+        return
+
+    try:
+        chat_id = int(chat_id_raw.strip())
+    except ValueError:
+        print(f"  ✗ Evening reminder: invalid TELEGRAM_CHAT_ID: {chat_id_raw}")
+        return
+
+    text = """📋 *PERSIAPAN BESOK (20:30)*
+
+1\u20e3 Import data broker yg belum masuk (RSC file)
+2\u20e3 Cek notifikasi jadwal rilis data baru
+3\u20e3 Backup ringan (opsional)
+4\u20e3 Pastikan AlphaTracker + semua cron aktif
+
+\u23f0 Besok jadwal: ulang rutinitas yg sama \U0001f305"""
+
+    async def _send():
+        bot = Bot(token=token)
+        await bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
+
+    try:
+        asyncio.run(_send())
+        print(f"  ✓ Evening reminder sent to {chat_id}")
+    except Exception as e:
+        print(f"  ✗ Evening reminder send failed: {e}")
+
+
 def evaluate_predictions_task():
     engine = LearningEngine()
     result = engine.evaluate_predictions(eval_days=7)

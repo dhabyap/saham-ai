@@ -10,6 +10,7 @@ from app.scheduler.tasks import (
     evaluate_predictions_task,
     bpjs_daily_scan,
     longterm_daily_scan,
+    send_evening_reminder,
 )
 
 
@@ -67,6 +68,14 @@ def start_scheduler():
         replace_existing=True,
     )
 
+    scheduler.add_job(
+        send_evening_reminder,
+        trigger=CronTrigger(hour=20, minute=30, timezone="Asia/Jakarta"),
+        id="send_evening_reminder",
+        name="Evening reminder for next-day prep",
+        replace_existing=True,
+    )
+
     scheduler.start()
     print(f"⏰ Scheduler started (interval: {interval} minutes)")
     print("  - Market summary update")
@@ -75,6 +84,7 @@ def start_scheduler():
     print("  - AI prediction evaluation")
     print("  - BPJS daily scan (16:05 WIB)")
     print("  - Long term daily scan (16:10 WIB)")
+    print("  - Evening reminder (20:30 WIB)")
 
 
 def stop_scheduler():

@@ -38,220 +38,109 @@ KNOWN_FOREIGN_BROKERS = {
 # IDX 2-letter broker codes → full name + is_foreign flag
 # Sumber: kode anggota bursa BEI
 BROKER_CODE_MAP = {
-    "AG": ("Anugerah Sekuritas", False),
-    "AI": ("AI Sekuritas", False),
-    "AK": ("Ajaib Sekuritas", True),
-    "AO": ("AO Sekuritas", False),
-    "AP": ("Aspac Sekuritas", False),
-    "AR": ("Artha Sekuritas", False),
-    "AZ": ("Alfa Sekuritas", False),
-    "BB": ("BCA Sekuritas", True),
-    "BK": ("Barclays Capital", True),
-    "BN": ("BNI Sekuritas", False),
-    "BP": ("Bank Panin Sekuritas", False),
-    "BR": ("BRI Danareksa", False),
-    "BS": ("Binaartha Sekuritas", False),
-    "CC": ("CLSA Sekuritas", True),
-    "CG": ("CGS-CIMB Sekuritas", True),
-    "CI": ("Citigroup Sekuritas", True),
-    "CP": ("Ciptadana Sekuritas", False),
-    "CS": ("Credit Suisse", True),
-    "DB": ("Deutsche Bank", True),
-    "DG": ("DWG Sekuritas", False),
-    "DR": ("Danareksa Sekuritas", False),
-    "DS": ("DBS Vickers", True),
-    "DX": ("Dxchange Sekuritas", False),
-    "ER": ("Erdikha Elit Sekuritas", False),
-    "FB": ("Firman Bima Sekuritas", False),
-    "FG": ("Fauzan Gani Sekuritas", False),
-    "FP": ("Fortis Asia", False),
-    "GR": ("Graham Reksa", False),
-    "GS": ("Goldman Sachs", True),
-    "HD": ("HD Capital", False),
-    "HS": ("HSBC Sekuritas", True),
-    "IF": ("Indo Premier Sekuritas", False),
-    "IG": ("Indo Ganeca Sekuritas", False),
-    "IP": ("Indopremier Sekuritas", False),
-    "JD": ("JD Bower", False),
-    "JP": ("JP Morgan", True),
-    "KG": ("KGI Sekuritas", False),
-    "KI": ("Kim Eng Sekuritas", True),
-    "KP": ("Kresna Graha Sekuritas", False),
-    "KZ": ("Macquarie Sekuritas", True),
-    "MA": ("Mandiri Sekuritas", False),
-    "MB": ("Maybank Sekuritas", True),
-    "MC": ("Macquarie Sekuritas", True),
-    "MG": ("Mega Capital", False),
-    "MH": ("Mandiri Sekuritas", False),
-    "MI": ("Mirae Asset", True),
-    "MN": ("MNC Sekuritas", False),
-    "MP": ("MNC Kapital", False),
-    "MR": ("Merrill Lynch", True),
-    "MS": ("Morgan Stanley", True),
-    "NC": ("NC Sekuritas", False),
-    "NH": ("NH Korindo", False),
-    "NM": ("Nomura Sekuritas", True),
-    "NS": ("Nusantara Sekuritas", False),
-    "OC": ("OCBC Sekuritas", True),
-    "OD": ("Oscar Dharma", False),
-    "OK": ("Oto Kredit", False),
-    "OP": ("Optima Kharya", False),
-    "OS": ("OSK Nusadana", False),
-    "PD": ("Mandiri Sekuritas", False),
-    "PG": ("Panin Sekuritas", False),
-    "PH": ("Phillip Sekuritas", True),
-    "RB": ("Royal Bank", True),
-    "RG": ("RHB OSK", True),
-    "RX": ("RHB Sekuritas Indonesia", True),
-    "SA": ("Samuel Sekuritas", False),
-    "SB": ("Sinarmas Sekuritas", False),
-    "SG": ("Sugeng Santoso", False),
-    "SM": ("Semesta Indovest", False),
-    "SQ": ("Sucor Sekuritas", False),
-    "ST": ("Standard Chartered", True),
-    "TP": ("Trimegah Sekuritas", False),
-    "UA": ("UAB Sekuritas", False),
-    "UB": ("UOB Kay Hian", True),
-    "UF": ("UFO Sekuritas", False),
-    "UO": ("UOB Kay Hian", True),
-    "VP": ("Valbury Sekuritas", False),
-    "XA": ("XAsia Sekuritas", False),
-    "XC": ("Xcelencia", False),
-    "XL": ("XL Sekuritas", False),
-    "YA": ("Yuanta Sekuritas", True),
-    "YJ": ("Yujin Sekuritas", False),
-    "YP": ("YP Sekuritas", False),
-    "YU": ("Citigroup Sekuritas", True),
-    "ZP": ("ZPA Sekuritas", False),
+    # Sumber real: ajaib broker-summary payload (kode anggota bursa BEI per ajaib)
+    "AD": ("OSO Sekuritas Indonesia", False),
+    "AF": ("Harita Kencana Sekuritas", False),
+    "AG": ("Kiwoom Sekuritas Indonesia", True),
+    "AH": ("Shinhan Sekuritas Indonesia", True),
+    "AI": ("UOB Kay Hian Sekuritas", True),
+    "AK": ("UBS Sekuritas Indonesia", True),
+    "AO": ("Erdikha Elit Sekuritas", False),
+    "AP": ("Pacific Sekuritas Indonesia", False),
+    "AR": ("Binaartha Sekuritas", False),
+    "AT": ("Phintraco Sekuritas", False),
+    "AZ": ("Sukor Sekuritas", False),
+    "BB": ("Verdhana Sekuritas Indonesia", False),
+    "BF": ("Inti Fikasa Sekuritas", False),
+    "BK": ("J.P. Morgan Sekuritas Indonesia", True),
+    "BQ": ("Korea Investment and Sekuritas Indonesia", True),
+    "BR": ("Trust Sekuritas", False),
+    "BS": ("Equity Sekuritas Indonesia", False),
+    "CC": ("Mandiri Sekuritas", False),
+    "CD": ("Mega Capital Sekuritas", False),
+    "CP": ("Valbury Sekuritas Indonesia", False),
+    "DD": ("Makindo Sekuritas", False),
+    "DH": ("Sinarmas Sekuritas", False),
+    "DP": ("DBS Vickers Sekuritas Indonesia", True),
+    "DR": ("RHB Sekuritas Indonesia", True),
+    "DU": ("KAF Sekuritas Indonesia", True),
+    "DX": ("Bahana Sekuritas", False),
+    "EL": ("Evergreen Sekuritas Indonesia", False),
+    "EP": ("MNC Sekuritas", False),
+    "ES": ("Ekokapital Sekuritas", False),
+    "FO": ("Forte Global Sekuritas", False),
+    "FS": ("Yuanta Sekuritas Indonesia", True),
+    "FZ": ("Waterfront Sekuritas Indonesia", False),
+    "GA": ("BNC Sekuritas Indonesia", False),
+    "GI": ("Mahastra Andalan Sekuritas", False),
+    "GR": ("Panin Sekuritas Tbk.", False),
+    "HD": ("KGI Sekuritas Indonesia", True),
+    "HP": ("Henan Putihrai Sekuritas", False),
+    "ID": ("Anugerah Sekuritas Indonesia", False),
+    "IF": ("Samuel Sekuritas Indonesia", False),
+    "IH": ("Pacific 2000 Sekuritas", False),
+    "II": ("Danatama Makmur Sekuritas", False),
+    "IN": ("Investindo Nusantara Sekuritas", False),
+    "IT": ("Inti Teladan Sekuritas", False),
+    "IU": ("Indo Capital Sekuritas", False),
+    "JB": ("[CC] BJB Sekuritas Jawa Barat", False),
+    "KI": ("Ciptadana Sekuritas Asia", False),
+    "KK": ("Phillip Sekuritas Indonesia", True),
+    "KZ": ("CLSA Sekuritas Indonesia", True),
+    "LG": ("Trimegah Sekuritas Indonesia Tbk.", True),
+    "LS": ("Reliance Sekuritas Indonesia Tbk.", True),
+    "MG": ("Semesta Indovest Sekuritas", False),
+    "MI": ("Victoria Sekuritas Indonesia", False),
+    "MU": ("Minna Padi Investama Sekuritas Tbk", False),
+    "NI": ("BNI Sekuritas", False),
+    "OD": ("BRI Danareksa Sekuritas", False),
+    "OK": ("Net Sekuritas", False),
+    "PC": ("Fac Sekuritas Indonesia", False),
+    "PD": ("Indo Premier Sekuritas", False),
+    "PF": ("Danasakti Sekuritas Indonesia", False),
+    "PG": ("PancaGlobal Sekuritas", False),
+    "PI": ("Magenta Kapital Sekuritas Indonesia", False),
+    "PO": ("Pilarmas Investindo Sekuritas", False),
+    "PP": ("Aldiracita Sekuritas Indonesia", False),
+    "QA": ("Tuntun Sekuritas Indonesia", False),
+    "RB": ("Nikko Sekuritas Indonesia", True),
+    "RF": ("Buana Capital Sekuritas", False),
+    "RG": ("Profindo Sekuritas Indonesia", False),
+    "RO": ("Nilai Inti Sekuritas", False),
+    "RS": ("Yulie Sekuritas Indonesia Tbk.", False),
+    "RX": ("Macquarie Sekuritas Indonesia", True),
+    "SA": ("Bosowa Sekuritas", False),
+    "SF": ("Surya Fajar Sekuritas", False),
+    "SH": ("Artha Sekuritas Indonesia", False),
+    "SQ": ("BCA Sekuritas", False),
+    "SS": ("Supra Sekuritas Indonesia", False),
+    "TF": ("Universal Broker Indonesia Sekuritas", False),
+    "TP": ("OCBC Sekuritas Indonesia", True),
+    "XA": ("NH Korindo Sekuritas Indonesia", True),
+    "XC": ("Ajaib Sekuritas Asia", False),
+    "XL": ("Mahakarya Artha Sekuritas", False),
+    "YB": ("Jasa Utama Capital Sekuritas", False),
+    "YJ": ("Lotus Andalan Sekuritas", False),
+    "YO": ("Aman Sekuritas Indonesia", False),
+    "YP": ("Mirae Asset Sekuritas Indonesia", True),
+    "YU": ("CGS-CIMB Sekuritas Indonesia", True),
+    "ZP": ("Maybank Kim Eng Sekuritas", True),
+    "ZR": ("Bumiputera Sekuritas", False),
 }
 
 
 # Broker classification for AI recommendation signals
-# Based on: https://www.idx.co.id/id/anggota-bursa-dan-partisipan/daftar-anggota-bursa
-# Categories:
-#   smart_money  → foreign brokers + global investment banks
-#   institutional → domestic institutional brokers (bank securities, big local)
-#   retail       → domestic retail brokers (individual investors)
+# Sumber real: ajaib broker-summary payload (category per broker).
+# get_broker_category() → explicit override (institutional BUMN), else fallback
+#   BROKER_CODE_MAP.is_foreign (True → smart_money, False → retail).
+# NOTE: BROKER_CODE_MAP di atas sudah akurat per data ajaib, jadi override
+#   hanya untuk kategori "institutional" (BUMN bank sekuritas).
 BROKER_CLASSIFICATION = {
-    # === SMART MONEY (Foreign / Global) ===
-    "BB": "smart_money",  # BCA Sekuritas (JV foreign)
-    "BK": "smart_money",  # Barclays Capital
-    "CC": "smart_money",  # CLSA Sekuritas
-    "CG": "smart_money",  # CGS-CIMB Sekuritas
-    "CI": "smart_money",  # Citigroup Sekuritas
-    "CS": "smart_money",  # Credit Suisse
-    "DB": "smart_money",  # Deutsche Bank
-    "DS": "smart_money",  # DBS Vickers
-    "GS": "smart_money",  # Goldman Sachs
-    "HS": "smart_money",  # HSBC Sekuritas
-    "JP": "smart_money",  # JP Morgan
-    "KI": "smart_money",  # Kim Eng Sekuritas
-    "KZ": "smart_money",  # Macquarie Sekuritas
-    "MB": "smart_money",  # Maybank Sekuritas
-    "MC": "smart_money",  # Macquarie Sekuritas
-    "MI": "smart_money",  # Mirae Asset
-    "MR": "smart_money",  # Merrill Lynch
-    "MS": "smart_money",  # Morgan Stanley
-    "NM": "smart_money",  # Nomura Sekuritas
-    "OC": "smart_money",  # OCBC Sekuritas
-    "PH": "smart_money",  # Phillip Sekuritas
-    "RB": "smart_money",  # Royal Bank
-    "RG": "smart_money",  # RHB OSK
-    "RX": "smart_money",  # RHB Sekuritas Indonesia
-    "ST": "smart_money",  # Standard Chartered
-    "UB": "smart_money",  # UOB Kay Hian
-    "UO": "smart_money",  # UOB Kay Hian
-    "YA": "smart_money",  # Yuanta Sekuritas
-    "YU": "smart_money",  # Citigroup Sekuritas
-
-    # === INSTITUSIONAL LOKAL ===
-    "BN": "institutional",  # BNI Sekuritas
-    "BR": "institutional",  # BRI Danareksa
-    "DR": "institutional",  # Danareksa Sekuritas
-    "IF": "institutional",  # Indo Premier Sekuritas
-    "IP": "institutional",  # Indopremier Sekuritas
-    "MA": "institutional",  # Mandiri Sekuritas
-    "MH": "institutional",  # Mandiri Sekuritas
-    "NH": "institutional",  # NH Korindo
-    "SA": "institutional",  # Samuel Sekuritas
-    "TP": "institutional",  # Trimegah Sekuritas
-
-    # === RETAIL ===
-    "AG": "retail",  # Anugerah Sekuritas
-    "AK": "smart_money",  # Ajaib Sekuritas (asing)
-    "AP": "retail",  # Aspac Sekuritas
-    "AR": "retail",  # Artha Sekuritas
-    "AT": "retail",  # (unknown retail)
-    "AZ": "retail",  # Alfa Sekuritas
-    "BQ": "retail",  # (unknown retail)
-    "BS": "retail",  # Binaartha Sekuritas
-    "CD": "retail",  # (unknown retail)
-    "CP": "retail",  # Ciptadana Sekuritas
-    "DH": "retail",  # (unknown retail)
-    "DP": "retail",  # (unknown retail)
-    "DU": "retail",  # (unknown retail)
-    "DX": "retail",  # Dxchange Sekuritas
-    "EP": "retail",  # (unknown retail)
-    "ER": "retail",  # Erdikha Elit Sekuritas
-    "ES": "retail",  # (unknown retail)
-    "FB": "retail",  # Firman Bima Sekuritas
-    "FG": "retail",  # Fauzan Gani Sekuritas
-    "FO": "retail",  # (unknown retail)
-    "FP": "retail",  # Fortis Asia
-    "FS": "retail",  # (unknown retail)
-    "FZ": "retail",  # (unknown retail)
-    "GI": "retail",  # (unknown retail)
-    "GR": "retail",  # Graham Reksa
-    "HD": "retail",  # HD Capital
-    "HP": "retail",  # (unknown retail)
-    "ID": "retail",  # (unknown retail)
-    "IG": "retail",  # Indo Ganeca Sekuritas
-    "IU": "retail",  # (unknown retail)
-    "JD": "retail",  # JD Bower
-    "KG": "retail",  # KGI Sekuritas
-    "KK": "retail",  # (unknown retail)
-    "KP": "retail",  # Kresna Graha Sekuritas
-    "LG": "retail",  # (unknown retail)
-    "LS": "retail",  # (unknown retail)
-    "MG": "retail",  # Mega Capital
-    "MN": "retail",  # MNC Sekuritas
-    "MP": "retail",  # MNC Kapital
-    "NC": "retail",  # NC Sekuritas
-    "NI": "retail",  # (unknown retail)
-    "NS": "retail",  # Nusantara Sekuritas
-    "OD": "retail",  # Oscar Dharma
-    "OK": "retail",  # Oto Kredit
-    "OP": "retail",  # Optima Kharya
-    "OS": "retail",  # OSK Nusadana
-    "PC": "retail",  # (unknown retail)
-    "PD": "retail",  # Mandiri Sekuritas (retail desk)
-    "PF": "retail",  # (unknown retail)
-    "PG": "retail",  # Panin Sekuritas
-    "PP": "retail",  # (unknown retail)
-    "QA": "retail",  # (unknown retail)
-    "RF": "retail",  # (unknown retail)
-    "RO": "retail",  # (unknown retail)
-    "RS": "retail",  # (unknown retail)
-    "SB": "retail",  # Sinarmas Sekuritas
-    "SF": "retail",  # (unknown retail)
-    "SG": "retail",  # Sugeng Santoso
-    "SH": "retail",  # (unknown retail)
-    "SM": "retail",  # Semesta Indovest
-    "SQ": "retail",  # Sucor Sekuritas
-    "SS": "retail",  # (unknown retail)
-    "TF": "retail",  # (unknown retail)
-    "TS": "retail",  # (unknown retail)
-    "UF": "retail",  # UFO Sekuritas
-    "VP": "retail",  # Valbury Sekuritas
-    "XA": "retail",  # XAsia Sekuritas
-    "XC": "retail",  # Xcelencia
-    "XL": "retail",  # XL Sekuritas
-    "YB": "retail",  # (unknown retail)
-    "YJ": "retail",  # Yujin Sekuritas
-    "YO": "retail",  # (unknown retail)
-    "YP": "retail",  # YP Sekuritas
-    "ZP": "retail",  # ZPA Sekuritas
-    "ZR": "retail",  # (unknown retail)
+    # === INSTITUSIONAL (BUMN bank sekuritas) ===
+    "CC": "institutional",  # Mandiri Sekuritas (BUMN)
+    "DX": "institutional",  # Bahana Sekuritas (BUMN)
+    "NI": "institutional",  # BNI Sekuritas (BUMN)
+    "OD": "institutional",  # BRI Danareksa Sekuritas (BUMN)
 }
 
 
@@ -280,10 +169,10 @@ def get_broker_category(broker_code: str) -> str:
 def get_broker_category_label(category: str) -> tuple:
     """Return (label, icon, color) for a broker category."""
     labels = {
-        "smart_money": ("Smart Money", "🌍", "#2563eb"),
-        "institutional": ("Institusi", "🏦", "#7c3aed"),
-        "retail": ("Retail", "👤", "#10b981"),
-        "unknown": ("Unknown", "❓", "#6b7280"),
+    "smart_money": ("Smart Money", "🌍", "#2563eb"),
+    "institutional": ("Institusi", "🏦", "#7c3aed"),
+    "retail": ("Retail", "👤", "#10b981"),
+    "unknown": ("Unknown", "❓", "#6b7280"),
     }
     return labels.get(category, labels["unknown"])
 
@@ -325,7 +214,7 @@ def _seed_brokers(conn):
     for code, name in KNOWN_FOREIGN_BROKERS.items():
         try:
             conn.execute(
-                "INSERT OR IGNORE INTO known_brokers (broker_code, broker_name, is_foreign) VALUES (?, ?, 1)",
+    "INSERT OR IGNORE INTO known_brokers (broker_code, broker_name, is_foreign) VALUES (?, ?, 1)",
                 (code, name),
             )
         except Exception:
@@ -336,7 +225,7 @@ def _seed_brokers(conn):
             existing = conn.execute("SELECT id FROM known_brokers WHERE broker_code = ?", (code,)).fetchone()
             if not existing:
                 conn.execute(
-                    "INSERT INTO known_brokers (broker_code, broker_name, is_foreign) VALUES (?, ?, ?)",
+    "INSERT INTO known_brokers (broker_code, broker_name, is_foreign) VALUES (?, ?, ?)",
                     (code, name, 1 if is_foreign else 0),
                 )
         except Exception:
@@ -350,7 +239,7 @@ def save_broker_transactions(stock_code: str, trade_date: str, transactions: lis
         for t in transactions:
             try:
                 conn.execute(
-                    """INSERT OR REPLACE INTO broker_transactions
+    """INSERT OR REPLACE INTO broker_transactions
                        (stock_code, trade_date, broker_code, buy_volume, sell_volume, buy_value, sell_value)
                        VALUES (?, ?, ?, ?, ?, ?, ?)""",
                     (
@@ -374,7 +263,7 @@ def get_broker_transactions(stock_code: str, trade_date: str = None) -> list[dic
     with get_db() as conn:
         if trade_date:
             cur = conn.execute(
-                """SELECT bt.*, kb.is_foreign, kb.broker_name
+    """SELECT bt.*, kb.is_foreign, kb.broker_name
                    FROM broker_transactions bt
                    LEFT JOIN known_brokers kb ON bt.broker_code = kb.broker_code
                    WHERE bt.stock_code = ? AND bt.trade_date = ?
@@ -383,7 +272,7 @@ def get_broker_transactions(stock_code: str, trade_date: str = None) -> list[dic
             )
         else:
             cur = conn.execute(
-                """SELECT bt.*, kb.is_foreign, kb.broker_name
+    """SELECT bt.*, kb.is_foreign, kb.broker_name
                    FROM broker_transactions bt
                    LEFT JOIN known_brokers kb ON bt.broker_code = kb.broker_code
                    WHERE bt.stock_code = ?
@@ -405,12 +294,12 @@ def calculate_broker_foreign_net(stock_code: str, trade_date: str) -> dict:
     domestic_sell = sum(r.get("sell_value", 0) for r in rows if not r.get("is_foreign"))
 
     return {
-        "foreign_buy": foreign_buy,
-        "foreign_sell": foreign_sell,
-        "foreign_net": foreign_buy - foreign_sell,
-        "domestic_buy": domestic_buy,
-        "domestic_sell": domestic_sell,
-        "total": foreign_buy + foreign_sell + domestic_buy + domestic_sell,
+    "foreign_buy": foreign_buy,
+    "foreign_sell": foreign_sell,
+    "foreign_net": foreign_buy - foreign_sell,
+    "domestic_buy": domestic_buy,
+    "domestic_sell": domestic_sell,
+    "total": foreign_buy + foreign_sell + domestic_buy + domestic_sell,
     }
 
 
@@ -418,7 +307,7 @@ def get_broker_accumulation_summary(stock_code: str, days: int = 5) -> Optional[
     """Get multi-day foreign net trend from broker data."""
     with get_db() as conn:
         cur = conn.execute(
-            """SELECT bt.trade_date,
+    """SELECT bt.trade_date,
                       SUM(CASE WHEN kb.is_foreign = 1 THEN bt.buy_value ELSE 0 END) as f_buy,
                       SUM(CASE WHEN kb.is_foreign = 1 THEN bt.sell_value ELSE 0 END) as f_sell,
                       SUM(CASE WHEN kb.is_foreign = 1 THEN bt.buy_value - bt.sell_value ELSE 0 END) as f_net
@@ -446,13 +335,13 @@ def get_broker_accumulation_summary(stock_code: str, days: int = 5) -> Optional[
         status = "neutral"
 
     return {
-        "stock_code": stock_code.upper(),
-        "days": len(rows),
-        "total_net": total_net,
-        "accumulation_days": accumulation_days,
-        "distribution_days": len(rows) - accumulation_days,
-        "status": status,
-        "daily": rows,
+    "stock_code": stock_code.upper(),
+    "days": len(rows),
+    "total_net": total_net,
+    "accumulation_days": accumulation_days,
+    "distribution_days": len(rows) - accumulation_days,
+    "status": status,
+    "daily": rows,
     }
 
 

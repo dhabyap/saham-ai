@@ -18,7 +18,7 @@ DB_CONFIG = {
 def import_reports(report_file: str, clear_first: bool = True):
     if not os.path.exists(report_file):
         print(f'❌ File not found: {report_file}')
-        return 0, 0
+        return 0, 0, 0, 0
 
     with open(report_file, 'r') as f:
         reports = json.load(f)

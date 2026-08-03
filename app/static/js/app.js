@@ -165,6 +165,7 @@ createApp({
       doUploadShareholder: doUploadShareholder,
       // Broker Data
       bdData: bdData, bdLoading: bdLoading, bdError: bdError,
+      csData: csData, csLoading: csLoading, csError: csError,
       bdStockQuery: bdStockQuery, bdAvailable: bdAvailable, bdCurrentStock: bdCurrentStock, bdShowSuggestions: bdShowSuggestions,
       bdFiltered: bdFiltered, bdHighlight: bdHighlight,
       loadBrokerData: loadBrokerData, loadBdAvailable: loadBdAvailable,

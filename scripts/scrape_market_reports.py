@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import asyncio
+import sqlite3
 from datetime import datetime, timezone
 from telethon import TelegramClient
 from telethon.sessions import StringSession

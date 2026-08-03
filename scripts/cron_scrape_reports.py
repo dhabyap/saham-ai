@@ -52,7 +52,7 @@ def main():
     # Step 2: Import to MySQL (incremental — keep existing)
     if os.path.exists(REPORT_FILE):
         log('🗄️  Step 2: Importing to MySQL (incremental)...')
-        run_py(IMPORTER, ['--keep'])
+        run_py(IMPORTER, [REPORT_FILE, '--keep'])
     else:
         log('⚠️  No market_reports.json found, skipping import')
 

@@ -126,8 +126,6 @@ def parse_market_report(text: str, msg_date=None) -> dict:
         elif stripped.startswith('Market Report') or stripped.startswith('IHSG') or 'www.creative' in lower:
             continue
 
-        # Parse stock line: "WIFI, 21.4M" or "BBCA, 21.4M"
-        if section in ('foreign_buy', 'local_buy'):
             m = re.match(r'([A-Z]+)\s*,\s*([\d.,]+\s*[TBMKbmt]?)', stripped, re.IGNORECASE)
             if m:
                 stock = m.group(1).upper().strip()
@@ -400,6 +398,27 @@ def _save_broker_table(bt: dict):
         json.dump(all_data, f, indent=2, ensure_ascii=False)
 
 
+
+def parse_konglomerasi_image_report(msg: "telethon.tl.types.Message") -> dict:
+    """Parses a Konglomerasi Report message with an image."""
+    # Assuming the image is saved to data/konglo_images
+    import os
+    img_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'konglo_images')
+    os.makedirs(img_dir, exist_ok=True)
+    fname = f"konglo_{msg.date.strftime('%Y%m%d_%H%M%S')}.jpg"
+    path = os.path.join(img_dir, fname)
+    
+    # Placeholder: actual download happens in fetch_reports
+    # For now, just generate the path
+    
+    return {
+        'date': msg.date.strftime('%Y-%m-%d'),
+        'type': 'konglomerasi_image',
+        'image_path': path,
+        'content': msg.text if msg.text else '',
+        'title': 'Konglomerasi Report Image',
+    }
+
 async def fetch_reports(client: TelegramClient, since_date: str = None) -> list:
     channel = await client.get_entity(CHANNEL)
     reports = load_existing_reports()
@@ -417,9 +436,31 @@ async def fetch_reports(client: TelegramClient, since_date: str = None) -> list:
     broker_tables = []
     async for msg in client.iter_messages(channel, limit=2000):
         if not msg.text:
+            # If no text, but has photo and matches Konglo criteria, process as image
+            if msg.photo and ('Konglomerasi' in (msg.text or '') or 'Konglo' in (msg.text or '')):
+                parsed_konglo = parse_konglomerasi_image_report(msg)
+                if parsed_konglo:
+                    # Actual download media
+                    await client.download_media(msg, file=parsed_konglo['image_path'])
+                    print(f'   📷 Konglomerasi image saved: {parsed_konglo["image_path"]}')
+                    reports.append(parsed_konglo)
+                    existing_dates.add((parsed_konglo['date'], parsed_konglo['type']))
+                    new_count += 1
+                continue # Continue to next message after handling photo
             continue
         if limit_date and msg.date and msg.date < limit_date:
             break
+        # NEW: Detect Konglomerasi Report image FIRST (if it has text caption)
+        if msg.photo and (msg.text and ('Konglomerasi' in msg.text or 'Konglo' in msg.text)):
+            parsed_konglo = parse_konglomerasi_image_report(msg)
+            if parsed_konglo:
+                # Actual download media
+                await client.download_media(msg, file=parsed_konglo['image_path'])
+                print(f'   📷 Konglomerasi image saved: {parsed_konglo["image_path"]}')
+                reports.append(parsed_konglo)
+                existing_dates.add((parsed_konglo['date'], parsed_konglo['type']))
+                new_count += 1
+            continue # Important: continue to next message after handling photo
 
         parsed = parse_market_report(msg.text, msg.date)
         if parsed:
@@ -445,10 +486,19 @@ async def fetch_reports(client: TelegramClient, since_date: str = None) -> list:
             print(f'  📊 Broker table: {bt["stock"]} ({bt["date"]}) — {len(bt["broker_buy"])} buy, {len(bt["broker_sell"])} sell')
             # Save individual broker data to a per-stock file
             _save_broker_table(bt)
-
-    print(f'📋 New: {new_count}, Skipped: {skipped}, Broker Tables: {len(broker_tables)}, Total: {len(reports)}')
+            continue
+        # Detect Konglomerasi Report image (caption contains 'Konglomerasi')
+        if msg.photo and (msg.text and ('Konglomerasi' in msg.text or 'Konglo' in msg.text)):
+            parsed_konglo = parse_konglomerasi_image_report(msg)
+            if parsed_konglo:
+                # Actual download media
+                await client.download_media(msg, file=parsed_konglo['image_path'])
+                print(f'   📷 Konglomerasi image saved: {parsed_konglo["image_path"]}')
+                reports.append(parsed_konglo)
+                existing_dates.add((parsed_konglo['date'], parsed_konglo['type']))
+                new_count += 1
+            continue
     return reports
-
 
 async def main():
     session_str = load_session()

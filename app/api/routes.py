@@ -1205,6 +1205,91 @@ def market_backtest():
         'daily': daily_details[-30:],  # last 30 days
     }
 
+@router.get("/broker-summary/stocks")
+def broker_available_stocks():
+    """List stocks — those WITH broker data + those from IDX list without data."""
+    from app.database.database import get_db
+    from app.services.stock_service import STOCK_LIST
+    
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT stock_code, MIN(period_from) latest_from, MAX(period_to) latest_to, "
+            "COUNT(*) entries FROM broker_summary GROUP BY stock_code ORDER BY entries DESC"
+        ).fetchall()
+    
+    # Map broker data by stock_code
+    broker_map = {}
+    for r in rows:
+        if r[0]:
+            broker_map[r[0]] = {
+                "stock_code": r[0], "latest_from": r[1], "latest_to": r[2], "entries": r[3]
+            }
+    
+    # Include ALL stocks from STOCK_LIST + any stock with broker data (e.g. TINS, BULL)
+    stocks = []
+    for code, name in sorted(STOCK_LIST.items()):
+        if code in broker_map:
+            stocks.append(broker_map[code])
+        else:
+            stocks.append({
+                "stock_code": code, "latest_from": None, "latest_to": None, "entries": 0
+            })
+    # Add stocks present in broker_summary but not in STOCK_LIST
+    for code in sorted(set(broker_map.keys()) - set(STOCK_LIST.keys())):
+        stocks.append(broker_map[code])
+    
+    return {"status": "ok", "stocks": stocks}
+
+@router.get("/broker-summary/suggest-upload")
+def broker_suggest_upload():
+    """Suggest stocks WITHOUT broker data that are interesting for upload."""
+    from app.database.database import get_db
+    from app.services.stock_service import STOCK_LIST, fetch_stock_data
+
+    with get_db() as conn:
+        with_data = set(
+            r[0] for r in conn.execute(
+                "SELECT DISTINCT stock_code FROM broker_summary"
+            ).fetchall()
+        )
+
+    candidates = []
+    for code in sorted(set(STOCK_LIST.keys()) - with_data):
+        try:
+            d = fetch_stock_data(code, period="5d")
+            if not d:
+                continue
+            df = d["history"]
+            if len(df) < 2:
+                continue
+            price = float(df["Close"].iloc[-1])
+            prev = float(df["Close"].iloc[-2])
+            chg = ((price - prev) / prev) * 100
+            vol = int(df["Volume"].iloc[-1])
+            vol_ma = float(df["Volume"].iloc[-3]) if len(df) >= 3 else vol
+            vol_ratio = vol / vol_ma if vol_ma > 0 else 1
+            score = min(10, vol_ratio * 5) + (5 if chg > 1 else (3 if chg > 0 else 0))
+            name = STOCK_LIST.get(code, "")
+            reasons = []
+            if chg > 3:
+                reasons.append(f"naik {chg:.1f}%")
+            elif chg > 0:
+                reasons.append(f"naik {chg:.1f}%")
+            if vol_ratio > 2:
+                reasons.append("volume melonjak")
+            elif vol_ratio > 1.2:
+                reasons.append("volume di atas rata-rata")
+            reasons.append("belum ada data broker")
+            candidates.append({
+                "stock_code": code, "name": name, "price": round(price, 0),
+                "change_pct": round(chg, 2), "volume_ratio": round(vol_ratio, 1),
+                "score": round(score, 0), "reason": ", ".join(reasons),
+            })
+        except Exception:
+            continue
+    candidates.sort(key=lambda x: x["score"], reverse=True)
+    return {"status": "ok", "suggestions": candidates[:6]}
+
 @router.get("/broker-summary/{stock_code}")
 def broker_summary(stock_code: str):
     """Get aggregated broker summary data for a stock."""
@@ -1660,88 +1745,6 @@ def crossing_summary(stock_code: str):
         "top_brokers": top_brokers,
         "total_crossing": len(pc),
     }
-
-@router.get("/broker-summary/stocks")
-def broker_available_stocks():
-    """List stocks — those WITH broker data + those from IDX list without data."""
-    from app.database.database import get_db
-    from app.services.stock_service import STOCK_LIST
-    
-    with get_db() as conn:
-        rows = conn.execute(
-            "SELECT stock_code, MIN(trade_date) latest_from, MAX(trade_date) latest_to, "
-            "COUNT(*) entries FROM broker_summary GROUP BY stock_code ORDER BY entries DESC"
-        ).fetchall()
-    
-    # Map broker data by stock_code
-    broker_map = {}
-    for r in rows:
-        if r[0]:
-            broker_map[r[0]] = {
-                "stock_code": r[0], "latest_from": r[1], "latest_to": r[2], "entries": r[3]
-            }
-    
-    # Include ALL stocks from STOCK_LIST, with broker data if available
-    stocks = []
-    for code, name in sorted(STOCK_LIST.items()):
-        if code in broker_map:
-            stocks.append(broker_map[code])
-        else:
-            stocks.append({
-                "stock_code": code, "latest_from": None, "latest_to": None, "entries": 0
-            })
-    
-    return {"status": "ok", "stocks": stocks}
-
-@router.get("/broker-summary/suggest-upload")
-def broker_suggest_upload():
-    """Suggest stocks WITHOUT broker data that are interesting for upload."""
-    from app.database.database import get_db
-    from app.services.stock_service import STOCK_LIST, fetch_stock_data
-
-    with get_db() as conn:
-        with_data = set(
-            r[0] for r in conn.execute(
-                "SELECT DISTINCT stock_code FROM broker_summary"
-            ).fetchall()
-        )
-
-    candidates = []
-    for code in sorted(set(STOCK_LIST.keys()) - with_data):
-        try:
-            d = fetch_stock_data(code, period="5d")
-            if not d:
-                continue
-            df = d["history"]
-            if len(df) < 2:
-                continue
-            price = float(df["Close"].iloc[-1])
-            prev = float(df["Close"].iloc[-2])
-            chg = ((price - prev) / prev) * 100
-            vol = int(df["Volume"].iloc[-1])
-            vol_ma = float(df["Volume"].iloc[-3]) if len(df) >= 3 else vol
-            vol_ratio = vol / vol_ma if vol_ma > 0 else 1
-            score = min(10, vol_ratio * 5) + (5 if chg > 1 else (3 if chg > 0 else 0))
-            name = STOCK_LIST.get(code, "")
-            reasons = []
-            if chg > 3:
-                reasons.append(f"naik {chg:.1f}%")
-            elif chg > 0:
-                reasons.append(f"naik {chg:.1f}%")
-            if vol_ratio > 2:
-                reasons.append("volume melonjak")
-            elif vol_ratio > 1.2:
-                reasons.append("volume di atas rata-rata")
-            reasons.append("belum ada data broker")
-            candidates.append({
-                "stock_code": code, "name": name, "price": round(price, 0),
-                "change_pct": round(chg, 2), "volume_ratio": round(vol_ratio, 1),
-                "score": round(score, 0), "reason": ", ".join(reasons),
-            })
-        except Exception:
-            continue
-    candidates.sort(key=lambda x: x["score"], reverse=True)
-    return {"status": "ok", "suggestions": candidates[:6]}
 
 @router.get("/shareholders/periods")
 def shareholder_periods():

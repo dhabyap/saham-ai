@@ -2646,17 +2646,25 @@ tbody tr:last-child td { border-bottom:none; }
 .bd-nf-col-header.buy { background:rgba(34,197,94,.1); color:var(--success); }
 .bd-nf-col-header.sell { background:rgba(239,68,68,.1); color:var(--danger); }
 .bd-nf-col-count { font-size:11px; font-weight:400; opacity:.7; margin-left:auto; }
-.bd-nf-card {
-  display:flex; align-items:center; gap:10px; padding:8px 12px; margin-bottom:4px;
-  border-radius:8px; transition:background .15s;
+.bd-nf-scroll { max-height:420px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; }
+.bd-nf-scroll::-webkit-scrollbar { width:6px; }
+.bd-nf-scroll::-webkit-scrollbar-track { background:transparent; }
+.bd-nf-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+.bd-nf-table { width:100%; border-collapse:collapse; font-size:12px; }
+.bd-nf-table thead { position:sticky; top:0; z-index:1; }
+.bd-nf-table th {
+  padding:8px 10px; text-align:left; font-size:10px; text-transform:uppercase;
+  letter-spacing:.5px; color:var(--text-secondary); background:var(--bg-card);
+  border-bottom:1px solid var(--border); font-weight:600;
 }
-.bd-nf-card:hover { background:rgba(255,255,255,.03); }
-.bd-nf-code { font-weight:700; font-size:13px; min-width:30px; }
-.bd-nf-vals { flex:1; display:flex; flex-direction:column; gap:1px; }
-.bd-nf-net { font-weight:700; font-size:13px; }
+.bd-nf-table td { padding:6px 10px; border-bottom:1px solid rgba(255,255,255,.04); }
+.bd-nf-table tr:hover { background:rgba(255,255,255,.03); }
+.bd-nf-rank { color:var(--text-secondary); font-weight:600; width:30px; text-align:center; }
+.bd-nf-code { font-weight:700; font-family:monospace; color:var(--accent); min-width:30px; }
+.bd-nf-net { font-weight:700; white-space:nowrap; }
 .bd-nf-net.buy { color:var(--success); }
 .bd-nf-net.sell { color:var(--danger); }
-.bd-nf-detail { font-size:11px; color:var(--text-secondary); }
+.bd-nf-detail { font-size:11px; color:var(--text-secondary); white-space:nowrap; }
 .bd-nf-empty { text-align:center; padding:20px 0; color:var(--text-secondary); font-size:13px; }
 .bd-nf-sort { font-size:11px; color:var(--text-secondary); margin-bottom:6px; }
 .bd-section-gap { margin-bottom:12px; }

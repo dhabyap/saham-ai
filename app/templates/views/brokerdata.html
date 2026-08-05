@@ -244,6 +244,7 @@
         </div>
       </div>
       <!-- Split: BUY left, SELL right -->
+      <!-- Split: BUY left, SELL right -->
       <div class="bd-nf-split">
         <!-- BUY Column -->
         <div class="bd-nf-col">
@@ -251,14 +252,21 @@
             🟢 Buyer Brokers
             <span class="bd-nf-col-count">{{ bdData.net_flow.filter(b => b.net >= 0).length }} broker</span>
           </div>
-          <div v-for="b in bdData.net_flow.filter(b => b.net >= 0).sort((a,b) => b.net - a.net)" :key="b.broker_code" class="bd-nf-card">
-            <span class="bd-nf-code">{{ b.broker_code }}</span>
-            <div class="bd-nf-vals">
-              <span class="bd-nf-net buy">+Rp{{ b.net.toLocaleString('id') }}</span>
-              <span class="bd-nf-detail">B Rp{{ b.buy_value.toLocaleString('id') }} · S Rp{{ b.sell_value.toLocaleString('id') }}</span>
-            </div>
+          <div class="bd-nf-scroll">
+            <table class="bd-nf-table">
+              <thead><tr><th>#</th><th>Kode</th><th>Net</th><th>Buy</th><th>Sell</th></tr></thead>
+              <tbody>
+                <tr v-for="(b, i) in bdData.net_flow.filter(b => b.net >= 0).sort((a,b) => b.net - a.net)" :key="b.broker_code">
+                  <td class="bd-nf-rank">{{ i+1 }}</td>
+                  <td class="bd-nf-code">{{ b.broker_code }}</td>
+                  <td class="bd-nf-net buy">+Rp{{ b.net.toLocaleString('id') }}</td>
+                  <td class="bd-nf-detail">Rp{{ b.buy_value.toLocaleString('id') }}</td>
+                  <td class="bd-nf-detail">Rp{{ b.sell_value.toLocaleString('id') }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div v-if="!bdData.net_flow.filter(b => b.net >= 0).length" class="bd-nf-empty">Tidak ada buyer broker</div>
+          <div v-if="!bdData.net_flow.filter(b => b.net >= 0).length" class="bd-nf-empty">Tidak ada buyer</div>
         </div>
         <!-- SELL Column -->
         <div class="bd-nf-col">
@@ -266,14 +274,21 @@
             🔴 Seller Brokers
             <span class="bd-nf-col-count">{{ bdData.net_flow.filter(b => b.net < 0).length }} broker</span>
           </div>
-          <div v-for="b in bdData.net_flow.filter(b => b.net < 0).sort((a,b) => a.net - b.net)" :key="b.broker_code" class="bd-nf-card">
-            <span class="bd-nf-code">{{ b.broker_code }}</span>
-            <div class="bd-nf-vals">
-              <span class="bd-nf-net sell">{{ b.net.toLocaleString('id') }}</span>
-              <span class="bd-nf-detail">B Rp{{ b.buy_value.toLocaleString('id') }} · S Rp{{ b.sell_value.toLocaleString('id') }}</span>
-            </div>
+          <div class="bd-nf-scroll">
+            <table class="bd-nf-table">
+              <thead><tr><th>#</th><th>Kode</th><th>Net</th><th>Buy</th><th>Sell</th></tr></thead>
+              <tbody>
+                <tr v-for="(b, i) in bdData.net_flow.filter(b => b.net < 0).sort((a,b) => a.net - b.net)" :key="b.broker_code">
+                  <td class="bd-nf-rank">{{ i+1 }}</td>
+                  <td class="bd-nf-code">{{ b.broker_code }}</td>
+                  <td class="bd-nf-net sell">{{ b.net.toLocaleString('id') }}</td>
+                  <td class="bd-nf-detail">Rp{{ b.buy_value.toLocaleString('id') }}</td>
+                  <td class="bd-nf-detail">Rp{{ b.sell_value.toLocaleString('id') }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div v-if="!bdData.net_flow.filter(b => b.net < 0).length" class="bd-nf-empty">Tidak ada seller broker</div>
+          <div v-if="!bdData.net_flow.filter(b => b.net < 0).length" class="bd-nf-empty">Tidak ada seller</div>
         </div>
       </div>
     </template>

@@ -169,6 +169,7 @@ createApp({
       bdStockQuery: bdStockQuery, bdAvailable: bdAvailable, bdCurrentStock: bdCurrentStock, bdShowSuggestions: bdShowSuggestions,
       bdFiltered: bdFiltered, bdHighlight: bdHighlight,
       bdLetterFilter: bdLetterFilter, bdGroupedStocks: bdGroupedStocks, bdLetters: bdLetters,
+      bdExpandedCats: bdExpandedCats,
       loadBrokerData: loadBrokerData, loadBdAvailable: loadBdAvailable,
       onBdSearchInput: onBdSearchInput, bdSelectHighlighted: bdSelectHighlighted,
       selectBdStock: selectBdStock, searchBdStock: searchBdStock, bdHideSuggestions: bdHideSuggestions,

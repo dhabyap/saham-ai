@@ -1,23 +1,5 @@
 <template v-if="currentView === 'brokerdata'">
-  <style>
-    .overview-search {
-      position: relative;
-    }
-    .bd-suggestions {
-      position: absolute;
-      top: calc(100% + 5px); /* Position below the search input, adjust as needed */
-      left: 0;
-      width: 100%; /* Match width of parent overview-search */
-      z-index: 1000; /* Ensure it's above other elements */
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 8px 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      max-height: 250px;
-      overflow-y: auto;
-    }
-  </style>
+  
   <div class="tabs">
     <button class="tab-btn" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">Ringkasan</button>
     <button class="tab-btn" :class="{ active: currentTab === 'netflow' }" @click="currentTab = 'netflow'">Net Flow</button>
@@ -192,30 +174,58 @@
   <!-- Net Flow Tab -->
   <div class="tab-pane" :class="{ active: currentTab === 'netflow' }">
     <template v-if="bdError">
-      <div class="error-card" style="margin-top:12px">
+      <div class="error-card bd-section-gap">
         <div class="error-icon">⚠️</div>
         <div class="error-msg">{{ bdError }}</div>
         <div class="error-hint">Coba kode saham lain atau cek koneksi</div>
       </div>
     </template>
     <template v-else-if="bdData && bdData.net_flow">
-      <div class="section"><div class="section-title">💰 Net Flow per Broker</div>
-      <div class="table-wrap bd-table-wrap">
-        <table class="table-compact bd-table">
-          <thead>
-            <tr><th>Broker</th><th>Net Flow</th><th>Buy Value</th><th>Sell Value</th><th>Side</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="b in bdData.net_flow" :key="b.broker_code" :class="b.net >= 0 ? 'buy-row' : 'sell-row'">
-              <td class="bold">{{ b.broker_code }}</td>
-              <td class="bold" :style="{ color: b.net >= 0 ? 'var(--success)' : 'var(--danger)' }">{{ b.net >= 0 ? '+' : '' }}Rp{{ Math.abs(b.net).toLocaleString('id') }}</td>
-              <td>Rp{{ b.buy_value.toLocaleString('id') }}</td>
-              <td>Rp{{ b.sell_value.toLocaleString('id') }}</td>
-              <td><span class="badge" :class="b.net >= 0 ? 'badge-success' : 'badge-danger'">{{ b.net >= 0 ? 'BUY' : 'SELL' }}</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div></div>
+      <!-- Summary: Total Buy vs Sell -->
+      <div class="bd-nf-summary">
+        <div class="bd-nf-summary-side">
+          <div class="bd-nf-summary-label">🟢 Total BUY</div>
+          <div class="bd-nf-summary-val buy">Rp{{ fmtRupiah(bdData.net_flow.filter(b => b.net >= 0).reduce((s,b) => s + b.net, 0)) }}</div>
+        </div>
+        <div class="bd-nf-summary-vs">VS</div>
+        <div class="bd-nf-summary-side">
+          <div class="bd-nf-summary-label">🔴 Total SELL</div>
+          <div class="bd-nf-summary-val sell">Rp{{ fmtRupiah(Math.abs(bdData.net_flow.filter(b => b.net < 0).reduce((s,b) => s + b.net, 0))) }}</div>
+        </div>
+      </div>
+      <!-- Split: BUY left, SELL right -->
+      <div class="bd-nf-split">
+        <!-- BUY Column -->
+        <div class="bd-nf-col">
+          <div class="bd-nf-col-header buy">
+            🟢 Buyer Brokers
+            <span class="bd-nf-col-count">{{ bdData.net_flow.filter(b => b.net >= 0).length }} broker</span>
+          </div>
+          <div v-for="b in bdData.net_flow.filter(b => b.net >= 0).sort((a,b) => b.net - a.net)" :key="b.broker_code" class="bd-nf-card">
+            <span class="bd-nf-code">{{ b.broker_code }}</span>
+            <div class="bd-nf-vals">
+              <span class="bd-nf-net buy">+Rp{{ b.net.toLocaleString('id') }}</span>
+              <span class="bd-nf-detail">B Rp{{ b.buy_value.toLocaleString('id') }} · S Rp{{ b.sell_value.toLocaleString('id') }}</span>
+            </div>
+          </div>
+          <div v-if="!bdData.net_flow.filter(b => b.net >= 0).length" class="bd-nf-empty">Tidak ada buyer broker</div>
+        </div>
+        <!-- SELL Column -->
+        <div class="bd-nf-col">
+          <div class="bd-nf-col-header sell">
+            🔴 Seller Brokers
+            <span class="bd-nf-col-count">{{ bdData.net_flow.filter(b => b.net < 0).length }} broker</span>
+          </div>
+          <div v-for="b in bdData.net_flow.filter(b => b.net < 0).sort((a,b) => a.net - b.net)" :key="b.broker_code" class="bd-nf-card">
+            <span class="bd-nf-code">{{ b.broker_code }}</span>
+            <div class="bd-nf-vals">
+              <span class="bd-nf-net sell">{{ b.net.toLocaleString('id') }}</span>
+              <span class="bd-nf-detail">B Rp{{ b.buy_value.toLocaleString('id') }} · S Rp{{ b.sell_value.toLocaleString('id') }}</span>
+            </div>
+          </div>
+          <div v-if="!bdData.net_flow.filter(b => b.net < 0).length" class="bd-nf-empty">Tidak ada seller broker</div>
+        </div>
+      </div>
     </template>
     <template v-else-if="!bdData"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">{{ bdCurrentStock ? 'Belum ada data net flow untuk ' + bdCurrentStock.stock_code : 'Cari saham dulu' }}</div></div></template>
     <template v-else><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Tidak ada data net flow</div></div></template>
@@ -290,58 +300,69 @@
       <div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Cari saham dulu untuk lihat rekomendasi</div></div>
     </template>
     <template v-else-if="bdRecommendation">
-      <!-- Overall Recommendation Card -->
-      <div class="section bd-section-gap">
-        <div class="section-title">📊 Rekomendasi Berbasis Broker</div>
-        <div class="stat-grid">
-          <div class="stat-card" v-if="bdRecommendation.recommendation" :style="{ background: recBgColor(bdRecommendation.recommendation) }">
-            <div class="stat-label">Rekomendasi</div>
-            <div class="stat-value-sm bd-rec-big">{{ bdRecommendation.recommendation }}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Keyakinan</div>
-            <div class="stat-value-sm">{{ bdRecommendation.confidence }}%</div>
-          </div>
-          <div class="stat-card mint bd-rec-span2">
-            <div class="stat-label">Alasan</div>
-            <div class="stat-value-sm bd-rec-reason">{{ bdRecommendation.reason }}</div>
-          </div>
+      <!-- Hero: Recommendation + Confidence -->
+      <div class="bd-ai-rec-hero" v-if="bdRecommendation.recommendation">
+        <div class="bd-ai-rec-label">Rekomendasi Berbasis Broker</div>
+        <div class="bd-ai-rec-action" :class="bdRecommendation.recommendation.toLowerCase()">{{ bdRecommendation.recommendation }}</div>
+        <div class="bd-ai-rec-reason">{{ bdRecommendation.reason }}</div>
+        <div class="bd-ai-conf-bar">
+          <div class="bd-ai-conf-fill" :class="bdRecommendation.recommendation.toLowerCase()" :style="{ width: bdRecommendation.confidence + '%' }"></div>
         </div>
+        <div class="bd-ai-conf-text">Keyakinan {{ bdRecommendation.confidence }}%</div>
       </div>
 
-      <!-- Category Breakdown — placed BEFORE signals so NET data visible first -->
-      <div class="section" v-if="bdRecommendation && bdRecommendation.categories">
-        <div class="section-title">📋 Breakdown per Kategori — NET</div>
-        <div class="insight-grid">
-          <template v-for="(cat, catKey) in bdRecommendation.categories" :key="catKey">
-            <div class="insight-card" v-if="cat && cat.broker_count > 0" style="overflow:hidden">
-            <div class="insight-header"><span class="insight-icon">{{ catKey === 'smart_money' ? '🌍' : catKey === 'institutional' ? '🏦' : '👤' }}</span><span>{{ catKey === 'smart_money' ? 'Smart Money' : catKey === 'institutional' ? 'Institusi Lokal' : 'Retail' }}</span><span class="bd-cat-header-val" :style="{ color: cat.net_value >= 0 ? 'var(--success)' : 'var(--danger)' }">{{ cat.net_value >= 0 ? '+' : '' }}Rp{{ fmtRupiah(cat.net_value) }}</span></div>
-            <div class="insight-body bd-cat-body">
-              <!-- Visual Buy vs Sell bar -->
-              <div class="bd-cat-bar">
-                <div class="bd-cat-bar-fill bd-cat-bar-buy" :style="{ width: cat.total_buy_value + cat.total_sell_value > 0 ? (cat.total_buy_value/(cat.total_buy_value+cat.total_sell_value)*100)+'%' : '50%' }">{{ cat.total_buy_value > 0 ? 'BUY Rp'+fmtRupiah(cat.total_buy_value) : '' }}</div>
-                <div class="bd-cat-bar-fill bd-cat-bar-sell" :style="{ width: cat.total_buy_value + cat.total_sell_value > 0 ? (cat.total_sell_value/(cat.total_buy_value+cat.total_sell_value)*100)+'%' : '50%' }">{{ cat.total_sell_value > 0 ? 'SELL Rp'+fmtRupiah(cat.total_sell_value) : '' }}</div>
+      <!-- Category Breakdown: 3 columns -->
+      <div class="bd-ai-cats" v-if="bdRecommendation && bdRecommendation.categories">
+        <template v-for="(cat, catKey) in bdRecommendation.categories" :key="catKey">
+          <div class="bd-ai-cat" v-if="cat && cat.broker_count > 0">
+            <div class="bd-ai-cat-head">
+              <span class="bd-ai-cat-icon">{{ catKey === 'smart_money' ? '🌍' : catKey === 'institutional' ? '🏦' : '👤' }}</span>
+              <span class="bd-ai-cat-name">{{ catKey === 'smart_money' ? 'Smart Money' : catKey === 'institutional' ? 'Institusi Lokal' : 'Retail' }}</span>
+              <span class="bd-ai-cat-net" :class="cat.net_value >= 0 ? 'buy' : 'sell'">{{ cat.net_value >= 0 ? '+' : '' }}Rp{{ fmtRupiah(cat.net_value) }}</span>
+            </div>
+            <!-- Buy/Sell bar -->
+            <div class="bd-ai-cat-bar">
+              <div class="bd-ai-cat-bar-seg buy" :style="{ width: cat.total_buy_value + cat.total_sell_value > 0 ? (cat.total_buy_value/(cat.total_buy_value+cat.total_sell_value)*100)+'%' : '50%' }">
+                {{ cat.total_buy_value > 0 ? 'BUY Rp'+fmtRupiah(cat.total_buy_value) : '' }}
               </div>
-              <div class="bd-cat-stats">
-                <span>Broker: <strong>{{ cat.broker_count }}</strong></span>
-                <span v-if="cat.net_value > 0">🔥 Net Beli <strong :style="{color:'var(--success)'}">Rp{{ fmtRupiah(cat.net_value) }}</strong></span>
-                <span v-else-if="cat.net_value < 0">🔻 Net Jual <strong :style="{color:'var(--danger)'}">Rp{{ fmtRupiah(cat.net_value) }}</strong></span>
-                <span v-else>⚖️ Net Imbang</span>
+              <div class="bd-ai-cat-bar-seg sell" :style="{ width: cat.total_buy_value + cat.total_sell_value > 0 ? (cat.total_sell_value/(cat.total_buy_value+cat.total_sell_value)*100)+'%' : '50%' }">
+                {{ cat.total_sell_value > 0 ? 'SELL Rp'+fmtRupiah(cat.total_sell_value) : '' }}
               </div>
-              <div class="bd-cat-brokers">Broker: {{ cat.brokers.join(', ') }}</div>
+            </div>
+            <!-- Meta -->
+            <div class="bd-ai-cat-meta">
+              <span>{{ cat.broker_count }} broker</span>
+              <span class="bd-ai-cat-net-row" v-if="cat.net_value > 0">🔥 Net Beli <strong :style="{color:'var(--success)'}">Rp{{ fmtRupiah(cat.net_value) }}</strong></span>
+              <span class="bd-ai-cat-net-row" v-else-if="cat.net_value < 0">🔻 Net Jual <strong :style="{color:'var(--danger)'}">Rp{{ fmtRupiah(cat.net_value) }}</strong></span>
+              <span class="bd-ai-cat-net-row" v-else>⚖️ Imbang</span>
+            </div>
+            <!-- Broker chips (truncated) -->
+            <div class="bd-ai-cat-brokers">
+              <template v-if="bdExpandedCats[catKey]">
+                <span class="bd-ai-broker-chip" v-for="br in cat.brokers" :key="br">{{ br }}</span>
+              </template>
+              <template v-else>
+                <span class="bd-ai-broker-chip" v-for="br in cat.brokers.slice(0,12)" :key="br">{{ br }}</span>
+                <button v-if="cat.brokers.length > 12" class="bd-ai-broker-toggle" @click="bdExpandedCats[catKey]=true">+{{ cat.brokers.length - 12 }} lainnya</button>
+              </template>
+              <button v-if="bdExpandedCats[catKey] && cat.brokers.length > 12" class="bd-ai-broker-toggle" @click="bdExpandedCats[catKey]=false">tutup</button>
             </div>
           </div>
-          </template>
-        </div>
+        </template>
       </div>
-
+      
       <!-- Signals -->
-      <div class="section bd-section-gap" v-if="bdRecommendation.signals.length">
-        <div class="section-title">🚦 Sinyal</div>
-        <div v-for="s in bdRecommendation.signals" :key="s.type" class="insight-card bd-signal-card"
-             :style="{ borderLeft: '4px solid ' + (s.sentiment === 'positive' ? 'var(--success)' : s.sentiment === 'warning' ? 'var(--warning)' : 'var(--danger)') }">
-          <div class="insight-header"><span class="insight-icon">{{ s.label }}</span><span class="badge" :class="{ 'badge-success': s.sentiment === 'positive', 'badge-warning': s.sentiment === 'warning', 'badge-danger': s.sentiment === 'negative' }">{{ s.sentiment }}</span></div>
-          <div class="insight-body bd-signal-body">{{ s.message }}</div>
+      <div v-if="bdRecommendation.signals.length">
+        <div class="section-title" style="margin-bottom:10px">🚦 Sinyal</div>
+        <div class="bd-ai-signals">
+          <div v-for="s in bdRecommendation.signals" :key="s.type" class="bd-ai-signal" :class="s.sentiment">
+            <span class="bd-ai-signal-icon">{{ s.label }}</span>
+            <div class="bd-ai-signal-body">
+              <div class="bd-ai-signal-title">{{ s.type.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) }}</div>
+              <div class="bd-ai-signal-msg">{{ s.message }}</div>
+            </div>
+            <span class="bd-ai-signal-badge" :class="s.sentiment">{{ s.sentiment }}</span>
+          </div>
         </div>
       </div>
     </template>

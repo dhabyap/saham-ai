@@ -2624,6 +2624,41 @@ tbody tr:last-child td { border-bottom:none; }
 .bd-table-cross td { padding:3px 6px; }
 .bd-table-cross td.green { font-weight:600; color:var(--success); }
 .bd-table-cross td.red { color:var(--danger); }
+
+/* ── Net Flow split layout ── */
+.bd-nf-summary {
+  display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center;
+  margin-bottom:16px; padding:14px 16px; border-radius:12px;
+  background:var(--bg-card); border:1px solid var(--border);
+}
+.bd-nf-summary-side { text-align:center; }
+.bd-nf-summary-label { font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.bd-nf-summary-val { font-size:18px; font-weight:800; }
+.bd-nf-summary-val.buy { color:var(--success); }
+.bd-nf-summary-val.sell { color:var(--danger); }
+.bd-nf-summary-vs { font-size:12px; color:var(--text-secondary); font-weight:600; }
+.bd-nf-split { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.bd-nf-col { min-width:0; }
+.bd-nf-col-header {
+  display:flex; align-items:center; gap:6px; padding:8px 12px; margin-bottom:8px;
+  border-radius:8px; font-size:13px; font-weight:700;
+}
+.bd-nf-col-header.buy { background:rgba(34,197,94,.1); color:var(--success); }
+.bd-nf-col-header.sell { background:rgba(239,68,68,.1); color:var(--danger); }
+.bd-nf-col-count { font-size:11px; font-weight:400; opacity:.7; margin-left:auto; }
+.bd-nf-card {
+  display:flex; align-items:center; gap:10px; padding:8px 12px; margin-bottom:4px;
+  border-radius:8px; transition:background .15s;
+}
+.bd-nf-card:hover { background:rgba(255,255,255,.03); }
+.bd-nf-code { font-weight:700; font-size:13px; min-width:30px; }
+.bd-nf-vals { flex:1; display:flex; flex-direction:column; gap:1px; }
+.bd-nf-net { font-weight:700; font-size:13px; }
+.bd-nf-net.buy { color:var(--success); }
+.bd-nf-net.sell { color:var(--danger); }
+.bd-nf-detail { font-size:11px; color:var(--text-secondary); }
+.bd-nf-empty { text-align:center; padding:20px 0; color:var(--text-secondary); font-size:13px; }
+.bd-nf-sort { font-size:11px; color:var(--text-secondary); margin-bottom:6px; }
 .bd-section-gap { margin-bottom:12px; }
 .bd-chart-wrap { max-width:400px; margin:20px auto; }
 .bd-toplist-row { display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid var(--border); }
@@ -2641,6 +2676,78 @@ tbody tr:last-child td { border-bottom:none; }
 .bd-cat-brokers { margin-top:6px; font-size:10px; color:var(--text-secondary); opacity:.7; }
 .bd-signal-body { padding:4px 8px 8px; font-size:13px; color:var(--text-secondary); }
 .bd-signal-card { margin-bottom:8px; }
+
+/* ── AI Rekomendasi improved ── */
+.bd-ai-rec-hero {
+  text-align:center; padding:20px 16px; border-radius:12px; margin-bottom:16px;
+  background:var(--bg-card); border:1px solid var(--border);
+}
+.bd-ai-rec-label { font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.bd-ai-rec-action { font-size:28px; font-weight:800; margin-bottom:6px; }
+.bd-ai-rec-action.buy { color:var(--success); }
+.bd-ai-rec-action.sell { color:var(--danger); }
+.bd-ai-rec-action.hold { color:var(--warning); }
+.bd-ai-rec-reason { font-size:13px; color:var(--text-secondary); max-width:500px; margin:0 auto 10px; line-height:1.4; }
+.bd-ai-conf-bar { height:6px; border-radius:3px; background:var(--border); overflow:hidden; max-width:200px; margin:0 auto; }
+.bd-ai-conf-fill { height:100%; border-radius:3px; transition:width .4s; }
+.bd-ai-conf-fill.buy { background:var(--success); }
+.bd-ai-conf-fill.sell { background:var(--danger); }
+.bd-ai-conf-fill.hold { background:var(--warning); }
+.bd-ai-conf-text { font-size:11px; color:var(--text-secondary); margin-top:4px; }
+
+.bd-ai-cats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px; }
+.bd-ai-cat {
+  background:var(--bg-card); border:1px solid var(--border); border-radius:12px;
+  padding:14px; overflow:hidden;
+}
+.bd-ai-cat-head { display:flex; align-items:center; gap:6px; margin-bottom:10px; }
+.bd-ai-cat-icon { font-size:18px; }
+.bd-ai-cat-name { font-weight:700; font-size:13px; flex:1; }
+.bd-ai-cat-net { font-size:13px; font-weight:700; }
+.bd-ai-cat-net.buy { color:var(--success); }
+.bd-ai-cat-net.sell { color:var(--danger); }
+.bd-ai-cat-bar { height:22px; display:flex; border-radius:6px; overflow:hidden; background:var(--border); margin-bottom:8px; }
+.bd-ai-cat-bar-seg {
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:600; color:#fff; min-width:0; transition:width .3s;
+}
+.bd-ai-cat-bar-seg.buy { background:var(--success); opacity:.85; }
+.bd-ai-cat-bar-seg.sell { background:var(--danger); opacity:.85; }
+.bd-ai-cat-meta { display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); margin-bottom:6px; }
+.bd-ai-cat-net-row { font-size:11px; }
+.bd-ai-cat-net-row strong { font-weight:700; }
+.bd-ai-cat-brokers { margin-top:6px; }
+.bd-ai-broker-chip {
+  display:inline-block; padding:1px 6px; margin:1px; border-radius:4px; font-size:10px;
+  font-weight:600; background:rgba(255,255,255,.05); color:var(--text-secondary);
+}
+.bd-ai-broker-toggle {
+  font-size:10px; color:var(--accent); cursor:pointer; border:none; background:none;
+  padding:2px 4px;
+}
+.bd-ai-broker-toggle:hover { text-decoration:underline; }
+
+.bd-ai-signals { display:flex; flex-direction:column; gap:8px; }
+.bd-ai-signal {
+  display:flex; align-items:flex-start; gap:10px; padding:10px 14px;
+  border-radius:10px; background:var(--bg-card); border:1px solid var(--border);
+  transition:border-color .15s;
+}
+.bd-ai-signal:hover { border-color:var(--accent); }
+.bd-ai-signal.positive { border-left:3px solid var(--success); }
+.bd-ai-signal.negative { border-left:3px solid var(--danger); }
+.bd-ai-signal.warning { border-left:3px solid var(--warning); }
+.bd-ai-signal-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+.bd-ai-signal-body { flex:1; min-width:0; }
+.bd-ai-signal-title { font-weight:700; font-size:12px; margin-bottom:2px; }
+.bd-ai-signal-msg { font-size:12px; color:var(--text-secondary); line-height:1.4; }
+.bd-ai-signal-badge {
+  font-size:9px; font-weight:700; padding:2px 7px; border-radius:8px;
+  text-transform:uppercase; letter-spacing:.3px; flex-shrink:0; margin-top:2px;
+}
+.bd-ai-signal-badge.positive { background:rgba(34,197,94,.15); color:var(--success); }
+.bd-ai-signal-badge.negative { background:rgba(239,68,68,.15); color:var(--danger); }
+.bd-ai-signal-badge.warning { background:rgba(245,158,11,.15); color:var(--warning); }
 .bd-upload-wrap { padding:16px 0; }
 .bd-upload-title { font-size:20px; font-weight:700; margin-bottom:12px; }
 .bd-upload-hint { color:var(--text-secondary); font-size:13px; margin-bottom:12px; }

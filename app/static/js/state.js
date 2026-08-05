@@ -68,6 +68,7 @@ var bdFiltered = computed(function () {
 var bdHighlight = ref(-1);
 var bdSearchFocused = ref(false);
 var bdLetterFilter = ref('');
+var bdExpandedCats = ref({});
 var bdGroupedStocks = computed(function () {
   var stocks = bdAvailable.value.filter(function (s) { return s.entries > 0; });
   // Filter by search query if typing

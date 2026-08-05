@@ -2852,6 +2852,34 @@ tbody tr:last-child td { border-bottom:none; }
 .bd-badge-buy { background:rgba(16,185,129,.1); color:var(--success); }
 .bd-badge-sell { background:rgba(239,68,68,.1); color:var(--danger); }
 
+/* ── Summary: Net Flow + Ratio + Top Brokers ── */
+.bd-ns-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
+.bd-ns-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:14px 16px; }
+.bd-ns-card.positive { border-color:var(--success); }
+.bd-ns-card.negative { border-color:var(--danger); }
+.bd-ns-label { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); margin-bottom:6px; font-weight:600; }
+.bd-ns-val { font-size:20px; font-weight:800; margin-bottom:4px; }
+.bd-ns-card.positive .bd-ns-val { color:var(--success); }
+.bd-ns-card.negative .bd-ns-val { color:var(--danger); }
+.bd-ns-tag { font-size:12px; font-weight:700; }
+.bd-ns-card.positive .bd-ns-tag { color:var(--success); }
+.bd-ns-card.negative .bd-ns-tag { color:var(--danger); }
+.bd-ns-bar-wrap { margin-top:8px; }
+.bd-ns-bar { display:flex; height:10px; border-radius:5px; overflow:hidden; background:var(--bg-main); }
+.bd-ns-bar-buy { background:var(--success); transition:width .3s; }
+.bd-ns-bar-sell { background:var(--danger); transition:width .3s; }
+.bd-ns-ratio-labels { display:flex; justify-content:space-between; margin-top:6px; font-size:12px; font-weight:600; }
+.bd-ns-ratio-buy { color:var(--success); }
+.bd-ns-ratio-sell { color:var(--danger); }
+.bd-broker-list { display:flex; flex-direction:column; gap:4px; }
+.bd-broker-row { display:grid; grid-template-columns:20px 40px 1fr auto; gap:6px; align-items:center; padding:5px 8px; border-radius:6px; font-size:13px; }
+.bd-broker-row.buyer { background:rgba(16,185,129,.05); }
+.bd-broker-row.seller { background:rgba(239,68,68,.05); }
+.bd-broker-rank { color:var(--text-secondary); font-weight:700; text-align:center; font-size:11px; }
+.bd-broker-code { font-weight:700; color:var(--accent); font-family:monospace; }
+.bd-broker-val { font-weight:600; text-align:right; }
+.bd-broker-lots { color:var(--text-secondary); font-size:11px; text-align:right; min-width:55px; }
+
 @media(max-width:768px) {
   .bd-metrics { grid-template-columns:repeat(2,1fr); }
   .bd-insights { grid-template-columns:1fr; }

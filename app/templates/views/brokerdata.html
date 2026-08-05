@@ -137,6 +137,56 @@
         <div class="stat-card"><div class="stat-label">Seller Brokers</div><div class="stat-value-sm">{{ bdData.seller_count }}</div></div>
       </div>
       <div class="info-chip" v-if="bdData.is_gross"><span class="chip-icon">📊</span> GROSS: buy + sell dilaporkan terpisah</div>
+
+      <!-- Net Flow Summary -->
+      <div class="bd-ns-row" v-if="bdData.total_buy_value && bdData.total_sell_value">
+        <div class="bd-ns-card" :class="Number(bdData.total_buy_value.replace(/,/g,'')) >= Number(bdData.total_sell_value.replace(/,/g,'')) ? 'positive' : 'negative'">
+          <div class="bd-ns-label">Net Flow</div>
+          <div class="bd-ns-val">Rp{{ bdFmt(String(Math.abs(Number(bdData.total_buy_value.replace(/,/g,'')) - Number(bdData.total_sell_value.replace(/,/g,''))))) }}</div>
+          <div class="bd-ns-tag" v-if="Number(bdData.total_buy_value.replace(/,/g,'')) >= Number(bdData.total_sell_value.replace(/,/g,''))">🟢 NET BELI</div>
+          <div class="bd-ns-tag" v-else>🔴 NET JUAL</div>
+        </div>
+        <div class="bd-ns-card">
+          <div class="bd-ns-label">Buy/Sell Ratio</div>
+          <div class="bd-ns-bar-wrap">
+            <div class="bd-ns-bar">
+              <div class="bd-ns-bar-buy" :style="{ width: (Number(bdData.total_buy_value.replace(/,/g,'')) / (Number(bdData.total_buy_value.replace(/,/g,'')) + Number(bdData.total_sell_value.replace(/,/g,''))) * 100) + '%' }"></div>
+              <div class="bd-ns-bar-sell" :style="{ width: (Number(bdData.total_sell_value.replace(/,/g,'')) / (Number(bdData.total_buy_value.replace(/,/g,'')) + Number(bdData.total_sell_value.replace(/,/g,''))) * 100) + '%' }"></div>
+            </div>
+            <div class="bd-ns-ratio-labels">
+              <span class="bd-ns-ratio-buy">{{ ((Number(bdData.total_buy_value.replace(/,/g,'')) / (Number(bdData.total_buy_value.replace(/,/g,'')) + Number(bdData.total_sell_value.replace(/,/g,''))) * 100)).toFixed(1) }}% Buy</span>
+              <span class="bd-ns-ratio-sell">{{ ((Number(bdData.total_sell_value.replace(/,/g,'')) / (Number(bdData.total_buy_value.replace(/,/g,'')) + Number(bdData.total_sell_value.replace(/,/g,''))) * 100)).toFixed(1) }}% Sell</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Buyers / Sellers -->
+      <div class="bd-ns-row" v-if="bdData.buyers && bdData.buyers.length">
+        <div class="bd-ns-card">
+          <div class="bd-ns-label">🟢 Top 5 Buyers</div>
+          <div class="bd-broker-list">
+            <div v-for="(b, i) in bdData.buyers.slice(0, 5)" :key="b.broker_code" class="bd-broker-row buyer">
+              <span class="bd-broker-rank">{{ i+1 }}</span>
+              <span class="bd-broker-code">{{ b.broker_code }}</span>
+              <span class="bd-broker-val">Rp{{ bdFmt(String(b.value)) }}</span>
+              <span class="bd-broker-lots">{{ Number(b.lots).toLocaleString() }} lot</span>
+            </div>
+          </div>
+        </div>
+        <div class="bd-ns-card">
+          <div class="bd-ns-label">🔴 Top 5 Sellers</div>
+          <div class="bd-broker-list">
+            <div v-for="(b, i) in bdData.sellers.slice(0, 5)" :key="b.broker_code" class="bd-broker-row seller">
+              <span class="bd-broker-rank">{{ i+1 }}</span>
+              <span class="bd-broker-code">{{ b.broker_code }}</span>
+              <span class="bd-broker-val">Rp{{ bdFmt(String(b.value)) }}</span>
+              <span class="bd-broker-lots">{{ Number(b.lots).toLocaleString() }} lot</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="insight-grid">
         <div class="insight-card" v-if="bdData.top_two_way">
           <div class="insight-header"><span class="insight-icon">🔄</span><span>Two-Way Broker</span></div>

@@ -69,6 +69,7 @@ async function loadDashboardData() {
   loadShareholders();
   loadWatchlistData();
   loadStocks();
+  loadAIPerformance();
   if (results[0].status === 'fulfilled' && results[0].value) applyMarketData(results[0].value);
   if (results[1].status === 'fulfilled' && results[1].value) applyGainersData(results[1].value);
   if (results[2].status === 'fulfilled' && results[2].value) applyLosersData(results[2].value);
@@ -111,6 +112,7 @@ async function loadAnalysisView() {
   analysisLoading.value = true;
   if (!allStocks.value.length) await loadStocks();
   await loadAnalysisHistory();
+  await loadAIPerformance();
   analysisLoading.value = false;
   _loadedViews.analysis = true;
 }
@@ -511,6 +513,52 @@ async function loadAnalysisHistory() {
       dayTradingHistory.value = fmt.filter(function(h) { return h.code; }).map(function(h) { return { date: h.date, stock: h.code, entry: '-', exit: '-', profit: h.profit, profitClass: h.profitClass, result: h.result, resultClass: h.resultClass }; });
     }
   } catch(e) { console.error('Analysis history load failed:', e); }
+}
+
+// ── AI Performance (Learning Engine) ──
+async function loadAIPerformance() {
+  try {
+    var json = await cachedFetch('/api/learning/performance', 900000);
+    var scores = json.scores || {};
+    var acc = scores.accuracy_7d || {};
+    var total = acc.total_predictions || 0;
+    var correct = acc.correct_predictions || 0;
+    var accuracy = acc.score_value || 0;
+    var winrate = acc.winrate || 0;
+    var avgProfit = acc.avg_profit_pct || 0;
+    var totalProfit = acc.total_profit_pct || 0;
+    var recent = json.recent_predictions || [];
+    var feedback = json.feedback || {};
+
+    aiPerf.value = {
+      accuracy: accuracy.toFixed(1) + '%',
+      accuracyChange: total > 0 ? correct + '/' + total + ' correct' : '-',
+      winRate: winrate.toFixed(1) + '%',
+      winRateChange: total > 0 ? total + ' total' : '-',
+      avgProfit: '+' + avgProfit.toFixed(2) + '%',
+      totalPredictions: String(total)
+    };
+
+    aiPerfDetails.value = [
+      { metric: 'Accuracy (7D)', value: accuracy.toFixed(1) + '%', trend: accuracy >= 60 ? '▲ Strong' : accuracy >= 40 ? '● Neutral' : '▼ Weak', trendClass: accuracy >= 60 ? 'profit-positive' : accuracy >= 40 ? 'neutral' : 'profit-negative', desc: correct + ' correct out of ' + total + ' predictions' },
+      { metric: 'Win Rate', value: winrate.toFixed(1) + '%', trend: winrate >= 55 ? '▲ Above avg' : '● Average', trendClass: winrate >= 55 ? 'profit-positive' : 'neutral', desc: 'Percentage of winning trades' },
+      { metric: 'Avg Profit/Trade', value: '+' + avgProfit.toFixed(2) + '%', trend: avgProfit > 0 ? '▲ Profitable' : '▼ Losing', trendClass: avgProfit > 0 ? 'profit-positive' : 'profit-negative', desc: 'Average profit per winning trade' },
+      { metric: 'Total Profit (7D)', value: '+' + totalProfit.toFixed(2) + '%', trend: totalProfit > 0 ? '▲ Green' : '▼ Red', trendClass: totalProfit > 0 ? 'profit-positive' : 'profit-negative', desc: 'Cumulative profit over 7 days' },
+      { metric: 'Total Predictions', value: String(total), trend: total > 0 ? '● Active' : '○ None', trendClass: total > 0 ? 'neutral' : 'profit-negative', desc: 'Predictions made in the last 7 days' },
+      { metric: 'Confidence (Avg)', value: (acc.avg_confidence || 0).toFixed(0), trend: (acc.avg_confidence || 0) >= 70 ? '▲ High' : '● Medium', trendClass: (acc.avg_confidence || 0) >= 70 ? 'profit-positive' : 'neutral', desc: 'Average confidence score of predictions' },
+      { metric: 'Feedback (Helpful)', value: String(feedback.helpful || 0), trend: '●', trendClass: 'neutral', desc: 'User feedback: helpful count' },
+      { metric: 'Feedback (Wrong)', value: String(feedback.wrong || 0), trend: feedback.wrong > 0 ? '▼ ' + feedback.wrong + ' flagged' : '● None', trendClass: feedback.wrong > 0 ? 'profit-negative' : 'neutral', desc: 'User feedback: wrong prediction count' },
+    ];
+
+    // Also populate predictions from recent
+    if (recent.length) {
+      var fmt = recent.map(function(p) {
+        return { code: p.stock || '-', signal: p.prediction || 'HOLD', signalClass: p.prediction === 'BUY' ? 'success' : p.prediction === 'SELL' ? 'danger' : 'warning', confidence: p.confidence || 50, result: p.actual || 'Pending', resultClass: p.actual === 'win' ? 'success' : p.actual === 'loss' ? 'danger' : 'warning', profit: (p.profit != null ? (p.profit >= 0 ? '+' : '') + p.profit + '%' : '-'), profitClass: (p.profit || 0) >= 0 ? 'profit-positive' : 'profit-negative', date: p.date ? p.date.slice(5, 10) : '-' };
+      });
+      predictions.value = fmt;
+      allPredictions.value = fmt;
+    }
+  } catch(e) { console.error('AI Performance load failed:', e); }
 }
 
 // ── Alerts ──
@@ -939,6 +987,7 @@ async function loadAllDashboardData() {
     loadMarketSummary(), loadTopMovers(), loadSectors(), loadStocks(),
     loadWatchlistData(), loadDayTradingData(), loadForeignFlowData(),
     loadAnalysisHistory(), loadAlerts(), loadShareholders(),
+    loadAIPerformance(),
   ]);
 };
 

@@ -8,7 +8,7 @@
 <script src="/static/vendor/chart.umd.min.js"></script>
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/vis-network/styles/vis-network.min.css">
-<link rel="stylesheet" href="/static/dashboard.css?v=4">
+<link rel="stylesheet" href="/static/dashboard.css?v={$ css $}">
 </head>
 <body>
   <div id="app">
@@ -40,12 +40,12 @@
   </div>
   </div>
   </div>
-  <!-- JS Modules -->
-  <script src="/static/js/state.js?v=21"></script>
-    <script src="/static/js/utils.js?v=13"></script>
-    <script src="/static/js/charts.js?v=29"></script>
-    <script src="/static/js/loaders.js?v=21"></script>
-    <script src="/static/js/state_bubble.js?v=14"></script>
-    <script src="/static/js/app.js?v=20"></script>
+  <!-- JS Modules (auto cache-bust via server mtime) -->
+  <script src="/static/js/state.js?v={$ state $}"></script>
+  <script src="/static/js/utils.js?v={$ utils $}"></script>
+  <script src="/static/js/charts.js?v={$ charts $}"></script>
+  <script src="/static/js/loaders.js?v={$ loaders $}"></script>
+  <script src="/static/js/state_bubble.js?v={$ bubble $}"></script>
+  <script src="/static/js/app.js?v={$ app $}"></script>
 </body>
 </html>

@@ -51,6 +51,13 @@ app.include_router(learning_router)
 app.include_router(upload_router)
 app.include_router(network_router) # BARIS BARU
 
+# Auto cache-bust: file mtime → version string
+import time as _time
+_STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+def _av(files):
+    """Return dict of {name: mtime_int} for cache busting."""
+    return {n: int(os.path.getmtime(os.path.join(_STATIC, f))) for n, f in files.items()}
+
 
 @app.on_event("startup")
 async def startup() -> None:
@@ -113,25 +120,29 @@ def _start_telegram_bot() -> None:
 @app.get("/")
 async def root(request: Request):
     """Vue 3 dashboard SPA"""
-    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request})
+    v = _av({"css": "dashboard.css", "state": "js/state.js", "app": "js/app.js", "utils": "js/utils.js", "charts": "js/charts.js", "loaders": "js/loaders.js", "bubble": "js/state_bubble.js"})
+    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request, **v})
 
 
 @app.get("/dashboard")
 async def dashboard_vue(request: Request):
     """Vue 3 dashboard with 3 themes"""
-    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request})
+    v = _av({"css": "dashboard.css", "state": "js/state.js", "app": "js/app.js", "utils": "js/utils.js", "charts": "js/charts.js", "loaders": "js/loaders.js", "bubble": "js/state_bubble.js"})
+    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request, **v})
 
 
 @app.get("/market-reports")
 async def market_reports_page(request: Request):
     """Market reports page - serves SPA with market view active"""
-    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request})
+    v = _av({"css": "dashboard.css", "state": "js/state.js", "app": "js/app.js", "utils": "js/utils.js", "charts": "js/charts.js", "loaders": "js/loaders.js", "bubble": "js/state_bubble.js"})
+    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request, **v})
 
 
 @app.get("/shareholders")
 async def shareholders_page(request: Request):
     """Shareholder >1% tracking page"""
-    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request})
+    v = _av({"css": "dashboard.css", "state": "js/state.js", "app": "js/app.js", "utils": "js/utils.js", "charts": "js/charts.js", "loaders": "js/loaders.js", "bubble": "js/state_bubble.js"})
+    return templates.TemplateResponse(request, "dashboard_vue.html", {"request": request, **v})
 
 
 @app.get("/api-docs")

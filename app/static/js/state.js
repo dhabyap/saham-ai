@@ -12,12 +12,6 @@ var dateStr = ref('');
 
 // ── Lazy Load tracking ──
 var _loadedViews = {};
-var dashboardLoading = ref(true);
-var daytradingLoading = ref(false);
-var longtermLoading = ref(false);
-var analysisLoading = ref(false);
-var shareholdersLoading = ref(false);
-var mrLoading = ref(false);
 
 var themes = [
   { id: 'neumorphism', label: 'Light' },
@@ -47,10 +41,12 @@ var overviewLoading = ref(true);
 var stocksLoading = ref(false);
 
 // ── Per-View Loading States ──
+var dashboardLoading = ref(true);
 var daytradingLoading = ref(true);
 var longtermLoading = ref(true);
 var shareholdersLoading = ref(true);
 var analysisLoading = ref(true);
+var mrLoading = ref(false);
 var mrReportsLoading = ref(true);
 var foreignOverviewStocks = ref([]);
 
@@ -71,6 +67,25 @@ var bdFiltered = computed(function () {
 });
 var bdHighlight = ref(-1);
 var bdSearchFocused = ref(false);
+var bdLetterFilter = ref('');
+var bdGroupedStocks = computed(function () {
+  var stocks = bdAvailable.value.filter(function (s) { return s.entries > 0; });
+  // Filter by search query if typing
+  var q = bdStockQuery.value ? bdStockQuery.value.toUpperCase() : '';
+  if (q) {
+    stocks = stocks.filter(function (s) { return s.stock_code.indexOf(q) !== -1; });
+  }
+  if (bdLetterFilter.value) {
+    var f = bdLetterFilter.value.toUpperCase();
+    stocks = stocks.filter(function (s) { return s.stock_code.charAt(0).toUpperCase() === f; });
+  }
+  return stocks;
+});
+var bdLetters = computed(function () {
+  var set = {};
+  bdAvailable.value.forEach(function (s) { if (s.entries > 0) set[s.stock_code.charAt(0).toUpperCase()] = true; });
+  return Object.keys(set).sort();
+});
 var bdRecommendation = ref(null);
 var bdRecLoading = ref(false);
 var bdSuggestUpload = ref(null);

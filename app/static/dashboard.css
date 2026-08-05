@@ -2879,6 +2879,8 @@ tbody tr:last-child td { border-bottom:none; }
 .bd-broker-code { font-weight:700; color:var(--accent); font-family:monospace; }
 .bd-broker-val { font-weight:600; text-align:right; }
 .bd-broker-lots { color:var(--text-secondary); font-size:11px; text-align:right; min-width:55px; }
+.bd-broker-val.net-pos { color:var(--success); font-weight:700; }
+.bd-broker-val.net-neg { color:var(--danger); font-weight:700; }
 
 @media(max-width:768px) {
   .bd-metrics { grid-template-columns:repeat(2,1fr); }

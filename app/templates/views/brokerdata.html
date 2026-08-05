@@ -161,27 +161,27 @@
         </div>
       </div>
 
-      <!-- Top Buyers / Sellers -->
-      <div class="bd-ns-row" v-if="bdData.buyers && bdData.buyers.length">
+      <!-- Top Net Buyers / Net Sellers -->
+      <div class="bd-ns-row" v-if="bdData.net_flow && bdData.net_flow.length">
         <div class="bd-ns-card">
-          <div class="bd-ns-label">🟢 Top 5 Buyers</div>
+          <div class="bd-ns-label">🟢 Top 5 Net Buyers</div>
           <div class="bd-broker-list">
-            <div v-for="(b, i) in bdData.buyers.slice(0, 5)" :key="b.broker_code" class="bd-broker-row buyer">
+            <div v-for="(b, i) in bdData.net_flow.filter(n => n.net > 0).slice(0, 5)" :key="b.broker_code" class="bd-broker-row buyer">
               <span class="bd-broker-rank">{{ i+1 }}</span>
               <span class="bd-broker-code">{{ b.broker_code }}</span>
-              <span class="bd-broker-val">Rp{{ bdFmt(String(b.value)) }}</span>
-              <span class="bd-broker-lots">{{ Number(b.lots).toLocaleString() }} lot</span>
+              <span class="bd-broker-val net-pos">+Rp{{ bdFmt(String(b.net)) }}</span>
+              <span class="bd-broker-lots">B{{ Number(b.buy_lots).toLocaleString() }} S{{ Number(b.sell_lots).toLocaleString() }}</span>
             </div>
           </div>
         </div>
         <div class="bd-ns-card">
-          <div class="bd-ns-label">🔴 Top 5 Sellers</div>
+          <div class="bd-ns-label">🔴 Top 5 Net Sellers</div>
           <div class="bd-broker-list">
-            <div v-for="(b, i) in bdData.sellers.slice(0, 5)" :key="b.broker_code" class="bd-broker-row seller">
+            <div v-for="(b, i) in bdData.net_flow.filter(n => n.net < 0).slice(0, 5)" :key="b.broker_code" class="bd-broker-row seller">
               <span class="bd-broker-rank">{{ i+1 }}</span>
               <span class="bd-broker-code">{{ b.broker_code }}</span>
-              <span class="bd-broker-val">Rp{{ bdFmt(String(b.value)) }}</span>
-              <span class="bd-broker-lots">{{ Number(b.lots).toLocaleString() }} lot</span>
+              <span class="bd-broker-val net-neg">-Rp{{ bdFmt(String(Math.abs(b.net))) }}</span>
+              <span class="bd-broker-lots">B{{ Number(b.buy_lots).toLocaleString() }} S{{ Number(b.sell_lots).toLocaleString() }}</span>
             </div>
           </div>
         </div>

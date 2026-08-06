@@ -161,6 +161,22 @@
         </div>
       </div>
 
+      <!-- Hero: Biggest Buyer & Seller -->
+      <div class="bd-ns-row" v-if="bdData.net_flow && bdData.net_flow.length">
+        <div class="bd-hero-card buyer" v-if="bdData.net_flow.filter(n => n.net > 0).length">
+          <div class="bd-hero-label">🟢 Pembeli Terbesar</div>
+          <div class="bd-hero-code">{{ bdData.net_flow.filter(n => n.net > 0).sort((a,b) => b.net - a.net)[0].broker_code }}</div>
+          <div class="bd-hero-val">+Rp{{ bdFmt(String(bdData.net_flow.filter(n => n.net > 0).sort((a,b) => b.net - a.net)[0].net)) }}</div>
+          <div class="bd-hero-lots">B{{ Number(bdData.net_flow.filter(n => n.net > 0).sort((a,b) => b.net - a.net)[0].buy_lots).toLocaleString() }} S{{ Number(bdData.net_flow.filter(n => n.net > 0).sort((a,b) => b.net - a.net)[0].sell_lots).toLocaleString() }}</div>
+        </div>
+        <div class="bd-hero-card seller" v-if="bdData.net_flow.filter(n => n.net < 0).length">
+          <div class="bd-hero-label">🔴 Penjual Terbesar</div>
+          <div class="bd-hero-code">{{ bdData.net_flow.filter(n => n.net < 0).sort((a,b) => a.net - b.net)[0].broker_code }}</div>
+          <div class="bd-hero-val sell">-Rp{{ bdFmt(String(Math.abs(bdData.net_flow.filter(n => n.net < 0).sort((a,b) => a.net - b.net)[0].net))) }}</div>
+          <div class="bd-hero-lots">B{{ Number(bdData.net_flow.filter(n => n.net < 0).sort((a,b) => a.net - b.net)[0].buy_lots).toLocaleString() }} S{{ Number(bdData.net_flow.filter(n => n.net < 0).sort((a,b) => a.net - b.net)[0].sell_lots).toLocaleString() }}</div>
+        </div>
+      </div>
+
       <!-- Top Net Buyers / Net Sellers -->
       <div class="bd-ns-row" v-if="bdData.net_flow && bdData.net_flow.length">
         <div class="bd-ns-card">
@@ -254,14 +270,12 @@
           </div>
           <div class="bd-nf-scroll">
             <table class="bd-nf-table">
-              <thead><tr><th>#</th><th>Kode</th><th>Net</th><th>Buy</th><th>Sell</th></tr></thead>
+              <thead><tr><th>#</th><th>Kode</th><th>Net</th></tr></thead>
               <tbody>
                 <tr v-for="(b, i) in bdData.net_flow.filter(b => b.net >= 0).sort((a,b) => b.net - a.net)" :key="b.broker_code">
                   <td class="bd-nf-rank">{{ i+1 }}</td>
                   <td class="bd-nf-code">{{ b.broker_code }}</td>
                   <td class="bd-nf-net buy">+Rp{{ b.net.toLocaleString('id') }}</td>
-                  <td class="bd-nf-detail">Rp{{ b.buy_value.toLocaleString('id') }}</td>
-                  <td class="bd-nf-detail">Rp{{ b.sell_value.toLocaleString('id') }}</td>
                 </tr>
               </tbody>
             </table>
@@ -276,14 +290,12 @@
           </div>
           <div class="bd-nf-scroll">
             <table class="bd-nf-table">
-              <thead><tr><th>#</th><th>Kode</th><th>Net</th><th>Buy</th><th>Sell</th></tr></thead>
+              <thead><tr><th>#</th><th>Kode</th><th>Net</th></tr></thead>
               <tbody>
                 <tr v-for="(b, i) in bdData.net_flow.filter(b => b.net < 0).sort((a,b) => a.net - b.net)" :key="b.broker_code">
                   <td class="bd-nf-rank">{{ i+1 }}</td>
                   <td class="bd-nf-code">{{ b.broker_code }}</td>
                   <td class="bd-nf-net sell">{{ b.net.toLocaleString('id') }}</td>
-                  <td class="bd-nf-detail">Rp{{ b.buy_value.toLocaleString('id') }}</td>
-                  <td class="bd-nf-detail">Rp{{ b.sell_value.toLocaleString('id') }}</td>
                 </tr>
               </tbody>
             </table>
@@ -299,21 +311,76 @@
   <!-- Crossing Summary Tab -->
   <div class="tab-pane" :class="{ active: currentTab === 'crossing_sum' }">
     <div v-if="csLoading" class="loading-box"><div class="spinner"></div><span>Loading summary...</span></div>
-    <div v-else-if="csError" class="error-card">{{ csError }}</div>
+    <div v-else-if="csError" class="error-card">
+      <div class="error-icon">⚠️</div>
+      <div class="error-msg">{{ csError }}</div>
+      <div class="error-hint">Coba kode saham lain atau cek koneksi</div>
+    </div>
     <div v-else-if="csData">
-      <div class="stat-grid" style="grid-template-columns:repeat(auto-fit, minmax(120px, 1fr))">
+      <!-- Period info -->
+      <div v-if="csData.period_from || csData.period_to" class="stat-grid" style="grid-template-columns:repeat(auto-fit, minmax(140px, 1fr))">
+        <div class="stat-card mint">
+          <div class="stat-label">Periode</div>
+          <div class="stat-value-sm">{{ csData.period_from || '-' }} → {{ csData.period_to || '-' }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Entry</div>
+          <div class="stat-value-sm">{{ csData.entry_count || 0 }}</div>
+        </div>
         <div class="stat-card">
           <div class="stat-label">Total Crossing</div>
-          <div class="stat-value">{{ csData.total_crossing }}</div>
+          <div class="stat-value-sm">{{ csData.total_crossing }}</div>
         </div>
       </div>
-      <div class="bd-chart-wrap">
-        <canvas id="crossingSummaryChart"></canvas>
+
+      <!-- No crossing data but broker data exists -->
+      <div v-if="csData.total_crossing === 0 && csData.brokers && csData.brokers.length" class="bd-crossing-warning">
+        <div class="bd-crossing-warn-icon">⚠️</div>
+        <div class="bd-crossing-warn-title">Tidak Ada Crossing Detected</div>
+        <div class="bd-crossing-warn-msg">
+          Tidak ditemukan pasangan buyer/seller dengan harga yang sama.
+          Upload data crossing dari broker (bukan broker_summary) untuk analisis lebih lanjut.
+        </div>
+        <div class="bd-crossing-warn-hint">
+          Data broker tersedia ({{ csData.brokers.length }} broker) — upload data crossing dari
+          <strong>Periode {{ csData.period_from }} → {{ csData.period_to }}</strong> untuk mengisi bagian ini.
+        </div>
       </div>
-      <div class="section">
-        <div class="section-title">Top 5 Broker Teraktif</div>
-        <div v-for="b in csData.top_brokers" :key="b[0]" class="bd-toplist-row">
-          <strong>{{ b[0] }}</strong> <span>{{ b[1] }} crossing</span>
+
+      <!-- Chart + Top Brokers (only if crossing data exists) -->
+      <template v-if="csData.total_crossing > 0">
+        <div class="bd-chart-wrap">
+          <canvas id="crossingSummaryChart"></canvas>
+        </div>
+        <div class="section">
+          <div class="section-title">Top 5 Broker Teraktif</div>
+          <div v-for="b in csData.top_brokers" :key="b[0]" class="bd-toplist-row">
+            <strong>{{ b[0] }}</strong> <span>{{ b[1] }} crossing</span>
+          </div>
+        </div>
+      </template>
+
+      <!-- Broker list from existing data (always show) -->
+      <div v-if="csData.brokers && csData.brokers.length" class="section" style="margin-top:16px">
+        <div class="section-title">📋 Data Broker ({{ csData.brokers.length }})</div>
+        <div class="table-wrap bd-table-wrap">
+          <table class="table-compact bd-table-cross">
+            <thead>
+              <tr><th>Kode</th><th>Side</th><th>Lots</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="br in csData.brokers" :key="br.broker_code">
+                <td class="bd-nf-code">{{ br.broker_code }}</td>
+                <td>
+                  <span v-for="s in br.side" :key="s"
+                    :class="s === 'buy' ? 'green' : 'red'"
+                    style="margin-right:4px">{{ s.toUpperCase() }}</span>
+                </td>
+                <td>{{ Number(br.total_lots).toLocaleString('id') }}</td>
+                <td>Rp{{ Number(br.total_value).toLocaleString('id') }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

@@ -2890,6 +2890,28 @@ tbody tr:last-child td { border-bottom:none; }
 .bd-broker-val.net-pos { color:var(--success); font-weight:700; }
 .bd-broker-val.net-neg { color:var(--danger); font-weight:700; }
 
+/* Hero cards: biggest buyer/seller */
+.bd-hero-card { background:var(--bg-card); border-radius:12px; padding:18px 20px; text-align:center; position:relative; overflow:hidden; }
+.bd-hero-card.buyer { border:2px solid var(--success); box-shadow:0 0 20px rgba(16,185,129,.15); }
+.bd-hero-card.seller { border:2px solid var(--danger); box-shadow:0 0 20px rgba(239,68,68,.15); }
+.bd-hero-card.buyer::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--success); }
+.bd-hero-card.seller::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--danger); }
+.bd-hero-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-secondary); font-weight:600; margin-bottom:4px; }
+.bd-hero-code { font-size:28px; font-weight:900; font-family:monospace; margin-bottom:2px; }
+.bd-hero-card.buyer .bd-hero-code { color:var(--success); }
+.bd-hero-card.seller .bd-hero-code { color:var(--danger); }
+.bd-hero-val { font-size:16px; font-weight:700; }
+.bd-hero-card.buyer .bd-hero-val { color:var(--success); }
+.bd-hero-val.sell, .bd-hero-card.seller .bd-hero-val { color:var(--danger); }
+.bd-hero-lots { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+
+/* Crossing warning card */
+.bd-crossing-warning { background:var(--bg-card); border:1px solid var(--warning,#ff9800); border-radius:10px; padding:20px; margin:12px 0; text-align:center; }
+.bd-crossing-warn-icon { font-size:32px; margin-bottom:8px; }
+.bd-crossing-warn-title { font-size:16px; font-weight:700; color:var(--warning,#ff9800); margin-bottom:8px; }
+.bd-crossing-warn-msg { font-size:13px; color:var(--text-secondary); margin-bottom:8px; }
+.bd-crossing-warn-hint { font-size:12px; color:var(--text-secondary); padding:8px 12px; background:rgba(255,152,0,.08); border-radius:6px; }
+
 @media(max-width:768px) {
   .bd-metrics { grid-template-columns:repeat(2,1fr); }
   .bd-insights { grid-template-columns:1fr; }

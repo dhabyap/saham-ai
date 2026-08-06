@@ -1113,16 +1113,16 @@ async function loadCrossingSummary(stockCode) {
   try {
     const r = await fetch('/api/crossing/summary/' + encodeURIComponent(stockCode));
     const d = await r.json();
-    if (d.status !== 'ok') {
-      csError.value = d.message || 'No data';
-    } else {
+    if (d.status === 'ok') {
       csData.value = d;
+    } else {
+      csError.value = d.message || 'No data';
     }
   } catch (e) {
     csError.value = e.message || 'Gagal load summary';
   } finally {
     csLoading.value = false;
-    if (csData.value) renderCrossingChart();
+    if (csData.value && csData.value.total_crossing > 0) renderCrossingChart();
   }
 }
 
@@ -1131,13 +1131,17 @@ function renderCrossingChart() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const data = csData.value;
+  if (!data || !data.spread_dist) return;
+  var labels = Object.keys(data.spread_dist);
+  var values = Object.values(data.spread_dist);
+  if (labels.length === 0 || values.every(v => v === 0)) return;
   new Chart(ctx, {
     type: 'pie',
     data: {
-      labels: Object.keys(data.spread_dist),
+      labels: labels,
       datasets: [{
         label: 'Spread Distribution',
-        data: Object.values(data.spread_dist),
+        data: values,
         backgroundColor: ['#4caf50','#ff9800','#f44336']
       }]
     }

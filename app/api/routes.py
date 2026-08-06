@@ -1712,42 +1712,98 @@ def crossing_summary(stock_code: str):
         host='localhost', user='root', password='', database='analisa_saham'
     )
     cur = conn.cursor(dictionary=True)
+
+    # Get period range for this stock
     cur.execute("""
-        SELECT broker_code, SUM(lots) as total_lots, SUM(value) as total_value
+        SELECT MIN(period_from) as period_from, MAX(period_to) as period_to,
+               COUNT(*) as entry_count
+        FROM broker_summary WHERE stock_code = %s
+    """, (stock_code.upper(),))
+    period_info = cur.fetchone() or {}
+
+    # Get buyers and sellers
+    cur.execute("""
+        SELECT broker_code, side, lots, value, avg_price
         FROM broker_summary
         WHERE stock_code = %s
-        GROUP BY broker_code
-        ORDER BY total_value DESC
     """, (stock_code.upper(),))
-    data = cur.fetchall()
+    rows = cur.fetchall()
     cur.close()
     conn.close()
-    return {"status": "ok", "data": data}
-    brokers = {}
 
-    for c in pc:
-        s = abs(c.get('spread', 0))
-        if s < 1:
+    if not rows:
+        return {
+            "status": "ok",
+            "total_crossing": 0,
+            "spread_dist": {"<1%": 0, "1-3%": 0, ">3%": 0},
+            "top_brokers": [],
+            "brokers": [],
+            "period_from": period_info.get("period_from"),
+            "period_to": period_info.get("period_to"),
+            "entry_count": period_info.get("entry_count", 0),
+        }
+
+    buyers = [r for r in rows if r['side'] == 'buy']
+    sellers = [r for r in rows if r['side'] == 'sell']
+
+    # Find potential crossings: buyers & sellers with same avg_price
+    crossings = []
+    for b in buyers:
+        for s in sellers:
+            if b['avg_price'] and s['avg_price'] and b['avg_price'] == s['avg_price']:
+                spread = 0
+                lot_match = min(b['lots'], s['lots'])
+                crossings.append({
+                    'buyer_broker': b['broker_code'],
+                    'seller_broker': s['broker_code'],
+                    'potential_lots': lot_match,
+                    'buyer_avg_price': b['avg_price'],
+                    'seller_avg_price': s['avg_price'],
+                    'spread': spread,
+                })
+
+    # Spread distribution
+    dist = {"<1%": 0, "1-3%": 0, ">3%": 0}
+    brokers_count = {}
+    for c in crossings:
+        s_val = abs(c.get('spread', 0))
+        if s_val < 1:
             dist["<1%"] += 1
-        elif s <= 3:
+        elif s_val <= 3:
             dist["1-3%"] += 1
         else:
             dist[">3%"] += 1
-
         b = c.get('buyer_broker')
         if b:
-            brokers[b] = brokers.get(b, 0) + 1
+            brokers_count[b] = brokers_count.get(b, 0) + 1
         s_b = c.get('seller_broker')
         if s_b:
-            brokers[s_b] = brokers.get(s_b, 0) + 1
+            brokers_count[s_b] = brokers_count.get(s_b, 0) + 1
 
-    top_brokers = sorted(brokers.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_brokers = sorted(brokers_count.items(), key=lambda x: x[1], reverse=True)[:5]
+
+    # All brokers with aggregated data
+    broker_agg = {}
+    for r in rows:
+        k = r['broker_code']
+        if k not in broker_agg:
+            broker_agg[k] = {'broker_code': k, 'total_lots': 0, 'total_value': 0, 'side': set()}
+        broker_agg[k]['total_lots'] += r['lots'] or 0
+        broker_agg[k]['total_value'] += r['value'] or 0
+        broker_agg[k]['side'].add(r['side'])
+    brokers_list = sorted(broker_agg.values(), key=lambda x: x['total_value'], reverse=True)
+    for b in brokers_list:
+        b['side'] = list(b['side'])
 
     return {
         "status": "ok",
+        "total_crossing": len(crossings),
         "spread_dist": dist,
         "top_brokers": top_brokers,
-        "total_crossing": len(pc),
+        "brokers": brokers_list,
+        "period_from": period_info.get("period_from"),
+        "period_to": period_info.get("period_to"),
+        "entry_count": period_info.get("entry_count", 0),
     }
 
 @router.get("/shareholders/periods")
@@ -2018,4 +2074,103 @@ async def telegram_webhook(request: Request):
     # This endpoint is handled by the python-telegram-bot library internally
     # when the bot is running. We just need to define it for FastAPI.
     return {"status": "ok", "message": "Webhook received, processed by bot."}
+
+
+# ── Broker Daily Summary (IDX aggregate all stocks) ──────────────────────────
+
+from app.database.database import get_db as _get_db
+
+
+@router.get("/broker-daily/dates")
+def broker_daily_dates():
+    """List available trading dates in broker_daily_summary."""
+    with _get_db() as conn:
+        rows = conn.execute(
+            "SELECT trade_date, COUNT(*) as broker_count "
+            "FROM broker_daily_summary GROUP BY trade_date ORDER BY trade_date DESC"
+        ).fetchall()
+    return {"status": "ok", "dates": [{"date": r[0], "brokers": r[1]} for r in rows]}
+
+
+@router.get("/broker-daily/{trade_date}")
+def broker_daily_detail(trade_date: str):
+    """Get all broker activity for a specific date, sorted by value desc."""
+    with _get_db() as conn:
+        rows = conn.execute(
+            "SELECT broker_code, broker_name, volume, value, frequency "
+            "FROM broker_daily_summary WHERE trade_date = ? ORDER BY value DESC",
+            (trade_date,)
+        ).fetchall()
+    if not rows:
+        return {"status": "empty", "message": f"No data for {trade_date}"}
+    data = [
+        {"broker_code": r[0], "broker_name": r[1], "volume": r[2],
+         "value": r[3], "frequency": r[4]}
+        for r in rows
+    ]
+    return {"status": "ok", "trade_date": trade_date, "count": len(data), "data": data}
+
+
+@router.get("/broker-daily/ranking/{start_date}/{end_date}")
+def broker_daily_ranking(start_date: str, end_date: str, limit: int = 20):
+    """Rank brokers by total value over a date range. Top buyers/sellers proxy."""
+    with _get_db() as conn:
+        rows = conn.execute(
+            "SELECT broker_code, broker_name, "
+            "SUM(volume) as total_volume, SUM(value) as total_value, SUM(frequency) as total_freq, "
+            "COUNT(*) as trading_days "
+            "FROM broker_daily_summary "
+            "WHERE trade_date BETWEEN ? AND ? "
+            "GROUP BY broker_code "
+            "ORDER BY total_value DESC LIMIT ?",
+            (start_date, end_date, limit)
+        ).fetchall()
+    data = [
+        {"broker_code": r[0], "broker_name": r[1], "total_volume": r[2],
+         "total_value": r[3], "total_freq": r[4], "trading_days": r[5]}
+        for r in rows
+    ]
+    return {"status": "ok", "start": start_date, "end": end_date, "data": data}
+
+
+@router.get("/broker-daily/trend/{broker_code}")
+def broker_daily_trend(broker_code: str, days: int = 30):
+    """Get daily value trend for a specific broker."""
+    with _get_db() as conn:
+        rows = conn.execute(
+            "SELECT trade_date, volume, value, frequency "
+            "FROM broker_daily_summary WHERE broker_code = ? "
+            "ORDER BY trade_date DESC LIMIT ?",
+            (broker_code.upper(), days)
+        ).fetchall()
+    data = [
+        {"date": r[0], "volume": r[1], "value": r[2], "frequency": r[3]}
+        for r in rows
+    ]
+    return {"status": "ok", "broker_code": broker_code.upper(), "data": data}
+
+
+@router.get("/broker-daily/summary")
+def broker_daily_overview():
+    """Overview stats: date range, total value, avg daily value, top broker."""
+    with _get_db() as conn:
+        stats = conn.execute(
+            "SELECT MIN(trade_date), MAX(trade_date), COUNT(DISTINCT trade_date), "
+            "SUM(value), AVG(value) FROM broker_daily_summary"
+        ).fetchone()
+        top = conn.execute(
+            "SELECT broker_code, broker_name, SUM(value) as tv "
+            "FROM broker_daily_summary GROUP BY broker_code ORDER BY tv DESC LIMIT 1"
+        ).fetchone()
+        latest = conn.execute(
+            "SELECT trade_date FROM broker_daily_summary ORDER BY trade_date DESC LIMIT 1"
+        ).fetchone()
+    return {
+        "status": "ok",
+        "date_from": stats[0], "date_to": stats[1],
+        "trading_days": stats[2], "total_value": stats[3],
+        "avg_daily_value": stats[4],
+        "top_broker": {"code": top[0], "name": top[1], "total_value": top[2]} if top else None,
+        "latest_date": latest[0] if latest else None,
+    }
 

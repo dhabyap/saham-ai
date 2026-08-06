@@ -1,0 +1,5357 @@
+{
+    "err_code": "EC0000000",
+    "err_message": "APPROVED/OK",
+    "result": {
+        "buy": [
+            {
+                "code": "TPIA",
+                "value": 172303715500,
+                "avg": 2255,
+                "lot": 764061
+            },
+            {
+                "code": "ASII",
+                "value": 155208403500,
+                "avg": 4956,
+                "lot": 313173
+            },
+            {
+                "code": "MDKA",
+                "value": 103309101000,
+                "avg": 2620,
+                "lot": 394364
+            },
+            {
+                "code": "BBRI",
+                "value": 81359355000,
+                "avg": 2773,
+                "lot": 293421
+            },
+            {
+                "code": "AMMN",
+                "value": 80342967000,
+                "avg": 3785,
+                "lot": 212255
+            },
+            {
+                "code": "BRMS",
+                "value": 76961030600,
+                "avg": 562,
+                "lot": 1370382
+            },
+            {
+                "code": "BBCA",
+                "value": 73541485000,
+                "avg": 6258,
+                "lot": 117519
+            },
+            {
+                "code": "DSSA",
+                "value": 56719480000,
+                "avg": 887,
+                "lot": 639674
+            },
+            {
+                "code": "DEWA",
+                "value": 46870887200,
+                "avg": 345,
+                "lot": 1359005
+            },
+            {
+                "code": "EMAS",
+                "value": 45259194779,
+                "avg": 10316,
+                "lot": 43874
+            },
+            {
+                "code": "ISAT",
+                "value": 41581126000,
+                "avg": 1912,
+                "lot": 217501
+            },
+            {
+                "code": "TAPG",
+                "value": 39618699500,
+                "avg": 1658,
+                "lot": 238947
+            },
+            {
+                "code": "AMRT",
+                "value": 33644199000,
+                "avg": 1371,
+                "lot": 245317
+            },
+            {
+                "code": "MAPA",
+                "value": 33428996500,
+                "avg": 602,
+                "lot": 555721
+            },
+            {
+                "code": "BBNI",
+                "value": 29674905000,
+                "avg": 3475,
+                "lot": 85402
+            },
+            {
+                "code": "BREN",
+                "value": 25145974000,
+                "avg": 3522,
+                "lot": 71392
+            },
+            {
+                "code": "BUVA",
+                "value": 23552507000,
+                "avg": 816,
+                "lot": 288498
+            },
+            {
+                "code": "JPFA",
+                "value": 23385028500,
+                "avg": 2050,
+                "lot": 114049
+            },
+            {
+                "code": "PGAS",
+                "value": 23328595500,
+                "avg": 1503,
+                "lot": 155207
+            },
+            {
+                "code": "JRPT",
+                "value": 23012544000,
+                "avg": 1079,
+                "lot": 213234
+            },
+            {
+                "code": "SINI",
+                "value": 21906590000,
+                "avg": 6939,
+                "lot": 31572
+            },
+            {
+                "code": "ENRG",
+                "value": 20964640500,
+                "avg": 1279,
+                "lot": 163873
+            },
+            {
+                "code": "UNVR",
+                "value": 20440204000,
+                "avg": 1703,
+                "lot": 120028
+            },
+            {
+                "code": "SMRA",
+                "value": 19923834000,
+                "avg": 326,
+                "lot": 610635
+            },
+            {
+                "code": "CMRY",
+                "value": 18407041000,
+                "avg": 4220,
+                "lot": 43615
+            },
+            {
+                "code": "KLBF",
+                "value": 17560237500,
+                "avg": 720,
+                "lot": 244035
+            },
+            {
+                "code": "DSNG",
+                "value": 16511213000,
+                "avg": 1307,
+                "lot": 126291
+            },
+            {
+                "code": "NCKL",
+                "value": 15930735500,
+                "avg": 847,
+                "lot": 188042
+            },
+            {
+                "code": "RANS",
+                "value": 14156806300,
+                "avg": 254,
+                "lot": 557186
+            },
+            {
+                "code": "SIMP",
+                "value": 13749139500,
+                "avg": 585,
+                "lot": 234949
+            },
+            {
+                "code": "BNBR",
+                "value": 12743449000,
+                "avg": 90,
+                "lot": 1418851
+            },
+            {
+                "code": "RATU",
+                "value": 12607071000,
+                "avg": 5237,
+                "lot": 24074
+            },
+            {
+                "code": "PWON",
+                "value": 12493783600,
+                "avg": 262,
+                "lot": 476163
+            },
+            {
+                "code": "EXCL",
+                "value": 12052022000,
+                "avg": 2477,
+                "lot": 48648
+            },
+            {
+                "code": "TKIM",
+                "value": 9952517500,
+                "avg": 5584,
+                "lot": 17823
+            },
+            {
+                "code": "TOWR",
+                "value": 9558843000,
+                "avg": 376,
+                "lot": 254102
+            },
+            {
+                "code": "MIKA",
+                "value": 9505797500,
+                "avg": 1692,
+                "lot": 56180
+            },
+            {
+                "code": "SMSM",
+                "value": 8989030500,
+                "avg": 1717,
+                "lot": 52351
+            },
+            {
+                "code": "MBMA",
+                "value": 8808508900,
+                "avg": 548,
+                "lot": 160732
+            },
+            {
+                "code": "BFIN",
+                "value": 8157652000,
+                "avg": 792,
+                "lot": 103037
+            },
+            {
+                "code": "INKP",
+                "value": 7926910000,
+                "avg": 7165,
+                "lot": 11064
+            },
+            {
+                "code": "HMSP",
+                "value": 7771758500,
+                "avg": 654,
+                "lot": 118816
+            },
+            {
+                "code": "AALI",
+                "value": 7476390000,
+                "avg": 6584,
+                "lot": 11356
+            },
+            {
+                "code": "BUKA",
+                "value": 7011101700,
+                "avg": 115,
+                "lot": 611600
+            },
+            {
+                "code": "HRTA",
+                "value": 6378719000,
+                "avg": 1934,
+                "lot": 32976
+            },
+            {
+                "code": "COCO",
+                "value": 6355207700,
+                "avg": 90,
+                "lot": 708964
+            },
+            {
+                "code": "MAPI",
+                "value": 6324355500,
+                "avg": 1571,
+                "lot": 40253
+            },
+            {
+                "code": "FUJI",
+                "value": 5890405200,
+                "avg": 184,
+                "lot": 320878
+            },
+            {
+                "code": "CTRA",
+                "value": 5733712500,
+                "avg": 565,
+                "lot": 101428
+            },
+            {
+                "code": "ARTO",
+                "value": 5417729000,
+                "avg": 1186,
+                "lot": 45674
+            },
+            {
+                "code": "BRIS",
+                "value": 5080809500,
+                "avg": 2014,
+                "lot": 25228
+            },
+            {
+                "code": "BUMI",
+                "value": 4948311100,
+                "avg": 190,
+                "lot": 260880
+            },
+            {
+                "code": "PRDL",
+                "value": 4726214300,
+                "avg": 368,
+                "lot": 128412
+            },
+            {
+                "code": "PGEO",
+                "value": 4545140500,
+                "avg": 1015,
+                "lot": 44797
+            },
+            {
+                "code": "UNTR",
+                "value": 4428547500,
+                "avg": 24226,
+                "lot": 1828
+            },
+            {
+                "code": "CUAN",
+                "value": 4412427500,
+                "avg": 701,
+                "lot": 62964
+            },
+            {
+                "code": "BBTN",
+                "value": 4174704000,
+                "avg": 1145,
+                "lot": 36450
+            },
+            {
+                "code": "KETR",
+                "value": 4109189400,
+                "avg": 537,
+                "lot": 76462
+            },
+            {
+                "code": "FILM",
+                "value": 4039791500,
+                "avg": 1271,
+                "lot": 31775
+            },
+            {
+                "code": "TUGU",
+                "value": 4032401500,
+                "avg": 1236,
+                "lot": 32625
+            },
+            {
+                "code": "ARKO",
+                "value": 3950442500,
+                "avg": 4931,
+                "lot": 8011
+            },
+            {
+                "code": "LSIP",
+                "value": 3898387500,
+                "avg": 1456,
+                "lot": 26772
+            },
+            {
+                "code": "KRAS",
+                "value": 3768798700,
+                "avg": 226,
+                "lot": 166637
+            },
+            {
+                "code": "KOTA",
+                "value": 3545111400,
+                "avg": 146,
+                "lot": 242872
+            },
+            {
+                "code": "CASH",
+                "value": 3523543500,
+                "avg": 212,
+                "lot": 166354
+            },
+            {
+                "code": "PADI",
+                "value": 3102990400,
+                "avg": 74,
+                "lot": 417464
+            },
+            {
+                "code": "BSDE",
+                "value": 2865630000,
+                "avg": 578,
+                "lot": 49617
+            },
+            {
+                "code": "VKTR",
+                "value": 2850147500,
+                "avg": 626,
+                "lot": 45552
+            },
+            {
+                "code": "DILD",
+                "value": 2605123300,
+                "avg": 114,
+                "lot": 228960
+            },
+            {
+                "code": "MTDL",
+                "value": 2391017600,
+                "avg": 510,
+                "lot": 46925
+            },
+            {
+                "code": "PACK",
+                "value": 2306347400,
+                "avg": 227,
+                "lot": 101563
+            },
+            {
+                "code": "ARCI",
+                "value": 2142664500,
+                "avg": 865,
+                "lot": 24770
+            },
+            {
+                "code": "IATA",
+                "value": 2114933600,
+                "avg": 36,
+                "lot": 592325
+            },
+            {
+                "code": "JSMR",
+                "value": 2104679000,
+                "avg": 2791,
+                "lot": 7541
+            },
+            {
+                "code": "BBYB",
+                "value": 2063296400,
+                "avg": 251,
+                "lot": 82057
+            },
+            {
+                "code": "SOCI",
+                "value": 2039227400,
+                "avg": 405,
+                "lot": 50327
+            },
+            {
+                "code": "ELSA",
+                "value": 2013296000,
+                "avg": 805,
+                "lot": 25012
+            },
+            {
+                "code": "CBDK",
+                "value": 1998073000,
+                "avg": 3720,
+                "lot": 5371
+            },
+            {
+                "code": "ASSA",
+                "value": 1927114500,
+                "avg": 600,
+                "lot": 32115
+            },
+            {
+                "code": "HUMI",
+                "value": 1893772900,
+                "avg": 135,
+                "lot": 140216
+            },
+            {
+                "code": "PTRO",
+                "value": 1783706500,
+                "avg": 7921,
+                "lot": 2252
+            },
+            {
+                "code": "MSIN",
+                "value": 1778870700,
+                "avg": 353,
+                "lot": 50340
+            },
+            {
+                "code": "ADES",
+                "value": 1689645000,
+                "avg": 34695,
+                "lot": 487
+            },
+            {
+                "code": "NETV",
+                "value": 1669690800,
+                "avg": 51,
+                "lot": 330191
+            },
+            {
+                "code": "CBRE",
+                "value": 1566824500,
+                "avg": 755,
+                "lot": 20759
+            },
+            {
+                "code": "BWPT",
+                "value": 1561566900,
+                "avg": 79,
+                "lot": 198767
+            },
+            {
+                "code": "MLPT",
+                "value": 1464793500,
+                "avg": 1729,
+                "lot": 8473
+            },
+            {
+                "code": "BACH",
+                "value": 1407238300,
+                "avg": 349,
+                "lot": 40283
+            },
+            {
+                "code": "KPIG",
+                "value": 1367778700,
+                "avg": 83,
+                "lot": 164621
+            },
+            {
+                "code": "AUTO",
+                "value": 1319849000,
+                "avg": 2468,
+                "lot": 5347
+            },
+            {
+                "code": "SIDO",
+                "value": 1306359800,
+                "avg": 400,
+                "lot": 32696
+            },
+            {
+                "code": "MPPA",
+                "value": 1284825400,
+                "avg": 47,
+                "lot": 272723
+            },
+            {
+                "code": "KDTN",
+                "value": 1224874200,
+                "avg": 477,
+                "lot": 25701
+            },
+            {
+                "code": "SQMI",
+                "value": 1207753400,
+                "avg": 89,
+                "lot": 135814
+            },
+            {
+                "code": "KIJA",
+                "value": 1197985700,
+                "avg": 136,
+                "lot": 88379
+            },
+            {
+                "code": "CPRO",
+                "value": 1162787000,
+                "avg": 51,
+                "lot": 228565
+            },
+            {
+                "code": "PYFA",
+                "value": 1162150300,
+                "avg": 211,
+                "lot": 55070
+            },
+            {
+                "code": "SRSN",
+                "value": 1156532700,
+                "avg": 69,
+                "lot": 167330
+            },
+            {
+                "code": "ULTJ",
+                "value": 1148556500,
+                "avg": 1443,
+                "lot": 7958
+            },
+            {
+                "code": "DATA",
+                "value": 1065640000,
+                "avg": 2116,
+                "lot": 5037
+            },
+            {
+                "code": "GPSO",
+                "value": 1017996800,
+                "avg": 329,
+                "lot": 30976
+            },
+            {
+                "code": "AVIA",
+                "value": 1003138600,
+                "avg": 320,
+                "lot": 31369
+            },
+            {
+                "code": "WIIM",
+                "value": 973767500,
+                "avg": 1632,
+                "lot": 5967
+            },
+            {
+                "code": "UDNG",
+                "value": 960316500,
+                "avg": 1172,
+                "lot": 8191
+            },
+            {
+                "code": "WIRG",
+                "value": 953398100,
+                "avg": 56,
+                "lot": 169426
+            },
+            {
+                "code": "BEST",
+                "value": 924742400,
+                "avg": 108,
+                "lot": 85494
+            },
+            {
+                "code": "LPPF",
+                "value": 905039500,
+                "avg": 1507,
+                "lot": 6005
+            },
+            {
+                "code": "KEEN",
+                "value": 897965000,
+                "avg": 850,
+                "lot": 10567
+            },
+            {
+                "code": "VERN",
+                "value": 858326700,
+                "avg": 245,
+                "lot": 35101
+            },
+            {
+                "code": "TCPI",
+                "value": 811460000,
+                "avg": 5290,
+                "lot": 1534
+            },
+            {
+                "code": "ZONE",
+                "value": 805990200,
+                "avg": 723,
+                "lot": 11146
+            },
+            {
+                "code": "VISI",
+                "value": 768574000,
+                "avg": 949,
+                "lot": 8098
+            },
+            {
+                "code": "TBIG",
+                "value": 763783500,
+                "avg": 1438,
+                "lot": 5312
+            },
+            {
+                "code": "BELL",
+                "value": 743178000,
+                "avg": 122,
+                "lot": 60897
+            },
+            {
+                "code": "DMAS",
+                "value": 700739600,
+                "avg": 125,
+                "lot": 56016
+            },
+            {
+                "code": "PZZA",
+                "value": 650794700,
+                "avg": 179,
+                "lot": 36269
+            },
+            {
+                "code": "KKGI",
+                "value": 643847600,
+                "avg": 280,
+                "lot": 23024
+            },
+            {
+                "code": "EMTK",
+                "value": 643280900,
+                "avg": 516,
+                "lot": 12476
+            },
+            {
+                "code": "SAME",
+                "value": 601401600,
+                "avg": 297,
+                "lot": 20279
+            },
+            {
+                "code": "WIFI",
+                "value": 580111000,
+                "avg": 774,
+                "lot": 7495
+            },
+            {
+                "code": "BSBK",
+                "value": 577787200,
+                "avg": 52,
+                "lot": 110258
+            },
+            {
+                "code": "CMNT",
+                "value": 570669000,
+                "avg": 804,
+                "lot": 7095
+            },
+            {
+                "code": "PEGE",
+                "value": 563985200,
+                "avg": 132,
+                "lot": 42866
+            },
+            {
+                "code": "BJBR",
+                "value": 530516500,
+                "avg": 756,
+                "lot": 7019
+            },
+            {
+                "code": "MEJA",
+                "value": 505324100,
+                "avg": 95,
+                "lot": 53096
+            },
+            {
+                "code": "UVCR",
+                "value": 505016000,
+                "avg": 150,
+                "lot": 33777
+            },
+            {
+                "code": "BAPI",
+                "value": 503562700,
+                "avg": 19,
+                "lot": 262507
+            },
+            {
+                "code": "TLDN",
+                "value": 489708600,
+                "avg": 525,
+                "lot": 9325
+            },
+            {
+                "code": "BAIK",
+                "value": 486479000,
+                "avg": 722,
+                "lot": 6738
+            },
+            {
+                "code": "LPKR",
+                "value": 468312600,
+                "avg": 62,
+                "lot": 75033
+            },
+            {
+                "code": "BEKS",
+                "value": 460103100,
+                "avg": 21,
+                "lot": 216031
+            },
+            {
+                "code": "MAIN",
+                "value": 459829000,
+                "avg": 675,
+                "lot": 6816
+            },
+            {
+                "code": "AHAP",
+                "value": 458515600,
+                "avg": 100,
+                "lot": 45904
+            },
+            {
+                "code": "CTTH",
+                "value": 457914000,
+                "avg": 136,
+                "lot": 33778
+            },
+            {
+                "code": "BBMD",
+                "value": 455703000,
+                "avg": 1999,
+                "lot": 2280
+            },
+            {
+                "code": "MAHA",
+                "value": 452540700,
+                "avg": 138,
+                "lot": 32859
+            },
+            {
+                "code": "PEGE-W",
+                "value": 435672900,
+                "avg": 18,
+                "lot": 248132
+            },
+            {
+                "code": "YELO",
+                "value": 421605600,
+                "avg": 78,
+                "lot": 54286
+            },
+            {
+                "code": "GZCO",
+                "value": 415545100,
+                "avg": 174,
+                "lot": 23915
+            },
+            {
+                "code": "MORA",
+                "value": 412457500,
+                "avg": 6751,
+                "lot": 611
+            },
+            {
+                "code": "DPUM",
+                "value": 399586500,
+                "avg": 95,
+                "lot": 42007
+            },
+            {
+                "code": "ACES",
+                "value": 398219800,
+                "avg": 291,
+                "lot": 13672
+            },
+            {
+                "code": "MDIA",
+                "value": 379616500,
+                "avg": 19,
+                "lot": 198418
+            },
+            {
+                "code": "BACA",
+                "value": 372549400,
+                "avg": 126,
+                "lot": 29572
+            },
+            {
+                "code": "RISE",
+                "value": 363367500,
+                "avg": 1033,
+                "lot": 3516
+            },
+            {
+                "code": "GMFI",
+                "value": 362159700,
+                "avg": 55,
+                "lot": 65457
+            },
+            {
+                "code": "PBSA",
+                "value": 358842500,
+                "avg": 779,
+                "lot": 4605
+            },
+            {
+                "code": "DIVA",
+                "value": 357369300,
+                "avg": 141,
+                "lot": 25416
+            },
+            {
+                "code": "KEJU",
+                "value": 339901000,
+                "avg": 540,
+                "lot": 6300
+            },
+            {
+                "code": "SILO",
+                "value": 339053000,
+                "avg": 2158,
+                "lot": 1571
+            },
+            {
+                "code": "MGLV",
+                "value": 325867500,
+                "avg": 8783,
+                "lot": 371
+            },
+            {
+                "code": "BKDP",
+                "value": 316754400,
+                "avg": 179,
+                "lot": 17687
+            },
+            {
+                "code": "NIKL",
+                "value": 316232700,
+                "avg": 188,
+                "lot": 16837
+            },
+            {
+                "code": "MIDI",
+                "value": 312026000,
+                "avg": 259,
+                "lot": 12043
+            },
+            {
+                "code": "BJTM",
+                "value": 311953000,
+                "avg": 620,
+                "lot": 5030
+            },
+            {
+                "code": "AGRO",
+                "value": 305955900,
+                "avg": 148,
+                "lot": 20712
+            },
+            {
+                "code": "MCAS",
+                "value": 305002200,
+                "avg": 199,
+                "lot": 15349
+            },
+            {
+                "code": "RAAM",
+                "value": 290465200,
+                "avg": 204,
+                "lot": 14266
+            },
+            {
+                "code": "LAND",
+                "value": 282963900,
+                "avg": 75,
+                "lot": 37482
+            },
+            {
+                "code": "CHEM",
+                "value": 280579000,
+                "avg": 65,
+                "lot": 42952
+            },
+            {
+                "code": "SMKM",
+                "value": 279185000,
+                "avg": 67,
+                "lot": 41899
+            },
+            {
+                "code": "AREA",
+                "value": 276051800,
+                "avg": 276,
+                "lot": 10013
+            },
+            {
+                "code": "CFIN",
+                "value": 268768800,
+                "avg": 339,
+                "lot": 7932
+            },
+            {
+                "code": "LMAX",
+                "value": 265314500,
+                "avg": 104,
+                "lot": 25461
+            },
+            {
+                "code": "CSMI",
+                "value": 265064500,
+                "avg": 81,
+                "lot": 32820
+            },
+            {
+                "code": "CYBR",
+                "value": 263680000,
+                "avg": 563,
+                "lot": 4683
+            },
+            {
+                "code": "ASPI",
+                "value": 253613800,
+                "avg": 516,
+                "lot": 4915
+            },
+            {
+                "code": "DFAM",
+                "value": 250528700,
+                "avg": 93,
+                "lot": 26899
+            },
+            {
+                "code": "ALII",
+                "value": 226563000,
+                "avg": 757,
+                "lot": 2993
+            },
+            {
+                "code": "JKON",
+                "value": 221451200,
+                "avg": 74,
+                "lot": 30127
+            },
+            {
+                "code": "SAPX",
+                "value": 211774300,
+                "avg": 240,
+                "lot": 8827
+            },
+            {
+                "code": "NEST",
+                "value": 208304000,
+                "avg": 596,
+                "lot": 3493
+            },
+            {
+                "code": "NINE",
+                "value": 204352600,
+                "avg": 83,
+                "lot": 24596
+            },
+            {
+                "code": "RELF",
+                "value": 202360400,
+                "avg": 37,
+                "lot": 54643
+            },
+            {
+                "code": "KOBX",
+                "value": 201103900,
+                "avg": 158,
+                "lot": 12714
+            },
+            {
+                "code": "TOOL",
+                "value": 189809800,
+                "avg": 68,
+                "lot": 28115
+            },
+            {
+                "code": "ECII",
+                "value": 179292900,
+                "avg": 148,
+                "lot": 12131
+            },
+            {
+                "code": "AMAN",
+                "value": 177471800,
+                "avg": 257,
+                "lot": 6905
+            },
+            {
+                "code": "ATLA",
+                "value": 175813200,
+                "avg": 46,
+                "lot": 38319
+            },
+            {
+                "code": "FORE",
+                "value": 173183000,
+                "avg": 371,
+                "lot": 4664
+            },
+            {
+                "code": "ICON",
+                "value": 171880100,
+                "avg": 105,
+                "lot": 16344
+            },
+            {
+                "code": "WMPP",
+                "value": 169226400,
+                "avg": 17,
+                "lot": 96712
+            },
+            {
+                "code": "BEER",
+                "value": 169001000,
+                "avg": 78,
+                "lot": 21772
+            },
+            {
+                "code": "PNBN",
+                "value": 168922000,
+                "avg": 833,
+                "lot": 2029
+            },
+            {
+                "code": "CGAS",
+                "value": 168181600,
+                "avg": 153,
+                "lot": 11013
+            },
+            {
+                "code": "BKSL",
+                "value": 168127200,
+                "avg": 44,
+                "lot": 38554
+            },
+            {
+                "code": "PSDN",
+                "value": 167552800,
+                "avg": 233,
+                "lot": 7188
+            },
+            {
+                "code": "CRSN",
+                "value": 166586700,
+                "avg": 104,
+                "lot": 16087
+            },
+            {
+                "code": "JAST",
+                "value": 162797100,
+                "avg": 81,
+                "lot": 20032
+            },
+            {
+                "code": "BHIT",
+                "value": 159586200,
+                "avg": 25,
+                "lot": 65112
+            },
+            {
+                "code": "SMGA",
+                "value": 155932300,
+                "avg": 69,
+                "lot": 22472
+            },
+            {
+                "code": "NICK",
+                "value": 155379500,
+                "avg": 1040,
+                "lot": 1494
+            },
+            {
+                "code": "BLES",
+                "value": 149815700,
+                "avg": 353,
+                "lot": 4246
+            },
+            {
+                "code": "KRYA",
+                "value": 142132900,
+                "avg": 61,
+                "lot": 23112
+            },
+            {
+                "code": "PADI-R",
+                "value": 139753600,
+                "avg": 26,
+                "lot": 54018
+            },
+            {
+                "code": "REAL",
+                "value": 139418600,
+                "avg": 44,
+                "lot": 31703
+            },
+            {
+                "code": "SKRN",
+                "value": 136175600,
+                "avg": 403,
+                "lot": 3375
+            },
+            {
+                "code": "MGNA",
+                "value": 135552300,
+                "avg": 115,
+                "lot": 11808
+            },
+            {
+                "code": "SMBR",
+                "value": 131483700,
+                "avg": 160,
+                "lot": 8214
+            },
+            {
+                "code": "DEWI",
+                "value": 126367700,
+                "avg": 119,
+                "lot": 10646
+            },
+            {
+                "code": "MAXI",
+                "value": 125156900,
+                "avg": 50,
+                "lot": 24968
+            },
+            {
+                "code": "TIRA",
+                "value": 124985300,
+                "avg": 506,
+                "lot": 2468
+            },
+            {
+                "code": "NICL",
+                "value": 123645200,
+                "avg": 398,
+                "lot": 3109
+            },
+            {
+                "code": "DLTA",
+                "value": 122780500,
+                "avg": 2189,
+                "lot": 561
+            },
+            {
+                "code": "ARNA",
+                "value": 122105400,
+                "avg": 463,
+                "lot": 2638
+            },
+            {
+                "code": "PBID",
+                "value": 121562100,
+                "avg": 443,
+                "lot": 2741
+            },
+            {
+                "code": "CLEO",
+                "value": 120916200,
+                "avg": 386,
+                "lot": 3135
+            },
+            {
+                "code": "NOBU",
+                "value": 120798200,
+                "avg": 394,
+                "lot": 3066
+            },
+            {
+                "code": "SDMU",
+                "value": 117751600,
+                "avg": 75,
+                "lot": 15697
+            },
+            {
+                "code": "GRIA",
+                "value": 117610900,
+                "avg": 125,
+                "lot": 9396
+            },
+            {
+                "code": "NTBK",
+                "value": 116442000,
+                "avg": 139,
+                "lot": 8369
+            },
+            {
+                "code": "BDKR",
+                "value": 116073100,
+                "avg": 141,
+                "lot": 8256
+            },
+            {
+                "code": "GTSI",
+                "value": 113976000,
+                "avg": 181,
+                "lot": 6309
+            },
+            {
+                "code": "TMAS",
+                "value": 112039500,
+                "avg": 122,
+                "lot": 9203
+            },
+            {
+                "code": "KJEN",
+                "value": 111507100,
+                "avg": 212,
+                "lot": 5255
+            },
+            {
+                "code": "WINR",
+                "value": 111113600,
+                "avg": 43,
+                "lot": 26021
+            },
+            {
+                "code": "AISA",
+                "value": 109433200,
+                "avg": 94,
+                "lot": 11605
+            },
+            {
+                "code": "RGAS",
+                "value": 108517000,
+                "avg": 450,
+                "lot": 2410
+            },
+            {
+                "code": "BOAT",
+                "value": 105655700,
+                "avg": 122,
+                "lot": 8648
+            },
+            {
+                "code": "ATIC-R",
+                "value": 104592894,
+                "avg": 1,
+                "lot": 1058696
+            },
+            {
+                "code": "SCNP",
+                "value": 102797400,
+                "avg": 162,
+                "lot": 6351
+            },
+            {
+                "code": "SGER",
+                "value": 102465700,
+                "avg": 389,
+                "lot": 2632
+            },
+            {
+                "code": "LCKM",
+                "value": 100615200,
+                "avg": 109,
+                "lot": 9271
+            },
+            {
+                "code": "URBN",
+                "value": 99695000,
+                "avg": 224,
+                "lot": 4441
+            },
+            {
+                "code": "MDIY",
+                "value": 99218500,
+                "avg": 980,
+                "lot": 1012
+            },
+            {
+                "code": "OMED",
+                "value": 98118200,
+                "avg": 185,
+                "lot": 5317
+            },
+            {
+                "code": "PPRI",
+                "value": 96113900,
+                "avg": 149,
+                "lot": 6453
+            },
+            {
+                "code": "PNBS",
+                "value": 95917500,
+                "avg": 51,
+                "lot": 18717
+            },
+            {
+                "code": "LAPD",
+                "value": 94494900,
+                "avg": 52,
+                "lot": 18114
+            },
+            {
+                "code": "NICE",
+                "value": 94483400,
+                "avg": 233,
+                "lot": 4061
+            },
+            {
+                "code": "DNAR",
+                "value": 94099700,
+                "avg": 113,
+                "lot": 8358
+            },
+            {
+                "code": "IMAS",
+                "value": 94004000,
+                "avg": 844,
+                "lot": 1114
+            },
+            {
+                "code": "PNIN",
+                "value": 93987500,
+                "avg": 692,
+                "lot": 1358
+            },
+            {
+                "code": "GWSA",
+                "value": 93866300,
+                "avg": 125,
+                "lot": 7494
+            },
+            {
+                "code": "PPGL",
+                "value": 90610000,
+                "avg": 206,
+                "lot": 4408
+            },
+            {
+                "code": "APEX",
+                "value": 89377200,
+                "avg": 233,
+                "lot": 3834
+            },
+            {
+                "code": "BCAP",
+                "value": 89085900,
+                "avg": 50,
+                "lot": 17796
+            },
+            {
+                "code": "IBOS",
+                "value": 88235600,
+                "avg": 68,
+                "lot": 12922
+            },
+            {
+                "code": "NANO",
+                "value": 87728700,
+                "avg": 27,
+                "lot": 32478
+            },
+            {
+                "code": "AIMS",
+                "value": 87233600,
+                "avg": 377,
+                "lot": 2314
+            },
+            {
+                "code": "WOOD",
+                "value": 85929600,
+                "avg": 138,
+                "lot": 6239
+            },
+            {
+                "code": "CSIS",
+                "value": 85666800,
+                "avg": 161,
+                "lot": 5317
+            },
+            {
+                "code": "PJHB",
+                "value": 81095700,
+                "avg": 176,
+                "lot": 4605
+            },
+            {
+                "code": "ASJT",
+                "value": 80904000,
+                "avg": 163,
+                "lot": 4970
+            },
+            {
+                "code": "JATI",
+                "value": 80422600,
+                "avg": 93,
+                "lot": 8654
+            },
+            {
+                "code": "HAJJ",
+                "value": 78789700,
+                "avg": 106,
+                "lot": 7444
+            },
+            {
+                "code": "BVIC",
+                "value": 77681200,
+                "avg": 87,
+                "lot": 8917
+            },
+            {
+                "code": "ISSP",
+                "value": 77234600,
+                "avg": 435,
+                "lot": 1775
+            },
+            {
+                "code": "UNIQ",
+                "value": 76596200,
+                "avg": 104,
+                "lot": 7346
+            },
+            {
+                "code": "DMMX",
+                "value": 76303000,
+                "avg": 233,
+                "lot": 3273
+            },
+            {
+                "code": "BNII",
+                "value": 70951700,
+                "avg": 188,
+                "lot": 3782
+            },
+            {
+                "code": "LPGI",
+                "value": 70832500,
+                "avg": 660,
+                "lot": 1073
+            },
+            {
+                "code": "BELI",
+                "value": 67773800,
+                "avg": 258,
+                "lot": 2629
+            },
+            {
+                "code": "PPRO",
+                "value": 66107300,
+                "avg": 16,
+                "lot": 40439
+            },
+            {
+                "code": "MITI",
+                "value": 64716600,
+                "avg": 285,
+                "lot": 2267
+            },
+            {
+                "code": "ROTI",
+                "value": 64635000,
+                "avg": 609,
+                "lot": 1061
+            },
+            {
+                "code": "MSIE",
+                "value": 63793700,
+                "avg": 95,
+                "lot": 6694
+            },
+            {
+                "code": "CCSI",
+                "value": 62456800,
+                "avg": 254,
+                "lot": 2456
+            },
+            {
+                "code": "CTBN",
+                "value": 60809500,
+                "avg": 4572,
+                "lot": 133
+            },
+            {
+                "code": "KIOS",
+                "value": 60688100,
+                "avg": 52,
+                "lot": 11770
+            },
+            {
+                "code": "ISAP",
+                "value": 58840600,
+                "avg": 22,
+                "lot": 26718
+            },
+            {
+                "code": "PEHA",
+                "value": 58059600,
+                "avg": 244,
+                "lot": 2378
+            },
+            {
+                "code": "EMDE",
+                "value": 57324200,
+                "avg": 71,
+                "lot": 8071
+            },
+            {
+                "code": "MYOH",
+                "value": 56358500,
+                "avg": 1145,
+                "lot": 492
+            },
+            {
+                "code": "MDLN",
+                "value": 55988100,
+                "avg": 48,
+                "lot": 11735
+            },
+            {
+                "code": "PEVE",
+                "value": 55971400,
+                "avg": 312,
+                "lot": 1794
+            },
+            {
+                "code": "CAMP",
+                "value": 55429300,
+                "avg": 171,
+                "lot": 3243
+            },
+            {
+                "code": "PTPP",
+                "value": 54568800,
+                "avg": 202,
+                "lot": 2701
+            },
+            {
+                "code": "BLTA",
+                "value": 54377400,
+                "avg": 32,
+                "lot": 16835
+            },
+            {
+                "code": "ENZO",
+                "value": 54071900,
+                "avg": 54,
+                "lot": 10045
+            },
+            {
+                "code": "IPOL",
+                "value": 52690200,
+                "avg": 105,
+                "lot": 5019
+            },
+            {
+                "code": "SATU",
+                "value": 50835600,
+                "avg": 274,
+                "lot": 1855
+            },
+            {
+                "code": "ADHI",
+                "value": 50595100,
+                "avg": 212,
+                "lot": 2386
+            },
+            {
+                "code": "CSAP",
+                "value": 50539400,
+                "avg": 302,
+                "lot": 1674
+            },
+            {
+                "code": "TYRE",
+                "value": 50320300,
+                "avg": 133,
+                "lot": 3786
+            },
+            {
+                "code": "BUMIDRCZ6A",
+                "value": 50000000,
+                "avg": 10,
+                "lot": 50000
+            },
+            {
+                "code": "RICY",
+                "value": 49637800,
+                "avg": 93,
+                "lot": 5345
+            },
+            {
+                "code": "TAMU",
+                "value": 49054900,
+                "avg": 20,
+                "lot": 24337
+            },
+            {
+                "code": "BPTR",
+                "value": 49037200,
+                "avg": 64,
+                "lot": 7712
+            },
+            {
+                "code": "OPMS",
+                "value": 48995300,
+                "avg": 173,
+                "lot": 2826
+            },
+            {
+                "code": "DYAN",
+                "value": 48726500,
+                "avg": 83,
+                "lot": 5879
+            },
+            {
+                "code": "KUAS",
+                "value": 47738300,
+                "avg": 147,
+                "lot": 3251
+            },
+            {
+                "code": "IKAN",
+                "value": 47169200,
+                "avg": 67,
+                "lot": 7059
+            },
+            {
+                "code": "LAJU",
+                "value": 46774700,
+                "avg": 68,
+                "lot": 6882
+            },
+            {
+                "code": "TAXI",
+                "value": 46406300,
+                "avg": 13,
+                "lot": 37040
+            },
+            {
+                "code": "ADMF",
+                "value": 43310000,
+                "avg": 10563,
+                "lot": 41
+            },
+            {
+                "code": "CAKK",
+                "value": 42297800,
+                "avg": 136,
+                "lot": 3101
+            },
+            {
+                "code": "ACRO",
+                "value": 42029700,
+                "avg": 60,
+                "lot": 6998
+            },
+            {
+                "code": "DADA",
+                "value": 41775000,
+                "avg": 50,
+                "lot": 8355
+            },
+            {
+                "code": "MSKY",
+                "value": 41757100,
+                "avg": 46,
+                "lot": 9016
+            },
+            {
+                "code": "HALO",
+                "value": 41245200,
+                "avg": 65,
+                "lot": 6349
+            },
+            {
+                "code": "BAUT",
+                "value": 40850300,
+                "avg": 27,
+                "lot": 15252
+            },
+            {
+                "code": "PGJO",
+                "value": 40103500,
+                "avg": 694,
+                "lot": 578
+            },
+            {
+                "code": "DCII",
+                "value": 39605000,
+                "avg": 198025,
+                "lot": 2
+            },
+            {
+                "code": "LUCK",
+                "value": 38998400,
+                "avg": 136,
+                "lot": 2861
+            },
+            {
+                "code": "PLAN",
+                "value": 38975900,
+                "avg": 38,
+                "lot": 10293
+            },
+            {
+                "code": "PTMP",
+                "value": 38127900,
+                "avg": 262,
+                "lot": 1455
+            },
+            {
+                "code": "SOHO",
+                "value": 38052500,
+                "avg": 1197,
+                "lot": 318
+            },
+            {
+                "code": "KKES",
+                "value": 36015100,
+                "avg": 38,
+                "lot": 9543
+            },
+            {
+                "code": "BOLA",
+                "value": 34542500,
+                "avg": 152,
+                "lot": 2280
+            },
+            {
+                "code": "DSFI",
+                "value": 34241100,
+                "avg": 42,
+                "lot": 8131
+            },
+            {
+                "code": "AKPI",
+                "value": 31981100,
+                "avg": 497,
+                "lot": 644
+            },
+            {
+                "code": "APIC",
+                "value": 31966500,
+                "avg": 686,
+                "lot": 466
+            },
+            {
+                "code": "CINT",
+                "value": 31478300,
+                "avg": 192,
+                "lot": 1640
+            },
+            {
+                "code": "MOLI",
+                "value": 31441600,
+                "avg": 192,
+                "lot": 1639
+            },
+            {
+                "code": "MPRO",
+                "value": 30195000,
+                "avg": 13128,
+                "lot": 23
+            },
+            {
+                "code": "LPLI",
+                "value": 29606800,
+                "avg": 257,
+                "lot": 1151
+            },
+            {
+                "code": "PICO",
+                "value": 29280900,
+                "avg": 124,
+                "lot": 2361
+            },
+            {
+                "code": "HGII",
+                "value": 29119800,
+                "avg": 121,
+                "lot": 2411
+            },
+            {
+                "code": "PNGO",
+                "value": 28069000,
+                "avg": 3553,
+                "lot": 79
+            },
+            {
+                "code": "BBSS",
+                "value": 27744400,
+                "avg": 96,
+                "lot": 2896
+            },
+            {
+                "code": "KREN",
+                "value": 27726500,
+                "avg": 16,
+                "lot": 17732
+            },
+            {
+                "code": "NASA",
+                "value": 26686600,
+                "avg": 30,
+                "lot": 8893
+            },
+            {
+                "code": "TEBE",
+                "value": 26359000,
+                "avg": 948,
+                "lot": 278
+            },
+            {
+                "code": "SPMA",
+                "value": 25879300,
+                "avg": 170,
+                "lot": 1522
+            },
+            {
+                "code": "TRGU",
+                "value": 25798200,
+                "avg": 166,
+                "lot": 1551
+            },
+            {
+                "code": "GOOD",
+                "value": 25786000,
+                "avg": 289,
+                "lot": 891
+            },
+            {
+                "code": "KSIX",
+                "value": 25512000,
+                "avg": 333,
+                "lot": 765
+            },
+            {
+                "code": "MEDS",
+                "value": 25445100,
+                "avg": 63,
+                "lot": 4066
+            },
+            {
+                "code": "PALM",
+                "value": 25299800,
+                "avg": 285,
+                "lot": 887
+            },
+            {
+                "code": "SAMF",
+                "value": 25292200,
+                "avg": 278,
+                "lot": 910
+            },
+            {
+                "code": "KLIN",
+                "value": 24999600,
+                "avg": 110,
+                "lot": 2280
+            },
+            {
+                "code": "AWAN",
+                "value": 24715500,
+                "avg": 157,
+                "lot": 1574
+            },
+            {
+                "code": "CMNP",
+                "value": 24367500,
+                "avg": 1310,
+                "lot": 186
+            },
+            {
+                "code": "MDKI",
+                "value": 24326500,
+                "avg": 180,
+                "lot": 1348
+            },
+            {
+                "code": "SDRA",
+                "value": 24168600,
+                "avg": 219,
+                "lot": 1103
+            },
+            {
+                "code": "AKSI",
+                "value": 23335700,
+                "avg": 224,
+                "lot": 1040
+            },
+            {
+                "code": "WOWS",
+                "value": 22884500,
+                "avg": 52,
+                "lot": 4381
+            },
+            {
+                "code": "BABY",
+                "value": 22619600,
+                "avg": 200,
+                "lot": 1131
+            },
+            {
+                "code": "ITIC",
+                "value": 22438800,
+                "avg": 209,
+                "lot": 1072
+            },
+            {
+                "code": "PEGE-R",
+                "value": 22354600,
+                "avg": 12,
+                "lot": 18588
+            },
+            {
+                "code": "AMAG",
+                "value": 21995800,
+                "avg": 390,
+                "lot": 564
+            },
+            {
+                "code": "ASBI",
+                "value": 21871200,
+                "avg": 414,
+                "lot": 528
+            },
+            {
+                "code": "CEKA",
+                "value": 21571000,
+                "avg": 2201,
+                "lot": 98
+            },
+            {
+                "code": "IOTF",
+                "value": 21336100,
+                "avg": 47,
+                "lot": 4528
+            },
+            {
+                "code": "VICI",
+                "value": 21257500,
+                "avg": 709,
+                "lot": 300
+            },
+            {
+                "code": "WOMF",
+                "value": 21211600,
+                "avg": 249,
+                "lot": 851
+            },
+            {
+                "code": "KONI",
+                "value": 20891000,
+                "avg": 2611,
+                "lot": 80
+            },
+            {
+                "code": "SSTM",
+                "value": 20255600,
+                "avg": 424,
+                "lot": 478
+            },
+            {
+                "code": "XIML",
+                "value": 18921700,
+                "avg": 171,
+                "lot": 1107
+            },
+            {
+                "code": "TRIM",
+                "value": 18182000,
+                "avg": 505,
+                "lot": 360
+            },
+            {
+                "code": "CASH-R",
+                "value": 18145400,
+                "avg": 2,
+                "lot": 90146
+            },
+            {
+                "code": "SHIP",
+                "value": 18082000,
+                "avg": 1586,
+                "lot": 114
+            },
+            {
+                "code": "MCOL",
+                "value": 17791000,
+                "avg": 3706,
+                "lot": 48
+            },
+            {
+                "code": "DNET",
+                "value": 17692500,
+                "avg": 9312,
+                "lot": 19
+            },
+            {
+                "code": "GOLD",
+                "value": 17196600,
+                "avg": 306,
+                "lot": 562
+            },
+            {
+                "code": "ROCK",
+                "value": 17049500,
+                "avg": 1758,
+                "lot": 97
+            },
+            {
+                "code": "JIHD",
+                "value": 16953200,
+                "avg": 392,
+                "lot": 432
+            },
+            {
+                "code": "MSJA",
+                "value": 16592400,
+                "avg": 403,
+                "lot": 412
+            },
+            {
+                "code": "LABS",
+                "value": 16542300,
+                "avg": 519,
+                "lot": 319
+            },
+            {
+                "code": "DGNS",
+                "value": 16240000,
+                "avg": 226,
+                "lot": 720
+            },
+            {
+                "code": "SHID",
+                "value": 16231000,
+                "avg": 532,
+                "lot": 305
+            },
+            {
+                "code": "APLI",
+                "value": 15210600,
+                "avg": 268,
+                "lot": 567
+            },
+            {
+                "code": "LPIN",
+                "value": 14916200,
+                "avg": 420,
+                "lot": 355
+            },
+            {
+                "code": "LIVE",
+                "value": 14905700,
+                "avg": 218,
+                "lot": 683
+            },
+            {
+                "code": "DEPO",
+                "value": 14762800,
+                "avg": 162,
+                "lot": 914
+            },
+            {
+                "code": "TBMS",
+                "value": 14468000,
+                "avg": 1148,
+                "lot": 126
+            },
+            {
+                "code": "HOMI",
+                "value": 14441600,
+                "avg": 150,
+                "lot": 965
+            },
+            {
+                "code": "RSCH",
+                "value": 13767400,
+                "avg": 308,
+                "lot": 447
+            },
+            {
+                "code": "PANR",
+                "value": 13697400,
+                "avg": 401,
+                "lot": 342
+            },
+            {
+                "code": "AGAR",
+                "value": 13637400,
+                "avg": 9092,
+                "lot": 15
+            },
+            {
+                "code": "NATO",
+                "value": 13546500,
+                "avg": 744,
+                "lot": 182
+            },
+            {
+                "code": "ENAK",
+                "value": 13494200,
+                "avg": 193,
+                "lot": 699
+            },
+            {
+                "code": "BKSW",
+                "value": 12807500,
+                "avg": 52,
+                "lot": 2441
+            },
+            {
+                "code": "MTLA",
+                "value": 12773200,
+                "avg": 515,
+                "lot": 248
+            },
+            {
+                "code": "BISI",
+                "value": 12483500,
+                "avg": 612,
+                "lot": 204
+            },
+            {
+                "code": "COAL",
+                "value": 12013000,
+                "avg": 18,
+                "lot": 6786
+            },
+            {
+                "code": "WEHA",
+                "value": 12000500,
+                "avg": 72,
+                "lot": 1673
+            },
+            {
+                "code": "RODA",
+                "value": 11968300,
+                "avg": 42,
+                "lot": 2817
+            },
+            {
+                "code": "HOKI",
+                "value": 11884000,
+                "avg": 20,
+                "lot": 6081
+            },
+            {
+                "code": "WIDI",
+                "value": 11798100,
+                "avg": 26,
+                "lot": 4517
+            },
+            {
+                "code": "BRRC",
+                "value": 11543200,
+                "avg": 32,
+                "lot": 3616
+            },
+            {
+                "code": "CASA",
+                "value": 11448500,
+                "avg": 1877,
+                "lot": 61
+            },
+            {
+                "code": "DAYA",
+                "value": 10710000,
+                "avg": 992,
+                "lot": 108
+            },
+            {
+                "code": "GLVA",
+                "value": 10334800,
+                "avg": 300,
+                "lot": 345
+            },
+            {
+                "code": "ANJT",
+                "value": 10229500,
+                "avg": 1527,
+                "lot": 67
+            },
+            {
+                "code": "OBAT",
+                "value": 10117400,
+                "avg": 249,
+                "lot": 407
+            },
+            {
+                "code": "PGLI",
+                "value": 10071900,
+                "avg": 249,
+                "lot": 405
+            },
+            {
+                "code": "INCI",
+                "value": 10005000,
+                "avg": 663,
+                "lot": 151
+            },
+            {
+                "code": "LIFE",
+                "value": 9992500,
+                "avg": 5878,
+                "lot": 17
+            },
+            {
+                "code": "MPPA-R",
+                "value": 9249300,
+                "avg": 1,
+                "lot": 92493
+            },
+            {
+                "code": "LRNA",
+                "value": 9041800,
+                "avg": 138,
+                "lot": 657
+            },
+            {
+                "code": "BUMIHDCG7A",
+                "value": 8664400,
+                "avg": 12,
+                "lot": 7126
+            },
+            {
+                "code": "EAST",
+                "value": 8663300,
+                "avg": 86,
+                "lot": 1002
+            },
+            {
+                "code": "SMKL",
+                "value": 8469100,
+                "avg": 106,
+                "lot": 800
+            },
+            {
+                "code": "DART",
+                "value": 8231400,
+                "avg": 96,
+                "lot": 856
+            },
+            {
+                "code": "FOLK",
+                "value": 8178300,
+                "avg": 196,
+                "lot": 417
+            },
+            {
+                "code": "RDTX",
+                "value": 7992500,
+                "avg": 13321,
+                "lot": 6
+            },
+            {
+                "code": "BINO",
+                "value": 7400900,
+                "avg": 146,
+                "lot": 508
+            },
+            {
+                "code": "YOII-R",
+                "value": 7155500,
+                "avg": 4,
+                "lot": 17331
+            },
+            {
+                "code": "OBMD",
+                "value": 6730100,
+                "avg": 128,
+                "lot": 524
+            },
+            {
+                "code": "SEMA",
+                "value": 6649300,
+                "avg": 76,
+                "lot": 871
+            },
+            {
+                "code": "YPAS",
+                "value": 6551000,
+                "avg": 771,
+                "lot": 85
+            },
+            {
+                "code": "HYGN",
+                "value": 6498200,
+                "avg": 223,
+                "lot": 292
+            },
+            {
+                "code": "DMND",
+                "value": 6342500,
+                "avg": 622,
+                "lot": 102
+            },
+            {
+                "code": "IKPM",
+                "value": 6222900,
+                "avg": 194,
+                "lot": 321
+            },
+            {
+                "code": "SPRE",
+                "value": 6202100,
+                "avg": 73,
+                "lot": 855
+            },
+            {
+                "code": "TRJA",
+                "value": 5304000,
+                "avg": 119,
+                "lot": 447
+            },
+            {
+                "code": "GMTD",
+                "value": 4952000,
+                "avg": 1501,
+                "lot": 33
+            },
+            {
+                "code": "ALDO",
+                "value": 4803000,
+                "avg": 1044,
+                "lot": 46
+            },
+            {
+                "code": "JSPT",
+                "value": 4639500,
+                "avg": 1365,
+                "lot": 34
+            },
+            {
+                "code": "SONA",
+                "value": 4562000,
+                "avg": 2281,
+                "lot": 20
+            },
+            {
+                "code": "BRAM",
+                "value": 4554000,
+                "avg": 4554,
+                "lot": 10
+            },
+            {
+                "code": "BALI",
+                "value": 4305000,
+                "avg": 1345,
+                "lot": 32
+            },
+            {
+                "code": "OMRE",
+                "value": 4291500,
+                "avg": 2044,
+                "lot": 21
+            },
+            {
+                "code": "BESS",
+                "value": 3968000,
+                "avg": 827,
+                "lot": 48
+            },
+            {
+                "code": "SKLT",
+                "value": 3927700,
+                "avg": 173,
+                "lot": 227
+            },
+            {
+                "code": "DGWG",
+                "value": 3707600,
+                "avg": 662,
+                "lot": 56
+            },
+            {
+                "code": "TARA",
+                "value": 3569700,
+                "avg": 26,
+                "lot": 1385
+            },
+            {
+                "code": "YULE",
+                "value": 3522000,
+                "avg": 3522,
+                "lot": 10
+            },
+            {
+                "code": "XCLQ",
+                "value": 3502500,
+                "avg": 70,
+                "lot": 500
+            },
+            {
+                "code": "VAST",
+                "value": 3494100,
+                "avg": 104,
+                "lot": 335
+            },
+            {
+                "code": "KBLM",
+                "value": 3381200,
+                "avg": 305,
+                "lot": 111
+            },
+            {
+                "code": "RELI",
+                "value": 3325400,
+                "avg": 504,
+                "lot": 66
+            },
+            {
+                "code": "XIPI",
+                "value": 3311300,
+                "avg": 175,
+                "lot": 189
+            },
+            {
+                "code": "MKTR",
+                "value": 3237600,
+                "avg": 126,
+                "lot": 257
+            },
+            {
+                "code": "AEGS",
+                "value": 2916400,
+                "avg": 41,
+                "lot": 704
+            },
+            {
+                "code": "PTIS",
+                "value": 2836200,
+                "avg": 240,
+                "lot": 118
+            },
+            {
+                "code": "MEGA",
+                "value": 2716000,
+                "avg": 2089,
+                "lot": 13
+            },
+            {
+                "code": "ARGO",
+                "value": 2694000,
+                "avg": 962,
+                "lot": 28
+            },
+            {
+                "code": "CHEK",
+                "value": 2593000,
+                "avg": 131,
+                "lot": 198
+            },
+            {
+                "code": "MASB",
+                "value": 2450000,
+                "avg": 3500,
+                "lot": 7
+            },
+            {
+                "code": "BSIM",
+                "value": 2403500,
+                "avg": 728,
+                "lot": 33
+            },
+            {
+                "code": "HBAT",
+                "value": 2337400,
+                "avg": 167,
+                "lot": 140
+            },
+            {
+                "code": "ARTA",
+                "value": 2332000,
+                "avg": 2120,
+                "lot": 11
+            },
+            {
+                "code": "PUDP",
+                "value": 2256600,
+                "avg": 297,
+                "lot": 76
+            },
+            {
+                "code": "XCIS",
+                "value": 2236000,
+                "avg": 74,
+                "lot": 302
+            },
+            {
+                "code": "POLI",
+                "value": 2229500,
+                "avg": 743,
+                "lot": 30
+            },
+            {
+                "code": "GOLF",
+                "value": 2136700,
+                "avg": 161,
+                "lot": 133
+            },
+            {
+                "code": "XISI",
+                "value": 2133600,
+                "avg": 296,
+                "lot": 72
+            },
+            {
+                "code": "UFOE",
+                "value": 2076900,
+                "avg": 103,
+                "lot": 201
+            },
+            {
+                "code": "SIPD",
+                "value": 1821000,
+                "avg": 674,
+                "lot": 27
+            },
+            {
+                "code": "XSSI",
+                "value": 1814600,
+                "avg": 64,
+                "lot": 285
+            },
+            {
+                "code": "INPP",
+                "value": 1719500,
+                "avg": 324,
+                "lot": 53
+            },
+            {
+                "code": "JECC",
+                "value": 1702000,
+                "avg": 740,
+                "lot": 23
+            },
+            {
+                "code": "POLU",
+                "value": 1510000,
+                "avg": 15100,
+                "lot": 1
+            },
+            {
+                "code": "LFLO",
+                "value": 1496200,
+                "avg": 651,
+                "lot": 23
+            },
+            {
+                "code": "XPTD",
+                "value": 1362500,
+                "avg": 413,
+                "lot": 33
+            },
+            {
+                "code": "PGUN",
+                "value": 1325000,
+                "avg": 4417,
+                "lot": 3
+            },
+            {
+                "code": "INTD",
+                "value": 1296600,
+                "avg": 194,
+                "lot": 67
+            },
+            {
+                "code": "MMLP",
+                "value": 1262400,
+                "avg": 371,
+                "lot": 34
+            },
+            {
+                "code": "XPSG",
+                "value": 1245600,
+                "avg": 311,
+                "lot": 40
+            },
+            {
+                "code": "SFAN",
+                "value": 1185000,
+                "avg": 1975,
+                "lot": 6
+            },
+            {
+                "code": "XMGB",
+                "value": 895300,
+                "avg": 1119,
+                "lot": 8
+            },
+            {
+                "code": "RUNS",
+                "value": 799300,
+                "avg": 41,
+                "lot": 195
+            },
+            {
+                "code": "PDES",
+                "value": 733600,
+                "avg": 432,
+                "lot": 17
+            },
+            {
+                "code": "DSSAZPCZ6A",
+                "value": 733000,
+                "avg": 15,
+                "lot": 500
+            },
+            {
+                "code": "PBRX",
+                "value": 687100,
+                "avg": 76,
+                "lot": 90
+            },
+            {
+                "code": "MTWI",
+                "value": 685400,
+                "avg": 857,
+                "lot": 8
+            },
+            {
+                "code": "XKID",
+                "value": 682000,
+                "avg": 682,
+                "lot": 10
+            },
+            {
+                "code": "BUKK",
+                "value": 519500,
+                "avg": 742,
+                "lot": 7
+            },
+            {
+                "code": "XBID",
+                "value": 401000,
+                "avg": 446,
+                "lot": 9
+            },
+            {
+                "code": "GRPM-W",
+                "value": 400000,
+                "avg": 4,
+                "lot": 1000
+            },
+            {
+                "code": "TFCO",
+                "value": 348000,
+                "avg": 580,
+                "lot": 6
+            },
+            {
+                "code": "IKAI",
+                "value": 327000,
+                "avg": 1,
+                "lot": 6180
+            },
+            {
+                "code": "STAR",
+                "value": 292000,
+                "avg": 172,
+                "lot": 17
+            },
+            {
+                "code": "XIPB",
+                "value": 283000,
+                "avg": 157,
+                "lot": 18
+            },
+            {
+                "code": "XPFT",
+                "value": 230200,
+                "avg": 460,
+                "lot": 5
+            },
+            {
+                "code": "XIIF",
+                "value": 220800,
+                "avg": 276,
+                "lot": 8
+            },
+            {
+                "code": "AMAR",
+                "value": 174400,
+                "avg": 134,
+                "lot": 13
+            },
+            {
+                "code": "XRDN",
+                "value": 167500,
+                "avg": 93,
+                "lot": 18
+            },
+            {
+                "code": "PNSE",
+                "value": 123300,
+                "avg": 247,
+                "lot": 5
+            },
+            {
+                "code": "TRST",
+                "value": 6800,
+                "avg": 0,
+                "lot": 0
+            },
+            {
+                "code": "XCEG",
+                "value": 200,
+                "avg": 0,
+                "lot": 0
+            }
+        ],
+        "sell": [
+            {
+                "code": "ANTM",
+                "value": 86224511000,
+                "avg": 2929,
+                "lot": 294386
+            },
+            {
+                "code": "TLKM",
+                "value": 56792246000,
+                "avg": 2625,
+                "lot": 216378
+            },
+            {
+                "code": "TINS",
+                "value": 55411312000,
+                "avg": 3620,
+                "lot": 153049
+            },
+            {
+                "code": "BMRI",
+                "value": 47188679000,
+                "avg": 4310,
+                "lot": 109482
+            },
+            {
+                "code": "BRPT",
+                "value": 45389690000,
+                "avg": 1308,
+                "lot": 347034
+            },
+            {
+                "code": "AADI",
+                "value": 30370130000,
+                "avg": 8657,
+                "lot": 35083
+            },
+            {
+                "code": "POWR",
+                "value": 26918019000,
+                "avg": 722,
+                "lot": 372894
+            },
+            {
+                "code": "RAJA",
+                "value": 25688284500,
+                "avg": 1239,
+                "lot": 207314
+            },
+            {
+                "code": "INDY",
+                "value": 21160892000,
+                "avg": 2193,
+                "lot": 96478
+            },
+            {
+                "code": "AKRA",
+                "value": 19187078000,
+                "avg": 1504,
+                "lot": 127539
+            },
+            {
+                "code": "PTBA",
+                "value": 18974331000,
+                "avg": 2364,
+                "lot": 80258
+            },
+            {
+                "code": "MTEL",
+                "value": 15193120700,
+                "avg": 448,
+                "lot": 339469
+            },
+            {
+                "code": "INCO",
+                "value": 14775660500,
+                "avg": 5301,
+                "lot": 27872
+            },
+            {
+                "code": "ADMR",
+                "value": 12312442500,
+                "avg": 1557,
+                "lot": 79059
+            },
+            {
+                "code": "GOTO",
+                "value": 10663660000,
+                "avg": 29,
+                "lot": 3636118
+            },
+            {
+                "code": "ITMG",
+                "value": 9577362500,
+                "avg": 24850,
+                "lot": 3854
+            },
+            {
+                "code": "DOOH",
+                "value": 9481227400,
+                "avg": 234,
+                "lot": 405574
+            },
+            {
+                "code": "JELI",
+                "value": 9429329000,
+                "avg": 1460,
+                "lot": 64602
+            },
+            {
+                "code": "BULL",
+                "value": 9065030000,
+                "avg": 503,
+                "lot": 180242
+            },
+            {
+                "code": "MYOR",
+                "value": 8829488500,
+                "avg": 1752,
+                "lot": 50396
+            },
+            {
+                "code": "SSIA",
+                "value": 8768879500,
+                "avg": 1672,
+                "lot": 52454
+            },
+            {
+                "code": "GGRM",
+                "value": 8532190000,
+                "avg": 20446,
+                "lot": 4173
+            },
+            {
+                "code": "SRTG",
+                "value": 7436152000,
+                "avg": 1583,
+                "lot": 46983
+            },
+            {
+                "code": "JECX",
+                "value": 6809890000,
+                "avg": 1478,
+                "lot": 46084
+            },
+            {
+                "code": "MARK",
+                "value": 6116172000,
+                "avg": 1043,
+                "lot": 58622
+            },
+            {
+                "code": "ESSA",
+                "value": 5686881500,
+                "avg": 496,
+                "lot": 114691
+            },
+            {
+                "code": "ADRO",
+                "value": 5572599000,
+                "avg": 2498,
+                "lot": 22304
+            },
+            {
+                "code": "ERAA",
+                "value": 5399010800,
+                "avg": 413,
+                "lot": 130764
+            },
+            {
+                "code": "BIPI",
+                "value": 5162910200,
+                "avg": 130,
+                "lot": 396436
+            },
+            {
+                "code": "EPAC",
+                "value": 5058470300,
+                "avg": 18,
+                "lot": 2747433
+            },
+            {
+                "code": "RMKE",
+                "value": 4868421400,
+                "avg": 1097,
+                "lot": 44360
+            },
+            {
+                "code": "PNLF",
+                "value": 4554729000,
+                "avg": 228,
+                "lot": 200054
+            },
+            {
+                "code": "PSAB",
+                "value": 4441350800,
+                "avg": 408,
+                "lot": 108795
+            },
+            {
+                "code": "LUCY",
+                "value": 4225755000,
+                "avg": 339,
+                "lot": 124704
+            },
+            {
+                "code": "SUPA",
+                "value": 4216424000,
+                "avg": 538,
+                "lot": 78351
+            },
+            {
+                "code": "INET",
+                "value": 4139139800,
+                "avg": 197,
+                "lot": 210360
+            },
+            {
+                "code": "PRDA",
+                "value": 3971188000,
+                "avg": 2638,
+                "lot": 15055
+            },
+            {
+                "code": "INDF",
+                "value": 3839660000,
+                "avg": 6402,
+                "lot": 5998
+            },
+            {
+                "code": "IRSX",
+                "value": 3758705200,
+                "avg": 279,
+                "lot": 134789
+            },
+            {
+                "code": "CNMA",
+                "value": 3743421500,
+                "avg": 91,
+                "lot": 413223
+            },
+            {
+                "code": "TOTL",
+                "value": 3386651500,
+                "avg": 1056,
+                "lot": 32072
+            },
+            {
+                "code": "ICBP",
+                "value": 3378047500,
+                "avg": 6838,
+                "lot": 4940
+            },
+            {
+                "code": "APLN",
+                "value": 2684500500,
+                "avg": 119,
+                "lot": 224652
+            },
+            {
+                "code": "WINS",
+                "value": 2645276600,
+                "avg": 531,
+                "lot": 49837
+            },
+            {
+                "code": "GULA",
+                "value": 2511967500,
+                "avg": 764,
+                "lot": 32883
+            },
+            {
+                "code": "BMHS",
+                "value": 2263168400,
+                "avg": 186,
+                "lot": 121711
+            },
+            {
+                "code": "OASA",
+                "value": 2201862400,
+                "avg": 379,
+                "lot": 58030
+            },
+            {
+                "code": "BEEF",
+                "value": 2173779900,
+                "avg": 280,
+                "lot": 77632
+            },
+            {
+                "code": "EMMI",
+                "value": 2107860400,
+                "avg": 538,
+                "lot": 39180
+            },
+            {
+                "code": "FORU",
+                "value": 2078987000,
+                "avg": 3041,
+                "lot": 6837
+            },
+            {
+                "code": "IMPC",
+                "value": 2020040000,
+                "avg": 1392,
+                "lot": 14516
+            },
+            {
+                "code": "BNGA",
+                "value": 2017028000,
+                "avg": 1670,
+                "lot": 12077
+            },
+            {
+                "code": "SOFA",
+                "value": 1969070700,
+                "avg": 203,
+                "lot": 97008
+            },
+            {
+                "code": "SCMA",
+                "value": 1895935600,
+                "avg": 206,
+                "lot": 92125
+            },
+            {
+                "code": "MBSS",
+                "value": 1874175000,
+                "avg": 2886,
+                "lot": 6494
+            },
+            {
+                "code": "BNBR-R",
+                "value": 1859954400,
+                "avg": 50,
+                "lot": 371111
+            },
+            {
+                "code": "INTP",
+                "value": 1856299000,
+                "avg": 4189,
+                "lot": 4431
+            },
+            {
+                "code": "MPMX",
+                "value": 1735431000,
+                "avg": 1004,
+                "lot": 17284
+            },
+            {
+                "code": "TSPC",
+                "value": 1670774000,
+                "avg": 2634,
+                "lot": 6344
+            },
+            {
+                "code": "SMIL",
+                "value": 1418369200,
+                "avg": 349,
+                "lot": 40688
+            },
+            {
+                "code": "BSSR",
+                "value": 1369842000,
+                "avg": 4331,
+                "lot": 3163
+            },
+            {
+                "code": "HRUM",
+                "value": 1332385500,
+                "avg": 820,
+                "lot": 16254
+            },
+            {
+                "code": "CDIA",
+                "value": 1328798000,
+                "avg": 713,
+                "lot": 18632
+            },
+            {
+                "code": "ASGR",
+                "value": 1317926000,
+                "avg": 1873,
+                "lot": 7036
+            },
+            {
+                "code": "CPIN",
+                "value": 1308509000,
+                "avg": 3281,
+                "lot": 3988
+            },
+            {
+                "code": "FUTR",
+                "value": 1267269900,
+                "avg": 312,
+                "lot": 40616
+            },
+            {
+                "code": "BOBA",
+                "value": 1255772400,
+                "avg": 252,
+                "lot": 49857
+            },
+            {
+                "code": "MEDC",
+                "value": 1200781500,
+                "avg": 878,
+                "lot": 13672
+            },
+            {
+                "code": "TRON",
+                "value": 1164976400,
+                "avg": 111,
+                "lot": 104483
+            },
+            {
+                "code": "DRMA",
+                "value": 1123390000,
+                "avg": 920,
+                "lot": 12217
+            },
+            {
+                "code": "RALS",
+                "value": 1117379000,
+                "avg": 377,
+                "lot": 29601
+            },
+            {
+                "code": "PAMG",
+                "value": 1071160300,
+                "avg": 60,
+                "lot": 177766
+            },
+            {
+                "code": "GIAA",
+                "value": 1038792600,
+                "avg": 53,
+                "lot": 195379
+            },
+            {
+                "code": "SOLA",
+                "value": 1026894300,
+                "avg": 95,
+                "lot": 108312
+            },
+            {
+                "code": "STRK",
+                "value": 1008902200,
+                "avg": 69,
+                "lot": 145447
+            },
+            {
+                "code": "DWGL",
+                "value": 981278400,
+                "avg": 330,
+                "lot": 29702
+            },
+            {
+                "code": "IPCC",
+                "value": 978130500,
+                "avg": 1150,
+                "lot": 8505
+            },
+            {
+                "code": "WBSA",
+                "value": 943279000,
+                "avg": 593,
+                "lot": 15894
+            },
+            {
+                "code": "HEAL",
+                "value": 943193000,
+                "avg": 435,
+                "lot": 21666
+            },
+            {
+                "code": "NRCA",
+                "value": 916041900,
+                "avg": 466,
+                "lot": 19667
+            },
+            {
+                "code": "SMGR",
+                "value": 857019500,
+                "avg": 1830,
+                "lot": 4683
+            },
+            {
+                "code": "ASRI",
+                "value": 830558800,
+                "avg": 122,
+                "lot": 67805
+            },
+            {
+                "code": "ELPI",
+                "value": 789149500,
+                "avg": 977,
+                "lot": 8081
+            },
+            {
+                "code": "TBLA",
+                "value": 780830000,
+                "avg": 642,
+                "lot": 12160
+            },
+            {
+                "code": "PART",
+                "value": 780740100,
+                "avg": 106,
+                "lot": 73802
+            },
+            {
+                "code": "PIPA",
+                "value": 780070800,
+                "avg": 131,
+                "lot": 59369
+            },
+            {
+                "code": "CSRA",
+                "value": 776035500,
+                "avg": 757,
+                "lot": 10246
+            },
+            {
+                "code": "ATAP",
+                "value": 774197800,
+                "avg": 532,
+                "lot": 14560
+            },
+            {
+                "code": "HERO",
+                "value": 765376400,
+                "avg": 335,
+                "lot": 22871
+            },
+            {
+                "code": "SSMS",
+                "value": 754085000,
+                "avg": 778,
+                "lot": 9696
+            },
+            {
+                "code": "NSSS",
+                "value": 750395000,
+                "avg": 1072,
+                "lot": 6997
+            },
+            {
+                "code": "TRIN",
+                "value": 729363600,
+                "avg": 314,
+                "lot": 23260
+            },
+            {
+                "code": "NISP",
+                "value": 719620500,
+                "avg": 1260,
+                "lot": 5711
+            },
+            {
+                "code": "BNLI",
+                "value": 719095000,
+                "avg": 2087,
+                "lot": 3445
+            },
+            {
+                "code": "BIRD",
+                "value": 717740000,
+                "avg": 1561,
+                "lot": 4599
+            },
+            {
+                "code": "FPNI",
+                "value": 714749900,
+                "avg": 414,
+                "lot": 17258
+            },
+            {
+                "code": "AYAM",
+                "value": 707665000,
+                "avg": 388,
+                "lot": 18216
+            },
+            {
+                "code": "PSKT",
+                "value": 689630200,
+                "avg": 209,
+                "lot": 32959
+            },
+            {
+                "code": "TPMA",
+                "value": 687701800,
+                "avg": 455,
+                "lot": 15101
+            },
+            {
+                "code": "BDMN",
+                "value": 685795000,
+                "avg": 4080,
+                "lot": 1681
+            },
+            {
+                "code": "HOPE",
+                "value": 684878500,
+                "avg": 167,
+                "lot": 41035
+            },
+            {
+                "code": "AGII",
+                "value": 668795000,
+                "avg": 3162,
+                "lot": 2115
+            },
+            {
+                "code": "DKFT",
+                "value": 663201000,
+                "avg": 635,
+                "lot": 10448
+            },
+            {
+                "code": "GJTL",
+                "value": 637005500,
+                "avg": 1405,
+                "lot": 4534
+            },
+            {
+                "code": "BAJA",
+                "value": 635363300,
+                "avg": 440,
+                "lot": 14425
+            },
+            {
+                "code": "BBKP",
+                "value": 582675000,
+                "avg": 51,
+                "lot": 113501
+            },
+            {
+                "code": "WMUU",
+                "value": 581130700,
+                "avg": 54,
+                "lot": 108151
+            },
+            {
+                "code": "PANI",
+                "value": 563940000,
+                "avg": 7324,
+                "lot": 770
+            },
+            {
+                "code": "BTPS",
+                "value": 560385000,
+                "avg": 998,
+                "lot": 5617
+            },
+            {
+                "code": "SMDR",
+                "value": 551655400,
+                "avg": 317,
+                "lot": 17380
+            },
+            {
+                "code": "BLUE",
+                "value": 500674000,
+                "avg": 2957,
+                "lot": 1693
+            },
+            {
+                "code": "TFAS",
+                "value": 493983800,
+                "avg": 176,
+                "lot": 28128
+            },
+            {
+                "code": "BAPA",
+                "value": 493892000,
+                "avg": 1589,
+                "lot": 3109
+            },
+            {
+                "code": "MLBI",
+                "value": 489090000,
+                "avg": 6513,
+                "lot": 751
+            },
+            {
+                "code": "PRIM",
+                "value": 476722300,
+                "avg": 102,
+                "lot": 46718
+            },
+            {
+                "code": "AGRS",
+                "value": 470235000,
+                "avg": 60,
+                "lot": 77973
+            },
+            {
+                "code": "FAST",
+                "value": 464168200,
+                "avg": 298,
+                "lot": 15600
+            },
+            {
+                "code": "TOBA",
+                "value": 429231000,
+                "avg": 456,
+                "lot": 9414
+            },
+            {
+                "code": "IPCM",
+                "value": 416742800,
+                "avg": 319,
+                "lot": 13058
+            },
+            {
+                "code": "ABMM",
+                "value": 398543000,
+                "avg": 2661,
+                "lot": 1498
+            },
+            {
+                "code": "WGSH",
+                "value": 396433800,
+                "avg": 152,
+                "lot": 26088
+            },
+            {
+                "code": "VIVA",
+                "value": 389441200,
+                "avg": 33,
+                "lot": 116643
+            },
+            {
+                "code": "OILS",
+                "value": 376981800,
+                "avg": 257,
+                "lot": 14670
+            },
+            {
+                "code": "GGRP",
+                "value": 374790000,
+                "avg": 292,
+                "lot": 12835
+            },
+            {
+                "code": "HATM",
+                "value": 372176000,
+                "avg": 545,
+                "lot": 6827
+            },
+            {
+                "code": "GPRA",
+                "value": 371652100,
+                "avg": 100,
+                "lot": 37164
+            },
+            {
+                "code": "AMOR",
+                "value": 355609800,
+                "avg": 326,
+                "lot": 10919
+            },
+            {
+                "code": "RBMS",
+                "value": 350175800,
+                "avg": 77,
+                "lot": 45184
+            },
+            {
+                "code": "MCOR",
+                "value": 331903400,
+                "avg": 69,
+                "lot": 48030
+            },
+            {
+                "code": "BYAN",
+                "value": 330100000,
+                "avg": 11502,
+                "lot": 287
+            },
+            {
+                "code": "DOSS",
+                "value": 329030600,
+                "avg": 195,
+                "lot": 16885
+            },
+            {
+                "code": "MINA",
+                "value": 324991000,
+                "avg": 160,
+                "lot": 20295
+            },
+            {
+                "code": "IRRA",
+                "value": 323776800,
+                "avg": 372,
+                "lot": 8707
+            },
+            {
+                "code": "LEAD",
+                "value": 322847400,
+                "avg": 112,
+                "lot": 28900
+            },
+            {
+                "code": "AMFG",
+                "value": 315696000,
+                "avg": 3192,
+                "lot": 989
+            },
+            {
+                "code": "COCO-R",
+                "value": 305311800,
+                "avg": 11,
+                "lot": 278674
+            },
+            {
+                "code": "UNIC",
+                "value": 302550000,
+                "avg": 12766,
+                "lot": 237
+            },
+            {
+                "code": "MMIX",
+                "value": 277701700,
+                "avg": 1535,
+                "lot": 1809
+            },
+            {
+                "code": "COIN",
+                "value": 276900000,
+                "avg": 579,
+                "lot": 4780
+            },
+            {
+                "code": "BBHI",
+                "value": 276616000,
+                "avg": 909,
+                "lot": 3042
+            },
+            {
+                "code": "UCID",
+                "value": 271558200,
+                "avg": 383,
+                "lot": 7088
+            },
+            {
+                "code": "NELY",
+                "value": 269672600,
+                "avg": 203,
+                "lot": 13285
+            },
+            {
+                "code": "ELIT",
+                "value": 257071700,
+                "avg": 186,
+                "lot": 13853
+            },
+            {
+                "code": "SICO",
+                "value": 253288000,
+                "avg": 109,
+                "lot": 23237
+            },
+            {
+                "code": "SGRO",
+                "value": 247810000,
+                "avg": 3206,
+                "lot": 773
+            },
+            {
+                "code": "EURO",
+                "value": 247468000,
+                "avg": 2137,
+                "lot": 1158
+            },
+            {
+                "code": "PKPK",
+                "value": 246790000,
+                "avg": 3838,
+                "lot": 643
+            },
+            {
+                "code": "JARR",
+                "value": 245497500,
+                "avg": 1792,
+                "lot": 1370
+            },
+            {
+                "code": "KOKA",
+                "value": 242567700,
+                "avg": 282,
+                "lot": 8593
+            },
+            {
+                "code": "EPMT",
+                "value": 235300000,
+                "avg": 2296,
+                "lot": 1025
+            },
+            {
+                "code": "PPRE",
+                "value": 233483900,
+                "avg": 93,
+                "lot": 25186
+            },
+            {
+                "code": "GTRA",
+                "value": 225145800,
+                "avg": 233,
+                "lot": 9669
+            },
+            {
+                "code": "CLPI",
+                "value": 223567500,
+                "avg": 1483,
+                "lot": 1508
+            },
+            {
+                "code": "TAMA",
+                "value": 223386300,
+                "avg": 531,
+                "lot": 4207
+            },
+            {
+                "code": "OKAS",
+                "value": 222090700,
+                "avg": 105,
+                "lot": 21250
+            },
+            {
+                "code": "SMAR",
+                "value": 221053500,
+                "avg": 5513,
+                "lot": 401
+            },
+            {
+                "code": "LPCK",
+                "value": 220854600,
+                "avg": 513,
+                "lot": 4309
+            },
+            {
+                "code": "BCIP",
+                "value": 213892200,
+                "avg": 59,
+                "lot": 35953
+            },
+            {
+                "code": "RLCO",
+                "value": 209547000,
+                "avg": 3024,
+                "lot": 693
+            },
+            {
+                "code": "MAPB",
+                "value": 206035500,
+                "avg": 1194,
+                "lot": 1726
+            },
+            {
+                "code": "BMTR",
+                "value": 205024000,
+                "avg": 114,
+                "lot": 18000
+            },
+            {
+                "code": "VTNY",
+                "value": 194037500,
+                "avg": 67,
+                "lot": 28859
+            },
+            {
+                "code": "KMDS",
+                "value": 191909000,
+                "avg": 533,
+                "lot": 3601
+            },
+            {
+                "code": "KOCI",
+                "value": 191868900,
+                "avg": 100,
+                "lot": 19175
+            },
+            {
+                "code": "INOV",
+                "value": 191428100,
+                "avg": 144,
+                "lot": 13328
+            },
+            {
+                "code": "MNCN",
+                "value": 191243000,
+                "avg": 184,
+                "lot": 10403
+            },
+            {
+                "code": "CITA",
+                "value": 188743000,
+                "avg": 3099,
+                "lot": 609
+            },
+            {
+                "code": "BIPP",
+                "value": 181762100,
+                "avg": 69,
+                "lot": 26351
+            },
+            {
+                "code": "JAYA",
+                "value": 181002800,
+                "avg": 136,
+                "lot": 13345
+            },
+            {
+                "code": "BGTG",
+                "value": 178340900,
+                "avg": 115,
+                "lot": 15556
+            },
+            {
+                "code": "MDLA",
+                "value": 175467600,
+                "avg": 208,
+                "lot": 8440
+            },
+            {
+                "code": "PMUI",
+                "value": 170466800,
+                "avg": 79,
+                "lot": 21569
+            },
+            {
+                "code": "MSTI",
+                "value": 169747500,
+                "avg": 1341,
+                "lot": 1266
+            },
+            {
+                "code": "ASLC",
+                "value": 166274500,
+                "avg": 62,
+                "lot": 26711
+            },
+            {
+                "code": "PDPP",
+                "value": 165741400,
+                "avg": 256,
+                "lot": 6473
+            },
+            {
+                "code": "PTPS",
+                "value": 163805900,
+                "avg": 143,
+                "lot": 11440
+            },
+            {
+                "code": "TMPO",
+                "value": 161092700,
+                "avg": 140,
+                "lot": 11538
+            },
+            {
+                "code": "SINI-R",
+                "value": 153668400,
+                "avg": 6247,
+                "lot": 246
+            },
+            {
+                "code": "LABA",
+                "value": 153090000,
+                "avg": 99,
+                "lot": 15459
+            },
+            {
+                "code": "AMMS",
+                "value": 153068000,
+                "avg": 248,
+                "lot": 6183
+            },
+            {
+                "code": "HDIT",
+                "value": 152853900,
+                "avg": 52,
+                "lot": 29614
+            },
+            {
+                "code": "ASMI",
+                "value": 152491300,
+                "avg": 24,
+                "lot": 64875
+            },
+            {
+                "code": "KAQI",
+                "value": 150773200,
+                "avg": 98,
+                "lot": 15437
+            },
+            {
+                "code": "CASS",
+                "value": 145749000,
+                "avg": 1959,
+                "lot": 744
+            },
+            {
+                "code": "SMLE",
+                "value": 143372300,
+                "avg": 151,
+                "lot": 9497
+            },
+            {
+                "code": "MLPL",
+                "value": 142432000,
+                "avg": 90,
+                "lot": 15812
+            },
+            {
+                "code": "ASLI",
+                "value": 138200700,
+                "avg": 212,
+                "lot": 6510
+            },
+            {
+                "code": "HAIS",
+                "value": 138016300,
+                "avg": 181,
+                "lot": 7637
+            },
+            {
+                "code": "RMKO",
+                "value": 137907000,
+                "avg": 137,
+                "lot": 10063
+            },
+            {
+                "code": "MPIX",
+                "value": 135790500,
+                "avg": 100,
+                "lot": 13594
+            },
+            {
+                "code": "CARS",
+                "value": 135638600,
+                "avg": 99,
+                "lot": 13715
+            },
+            {
+                "code": "TOSK",
+                "value": 134060700,
+                "avg": 63,
+                "lot": 21392
+            },
+            {
+                "code": "ISEA",
+                "value": 133219800,
+                "avg": 81,
+                "lot": 16491
+            },
+            {
+                "code": "WTON",
+                "value": 128631400,
+                "avg": 70,
+                "lot": 18328
+            },
+            {
+                "code": "PJAA",
+                "value": 126718600,
+                "avg": 444,
+                "lot": 2856
+            },
+            {
+                "code": "BRNA",
+                "value": 123858500,
+                "avg": 601,
+                "lot": 2060
+            },
+            {
+                "code": "KBLV",
+                "value": 123679800,
+                "avg": 119,
+                "lot": 10360
+            },
+            {
+                "code": "ESTA",
+                "value": 119356300,
+                "avg": 191,
+                "lot": 6235
+            },
+            {
+                "code": "JAWA",
+                "value": 117083700,
+                "avg": 133,
+                "lot": 8788
+            },
+            {
+                "code": "IKBI",
+                "value": 115965000,
+                "avg": 554,
+                "lot": 2093
+            },
+            {
+                "code": "MKPI",
+                "value": 114422500,
+                "avg": 21589,
+                "lot": 53
+            },
+            {
+                "code": "SPTO",
+                "value": 114172500,
+                "avg": 597,
+                "lot": 1912
+            },
+            {
+                "code": "CITY",
+                "value": 113995000,
+                "avg": 173,
+                "lot": 6598
+            },
+            {
+                "code": "SWID",
+                "value": 111079400,
+                "avg": 106,
+                "lot": 10505
+            },
+            {
+                "code": "MBAP",
+                "value": 110466000,
+                "avg": 1402,
+                "lot": 788
+            },
+            {
+                "code": "DKHH",
+                "value": 108406600,
+                "avg": 69,
+                "lot": 15730
+            },
+            {
+                "code": "FIRE",
+                "value": 105638400,
+                "avg": 100,
+                "lot": 10597
+            },
+            {
+                "code": "HRME",
+                "value": 103767300,
+                "avg": 47,
+                "lot": 21918
+            },
+            {
+                "code": "SAGE",
+                "value": 100351700,
+                "avg": 32,
+                "lot": 31258
+            },
+            {
+                "code": "BUAH",
+                "value": 99242100,
+                "avg": 505,
+                "lot": 1964
+            },
+            {
+                "code": "BMSR",
+                "value": 99190800,
+                "avg": 310,
+                "lot": 3204
+            },
+            {
+                "code": "UNTD",
+                "value": 98521400,
+                "avg": 89,
+                "lot": 11101
+            },
+            {
+                "code": "RONY",
+                "value": 98099000,
+                "avg": 1108,
+                "lot": 885
+            },
+            {
+                "code": "PSAT",
+                "value": 96252000,
+                "avg": 837,
+                "lot": 1150
+            },
+            {
+                "code": "MHKI",
+                "value": 95306200,
+                "avg": 149,
+                "lot": 6384
+            },
+            {
+                "code": "PCAR",
+                "value": 94867200,
+                "avg": 42,
+                "lot": 22754
+            },
+            {
+                "code": "CENT",
+                "value": 94798200,
+                "avg": 75,
+                "lot": 12668
+            },
+            {
+                "code": "XIJI",
+                "value": 94328300,
+                "avg": 499,
+                "lot": 1889
+            },
+            {
+                "code": "TRUK",
+                "value": 91649100,
+                "avg": 471,
+                "lot": 1946
+            },
+            {
+                "code": "INPC",
+                "value": 89627200,
+                "avg": 150,
+                "lot": 5966
+            },
+            {
+                "code": "MERK",
+                "value": 89265000,
+                "avg": 3932,
+                "lot": 227
+            },
+            {
+                "code": "ATIC",
+                "value": 88475400,
+                "avg": 511,
+                "lot": 1731
+            },
+            {
+                "code": "RCCC",
+                "value": 88128600,
+                "avg": 93,
+                "lot": 9482
+            },
+            {
+                "code": "R-LQ45X",
+                "value": 84438200,
+                "avg": 791,
+                "lot": 1067
+            },
+            {
+                "code": "ELTY",
+                "value": 83292000,
+                "avg": 24,
+                "lot": 35277
+            },
+            {
+                "code": "ERAL",
+                "value": 82805800,
+                "avg": 226,
+                "lot": 3661
+            },
+            {
+                "code": "DOID",
+                "value": 82786300,
+                "avg": 235,
+                "lot": 3517
+            },
+            {
+                "code": "BSML",
+                "value": 82634400,
+                "avg": 543,
+                "lot": 1523
+            },
+            {
+                "code": "XIHD",
+                "value": 80479600,
+                "avg": 592,
+                "lot": 1359
+            },
+            {
+                "code": "MRAT",
+                "value": 78505600,
+                "avg": 443,
+                "lot": 1773
+            },
+            {
+                "code": "ASPR",
+                "value": 78196400,
+                "avg": 116,
+                "lot": 6765
+            },
+            {
+                "code": "ASHA",
+                "value": 77721700,
+                "avg": 55,
+                "lot": 14237
+            },
+            {
+                "code": "ESIP",
+                "value": 74895700,
+                "avg": 94,
+                "lot": 7932
+            },
+            {
+                "code": "LTLS",
+                "value": 74830000,
+                "avg": 773,
+                "lot": 968
+            },
+            {
+                "code": "BCIC",
+                "value": 72833400,
+                "avg": 143,
+                "lot": 5104
+            },
+            {
+                "code": "TNCA",
+                "value": 72118300,
+                "avg": 144,
+                "lot": 5005
+            },
+            {
+                "code": "KAEF",
+                "value": 71524900,
+                "avg": 453,
+                "lot": 1578
+            },
+            {
+                "code": "WAPO",
+                "value": 71152500,
+                "avg": 110,
+                "lot": 6497
+            },
+            {
+                "code": "BUMIZPCZ6A",
+                "value": 70000000,
+                "avg": 7,
+                "lot": 100000
+            },
+            {
+                "code": "INPS",
+                "value": 65883500,
+                "avg": 718,
+                "lot": 918
+            },
+            {
+                "code": "INDS",
+                "value": 65739600,
+                "avg": 285,
+                "lot": 2307
+            },
+            {
+                "code": "HDFA",
+                "value": 64257000,
+                "avg": 90,
+                "lot": 7103
+            },
+            {
+                "code": "PSSI",
+                "value": 63393600,
+                "avg": 325,
+                "lot": 1952
+            },
+            {
+                "code": "IPAC",
+                "value": 62202600,
+                "avg": 169,
+                "lot": 3686
+            },
+            {
+                "code": "AYLS",
+                "value": 60949300,
+                "avg": 163,
+                "lot": 3739
+            },
+            {
+                "code": "KBLI",
+                "value": 60897400,
+                "avg": 348,
+                "lot": 1749
+            },
+            {
+                "code": "BUMIZPCG7A",
+                "value": 60000000,
+                "avg": 10,
+                "lot": 60000
+            },
+            {
+                "code": "XIIT",
+                "value": 59642900,
+                "avg": 438,
+                "lot": 1363
+            },
+            {
+                "code": "SMMT",
+                "value": 59081500,
+                "avg": 1906,
+                "lot": 310
+            },
+            {
+                "code": "DGIK",
+                "value": 58514500,
+                "avg": 135,
+                "lot": 4319
+            },
+            {
+                "code": "SURI",
+                "value": 58437700,
+                "avg": 71,
+                "lot": 8179
+            },
+            {
+                "code": "ZYRX",
+                "value": 58044200,
+                "avg": 128,
+                "lot": 4520
+            },
+            {
+                "code": "TRIS",
+                "value": 57713300,
+                "avg": 165,
+                "lot": 3508
+            },
+            {
+                "code": "ERTX",
+                "value": 57661000,
+                "avg": 172,
+                "lot": 3345
+            },
+            {
+                "code": "ALKA",
+                "value": 56962100,
+                "avg": 1295,
+                "lot": 440
+            },
+            {
+                "code": "PMJS",
+                "value": 55754900,
+                "avg": 110,
+                "lot": 5075
+            },
+            {
+                "code": "BLOG",
+                "value": 55214200,
+                "avg": 405,
+                "lot": 1362
+            },
+            {
+                "code": "GUNA",
+                "value": 54724500,
+                "avg": 195,
+                "lot": 2807
+            },
+            {
+                "code": "SDPC",
+                "value": 51805000,
+                "avg": 199,
+                "lot": 2600
+            },
+            {
+                "code": "IDEA",
+                "value": 49929400,
+                "avg": 60,
+                "lot": 8261
+            },
+            {
+                "code": "MPOW",
+                "value": 49837900,
+                "avg": 105,
+                "lot": 4760
+            },
+            {
+                "code": "BABP",
+                "value": 47810000,
+                "avg": 50,
+                "lot": 9562
+            },
+            {
+                "code": "NASI",
+                "value": 47189000,
+                "avg": 149,
+                "lot": 3165
+            },
+            {
+                "code": "GRPM",
+                "value": 47024200,
+                "avg": 372,
+                "lot": 1264
+            },
+            {
+                "code": "MICE",
+                "value": 46296500,
+                "avg": 524,
+                "lot": 884
+            },
+            {
+                "code": "NZIA",
+                "value": 45427800,
+                "avg": 126,
+                "lot": 3599
+            },
+            {
+                "code": "SCCO",
+                "value": 44823000,
+                "avg": 2230,
+                "lot": 201
+            },
+            {
+                "code": "KLAS",
+                "value": 44268700,
+                "avg": 71,
+                "lot": 6268
+            },
+            {
+                "code": "EKAD",
+                "value": 43458100,
+                "avg": 167,
+                "lot": 2597
+            },
+            {
+                "code": "BNBA",
+                "value": 42986500,
+                "avg": 741,
+                "lot": 580
+            },
+            {
+                "code": "TRUS",
+                "value": 42628400,
+                "avg": 446,
+                "lot": 956
+            },
+            {
+                "code": "SLIS",
+                "value": 41924900,
+                "avg": 71,
+                "lot": 5897
+            },
+            {
+                "code": "INET-W2",
+                "value": 41486600,
+                "avg": 61,
+                "lot": 6753
+            },
+            {
+                "code": "SUNI",
+                "value": 40256500,
+                "avg": 724,
+                "lot": 556
+            },
+            {
+                "code": "CBUT",
+                "value": 40221500,
+                "avg": 755,
+                "lot": 533
+            },
+            {
+                "code": "NAYZ",
+                "value": 40196400,
+                "avg": 48,
+                "lot": 8293
+            },
+            {
+                "code": "LPPS",
+                "value": 40192500,
+                "avg": 80,
+                "lot": 4999
+            },
+            {
+                "code": "MKAP",
+                "value": 40138500,
+                "avg": 1160,
+                "lot": 346
+            },
+            {
+                "code": "RMKO-R",
+                "value": 40075000,
+                "avg": 13,
+                "lot": 30170
+            },
+            {
+                "code": "PURI",
+                "value": 39134900,
+                "avg": 142,
+                "lot": 2754
+            },
+            {
+                "code": "ELPI-R",
+                "value": 38858500,
+                "avg": 651,
+                "lot": 597
+            },
+            {
+                "code": "KOPI",
+                "value": 35922600,
+                "avg": 251,
+                "lot": 1429
+            },
+            {
+                "code": "PURA",
+                "value": 35821400,
+                "avg": 35,
+                "lot": 10205
+            },
+            {
+                "code": "MINE",
+                "value": 35211600,
+                "avg": 197,
+                "lot": 1790
+            },
+            {
+                "code": "IPTV",
+                "value": 34994900,
+                "avg": 29,
+                "lot": 12047
+            },
+            {
+                "code": "MIRA",
+                "value": 34639700,
+                "avg": 23,
+                "lot": 14864
+            },
+            {
+                "code": "IFII",
+                "value": 33987200,
+                "avg": 207,
+                "lot": 1638
+            },
+            {
+                "code": "MTMH",
+                "value": 33712500,
+                "avg": 911,
+                "lot": 370
+            },
+            {
+                "code": "CBPE",
+                "value": 33406000,
+                "avg": 346,
+                "lot": 966
+            },
+            {
+                "code": "IMJS",
+                "value": 33300600,
+                "avg": 141,
+                "lot": 2370
+            },
+            {
+                "code": "BANK",
+                "value": 33086000,
+                "avg": 237,
+                "lot": 1396
+            },
+            {
+                "code": "FWCT",
+                "value": 32833200,
+                "avg": 83,
+                "lot": 3960
+            },
+            {
+                "code": "INAI",
+                "value": 32556500,
+                "avg": 149,
+                "lot": 2188
+            },
+            {
+                "code": "PANS",
+                "value": 32043000,
+                "avg": 1393,
+                "lot": 230
+            },
+            {
+                "code": "PSGO",
+                "value": 32012500,
+                "avg": 193,
+                "lot": 1661
+            },
+            {
+                "code": "JTPE",
+                "value": 30761500,
+                "avg": 756,
+                "lot": 407
+            },
+            {
+                "code": "PTPW",
+                "value": 30496000,
+                "avg": 1230,
+                "lot": 248
+            },
+            {
+                "code": "HUMI-W",
+                "value": 30209400,
+                "avg": 2,
+                "lot": 146898
+            },
+            {
+                "code": "NAIK",
+                "value": 30067300,
+                "avg": 81,
+                "lot": 3721
+            },
+            {
+                "code": "BTEK",
+                "value": 29406500,
+                "avg": 13,
+                "lot": 22889
+            },
+            {
+                "code": "DEFI",
+                "value": 29244200,
+                "avg": 68,
+                "lot": 4271
+            },
+            {
+                "code": "CHIP",
+                "value": 29241500,
+                "avg": 920,
+                "lot": 318
+            },
+            {
+                "code": "GRPH",
+                "value": 28735000,
+                "avg": 61,
+                "lot": 4702
+            },
+            {
+                "code": "XIID",
+                "value": 28729100,
+                "avg": 435,
+                "lot": 660
+            },
+            {
+                "code": "MUTU",
+                "value": 28472800,
+                "avg": 117,
+                "lot": 2441
+            },
+            {
+                "code": "SOTS",
+                "value": 27270500,
+                "avg": 580,
+                "lot": 470
+            },
+            {
+                "code": "PORT",
+                "value": 26372000,
+                "avg": 939,
+                "lot": 281
+            },
+            {
+                "code": "RSGK",
+                "value": 26056500,
+                "avg": 1277,
+                "lot": 204
+            },
+            {
+                "code": "CARE",
+                "value": 23307000,
+                "avg": 428,
+                "lot": 544
+            },
+            {
+                "code": "XISR",
+                "value": 23039300,
+                "avg": 390,
+                "lot": 591
+            },
+            {
+                "code": "DAAZ",
+                "value": 22933000,
+                "avg": 1849,
+                "lot": 124
+            },
+            {
+                "code": "SMDM",
+                "value": 22834000,
+                "avg": 554,
+                "lot": 412
+            },
+            {
+                "code": "PTSN",
+                "value": 22710600,
+                "avg": 271,
+                "lot": 839
+            },
+            {
+                "code": "HELI",
+                "value": 22307300,
+                "avg": 660,
+                "lot": 338
+            },
+            {
+                "code": "ITMA",
+                "value": 21934500,
+                "avg": 1290,
+                "lot": 170
+            },
+            {
+                "code": "SBMA",
+                "value": 21870300,
+                "avg": 104,
+                "lot": 2093
+            },
+            {
+                "code": "GEMA",
+                "value": 21761000,
+                "avg": 94,
+                "lot": 2307
+            },
+            {
+                "code": "NPGF",
+                "value": 21363100,
+                "avg": 80,
+                "lot": 2673
+            },
+            {
+                "code": "BUDI",
+                "value": 20684800,
+                "avg": 222,
+                "lot": 932
+            },
+            {
+                "code": "POLA",
+                "value": 20660200,
+                "avg": 69,
+                "lot": 3004
+            },
+            {
+                "code": "HEXA",
+                "value": 20600000,
+                "avg": 3962,
+                "lot": 52
+            },
+            {
+                "code": "SKBM",
+                "value": 20452700,
+                "avg": 378,
+                "lot": 541
+            },
+            {
+                "code": "FLMC",
+                "value": 19945700,
+                "avg": 50,
+                "lot": 4002
+            },
+            {
+                "code": "PTSP",
+                "value": 19871000,
+                "avg": 883,
+                "lot": 225
+            },
+            {
+                "code": "COCO-W",
+                "value": 19496900,
+                "avg": 30,
+                "lot": 6456
+            },
+            {
+                "code": "ASDM",
+                "value": 19121800,
+                "avg": 540,
+                "lot": 354
+            },
+            {
+                "code": "KMTR",
+                "value": 19038000,
+                "avg": 230,
+                "lot": 828
+            },
+            {
+                "code": "APII",
+                "value": 18599600,
+                "avg": 184,
+                "lot": 1012
+            },
+            {
+                "code": "KING",
+                "value": 18534600,
+                "avg": 366,
+                "lot": 506
+            },
+            {
+                "code": "VICO",
+                "value": 18471000,
+                "avg": 153,
+                "lot": 1210
+            },
+            {
+                "code": "XILV",
+                "value": 18064700,
+                "avg": 108,
+                "lot": 1673
+            },
+            {
+                "code": "STAA",
+                "value": 17141000,
+                "avg": 2017,
+                "lot": 85
+            },
+            {
+                "code": "MAYA",
+                "value": 17039100,
+                "avg": 382,
+                "lot": 446
+            },
+            {
+                "code": "BAYU",
+                "value": 16635500,
+                "avg": 1094,
+                "lot": 152
+            },
+            {
+                "code": "IDPR",
+                "value": 16620200,
+                "avg": 295,
+                "lot": 563
+            },
+            {
+                "code": "NFCX",
+                "value": 15616500,
+                "avg": 1516,
+                "lot": 103
+            },
+            {
+                "code": "LION",
+                "value": 15489600,
+                "avg": 518,
+                "lot": 299
+            },
+            {
+                "code": "DUTI",
+                "value": 15306000,
+                "avg": 4252,
+                "lot": 36
+            },
+            {
+                "code": "XSPI",
+                "value": 14911000,
+                "avg": 594,
+                "lot": 251
+            },
+            {
+                "code": "UANG",
+                "value": 14415500,
+                "avg": 2827,
+                "lot": 51
+            },
+            {
+                "code": "GDYR",
+                "value": 14385500,
+                "avg": 1133,
+                "lot": 127
+            },
+            {
+                "code": "GEMS",
+                "value": 13465000,
+                "avg": 6120,
+                "lot": 22
+            },
+            {
+                "code": "MANG",
+                "value": 13335100,
+                "avg": 46,
+                "lot": 2880
+            },
+            {
+                "code": "OLIV",
+                "value": 12959600,
+                "avg": 49,
+                "lot": 2621
+            },
+            {
+                "code": "TIFA",
+                "value": 12517400,
+                "avg": 4814,
+                "lot": 26
+            },
+            {
+                "code": "ASRM",
+                "value": 12396000,
+                "avg": 249,
+                "lot": 497
+            },
+            {
+                "code": "FMII",
+                "value": 12003800,
+                "avg": 267,
+                "lot": 450
+            },
+            {
+                "code": "LMPI",
+                "value": 11992400,
+                "avg": 119,
+                "lot": 1010
+            },
+            {
+                "code": "IGAR",
+                "value": 11896600,
+                "avg": 454,
+                "lot": 262
+            },
+            {
+                "code": "VRNA",
+                "value": 11270900,
+                "avg": 76,
+                "lot": 1479
+            },
+            {
+                "code": "SOSS",
+                "value": 11071000,
+                "avg": 671,
+                "lot": 165
+            },
+            {
+                "code": "ADMG",
+                "value": 11027000,
+                "avg": 511,
+                "lot": 216
+            },
+            {
+                "code": "MPXL",
+                "value": 10877600,
+                "avg": 128,
+                "lot": 851
+            },
+            {
+                "code": "BATR",
+                "value": 10094900,
+                "avg": 87,
+                "lot": 1164
+            },
+            {
+                "code": "ACST",
+                "value": 10079800,
+                "avg": 77,
+                "lot": 1304
+            },
+            {
+                "code": "SMMA",
+                "value": 10037500,
+                "avg": 20075,
+                "lot": 5
+            },
+            {
+                "code": "ISAP-W",
+                "value": 10012300,
+                "avg": 12,
+                "lot": 8340
+            },
+            {
+                "code": "KICI",
+                "value": 9951700,
+                "avg": 198,
+                "lot": 503
+            },
+            {
+                "code": "SULI",
+                "value": 9506400,
+                "avg": 44,
+                "lot": 2183
+            },
+            {
+                "code": "SAFE",
+                "value": 9358000,
+                "avg": 388,
+                "lot": 241
+            },
+            {
+                "code": "BBSI",
+                "value": 9316000,
+                "avg": 4658,
+                "lot": 20
+            },
+            {
+                "code": "NIRO",
+                "value": 8973000,
+                "avg": 199,
+                "lot": 451
+            },
+            {
+                "code": "GDST",
+                "value": 8962600,
+                "avg": 39,
+                "lot": 2306
+            },
+            {
+                "code": "TCID",
+                "value": 8877000,
+                "avg": 2690,
+                "lot": 33
+            },
+            {
+                "code": "LINK",
+                "value": 8697500,
+                "avg": 1359,
+                "lot": 64
+            },
+            {
+                "code": "BOGA",
+                "value": 8684500,
+                "avg": 1524,
+                "lot": 57
+            },
+            {
+                "code": "XIIC",
+                "value": 8235200,
+                "avg": 742,
+                "lot": 111
+            },
+            {
+                "code": "GSMF",
+                "value": 8069500,
+                "avg": 887,
+                "lot": 91
+            },
+            {
+                "code": "INDO",
+                "value": 7613700,
+                "avg": 819,
+                "lot": 93
+            },
+            {
+                "code": "TOTO",
+                "value": 7325000,
+                "avg": 433,
+                "lot": 169
+            },
+            {
+                "code": "XPLQ",
+                "value": 7185300,
+                "avg": 479,
+                "lot": 150
+            },
+            {
+                "code": "KDSI",
+                "value": 7160200,
+                "avg": 448,
+                "lot": 160
+            },
+            {
+                "code": "DVLA",
+                "value": 6734500,
+                "avg": 1643,
+                "lot": 41
+            },
+            {
+                "code": "BBRM",
+                "value": 6732100,
+                "avg": 33,
+                "lot": 2012
+            },
+            {
+                "code": "FAPA",
+                "value": 6410000,
+                "avg": 7122,
+                "lot": 9
+            },
+            {
+                "code": "VOKS",
+                "value": 6408700,
+                "avg": 210,
+                "lot": 305
+            },
+            {
+                "code": "SNLK",
+                "value": 6321400,
+                "avg": 236,
+                "lot": 268
+            },
+            {
+                "code": "SRAJ",
+                "value": 6285000,
+                "avg": 12570,
+                "lot": 5
+            },
+            {
+                "code": "BPFI",
+                "value": 6240800,
+                "avg": 261,
+                "lot": 239
+            },
+            {
+                "code": "BMAS",
+                "value": 6154800,
+                "avg": 492,
+                "lot": 125
+            },
+            {
+                "code": "CYBR-W",
+                "value": 6015600,
+                "avg": 367,
+                "lot": 164
+            },
+            {
+                "code": "CLAY",
+                "value": 5969000,
+                "avg": 5969,
+                "lot": 10
+            },
+            {
+                "code": "KBAG",
+                "value": 5536400,
+                "avg": 53,
+                "lot": 1037
+            },
+            {
+                "code": "MLIA",
+                "value": 5476800,
+                "avg": 232,
+                "lot": 236
+            },
+            {
+                "code": "WEGE",
+                "value": 5464800,
+                "avg": 50,
+                "lot": 1089
+            },
+            {
+                "code": "ABDA",
+                "value": 5311000,
+                "avg": 3319,
+                "lot": 16
+            },
+            {
+                "code": "GHON",
+                "value": 4809500,
+                "avg": 1658,
+                "lot": 29
+            },
+            {
+                "code": "XPDV",
+                "value": 4761300,
+                "avg": 588,
+                "lot": 81
+            },
+            {
+                "code": "LOPI",
+                "value": 4656500,
+                "avg": 24,
+                "lot": 1918
+            },
+            {
+                "code": "KINO",
+                "value": 4379500,
+                "avg": 1251,
+                "lot": 35
+            },
+            {
+                "code": "TALF",
+                "value": 4178500,
+                "avg": 889,
+                "lot": 47
+            },
+            {
+                "code": "TRUE",
+                "value": 4000000,
+                "avg": 40,
+                "lot": 1000
+            },
+            {
+                "code": "SURE",
+                "value": 3864000,
+                "avg": 2760,
+                "lot": 14
+            },
+            {
+                "code": "XIFE",
+                "value": 3743800,
+                "avg": 139,
+                "lot": 270
+            },
+            {
+                "code": "BMBL",
+                "value": 3611300,
+                "avg": 26,
+                "lot": 1400
+            },
+            {
+                "code": "PRAY",
+                "value": 3160500,
+                "avg": 3951,
+                "lot": 8
+            },
+            {
+                "code": "MBTO",
+                "value": 2842200,
+                "avg": 18,
+                "lot": 1620
+            },
+            {
+                "code": "AXIO",
+                "value": 2591900,
+                "avg": 110,
+                "lot": 236
+            },
+            {
+                "code": "XISC",
+                "value": 2356000,
+                "avg": 760,
+                "lot": 31
+            },
+            {
+                "code": "TGKA",
+                "value": 1907000,
+                "avg": 4768,
+                "lot": 4
+            },
+            {
+                "code": "VINS",
+                "value": 1726700,
+                "avg": 221,
+                "lot": 78
+            },
+            {
+                "code": "BTON",
+                "value": 1599600,
+                "avg": 333,
+                "lot": 48
+            },
+            {
+                "code": "AMIN",
+                "value": 1589400,
+                "avg": 269,
+                "lot": 59
+            },
+            {
+                "code": "INDR",
+                "value": 1552000,
+                "avg": 739,
+                "lot": 21
+            },
+            {
+                "code": "ANDI",
+                "value": 1433500,
+                "avg": 34,
+                "lot": 423
+            },
+            {
+                "code": "BTPN",
+                "value": 1309000,
+                "avg": 2618,
+                "lot": 5
+            },
+            {
+                "code": "BINA",
+                "value": 1273000,
+                "avg": 12730,
+                "lot": 1
+            },
+            {
+                "code": "BPII",
+                "value": 1255000,
+                "avg": 448,
+                "lot": 28
+            },
+            {
+                "code": "FITT",
+                "value": 1243800,
+                "avg": 1037,
+                "lot": 12
+            },
+            {
+                "code": "WINE",
+                "value": 1166100,
+                "avg": 44,
+                "lot": 266
+            },
+            {
+                "code": "XBLQ",
+                "value": 967500,
+                "avg": 421,
+                "lot": 23
+            },
+            {
+                "code": "RANC",
+                "value": 753000,
+                "avg": 502,
+                "lot": 15
+            },
+            {
+                "code": "HADE",
+                "value": 650900,
+                "avg": 13,
+                "lot": 488
+            },
+            {
+                "code": "XDIF",
+                "value": 631500,
+                "avg": 526,
+                "lot": 12
+            },
+            {
+                "code": "ARII",
+                "value": 622600,
+                "avg": 164,
+                "lot": 38
+            },
+            {
+                "code": "BLTZ",
+                "value": 508000,
+                "avg": 2540,
+                "lot": 2
+            },
+            {
+                "code": "MGRO",
+                "value": 466500,
+                "avg": 666,
+                "lot": 7
+            },
+            {
+                "code": "RUIS",
+                "value": 334800,
+                "avg": 279,
+                "lot": 12
+            },
+            {
+                "code": "PJHB-W",
+                "value": 307200,
+                "avg": 34,
+                "lot": 90
+            },
+            {
+                "code": "BOLT",
+                "value": 247000,
+                "avg": 823,
+                "lot": 3
+            },
+            {
+                "code": "CSIS-W",
+                "value": 195500,
+                "avg": 85,
+                "lot": 23
+            },
+            {
+                "code": "HRUMZPCU6A",
+                "value": 120000,
+                "avg": 2,
+                "lot": 600
+            },
+            {
+                "code": "MGNA-W",
+                "value": 118900,
+                "avg": 41,
+                "lot": 29
+            },
+            {
+                "code": "STTP",
+                "value": 72500,
+                "avg": 0,
+                "lot": 0
+            },
+            {
+                "code": "XCID",
+                "value": 33800,
+                "avg": 48,
+                "lot": 7
+            },
+            {
+                "code": "MANG-W",
+                "value": 5100,
+                "avg": 17,
+                "lot": 3
+            },
+            {
+                "code": "KOCI-W",
+                "value": 900,
+                "avg": 9,
+                "lot": 1
+            }
+        ]
+    },
+    "count": 0
+}

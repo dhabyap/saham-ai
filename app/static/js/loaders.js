@@ -991,8 +991,6 @@ async function loadAllDashboardData() {
   ]);
 };
 
-// ⚠ DEPRECATED — kept for reference, use per-view loaders instead
-
 // ── Broker Data ──
 async function loadBrokerData(stockCode) {
   if (!stockCode) return;

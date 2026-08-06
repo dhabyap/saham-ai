@@ -1235,7 +1235,11 @@ def broker_available_stocks():
                 "stock_code": code, "latest_from": None, "latest_to": None, "entries": 0
             })
     # Add stocks present in broker_summary but not in STOCK_LIST
+    import re
+    _valid_code = re.compile(r'^[A-Z]{3,6}(-[RW]{1,2})?$')
     for code in sorted(set(broker_map.keys()) - set(STOCK_LIST.keys())):
+        if not _valid_code.match(code):
+            continue
         stocks.append(broker_map[code])
     
     return {"status": "ok", "stocks": stocks}

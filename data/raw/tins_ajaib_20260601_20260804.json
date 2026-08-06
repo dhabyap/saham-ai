@@ -1,0 +1,818 @@
+{
+  "result": {
+    "summary_buy": [
+      {
+        "broker": {
+          "code": "ZP",
+          "name": "MAYBANK KIM ENG SEKURITAS",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 166342397000,
+        "avg": 3406,
+        "lot": 489187
+      },
+      {
+        "broker": {
+          "code": "AK",
+          "name": "UBS SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 128310011000,
+        "avg": 3410,
+        "lot": 366306
+      },
+      {
+        "broker": {
+          "code": "BK",
+          "name": "J.P. MORGAN SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 110100993000,
+        "avg": 3493,
+        "lot": 299007
+      },
+      {
+        "broker": {
+          "code": "TP",
+          "name": "OCBC SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 60913042000,
+        "avg": 3492,
+        "lot": 169913
+      },
+      {
+        "broker": {
+          "code": "KZ",
+          "name": "CLSA SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 59338144000,
+        "avg": 3646,
+        "lot": 160066
+      },
+      {
+        "broker": {
+          "code": "BB",
+          "name": "VERDHANA SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 48032321000,
+        "avg": 3514,
+        "lot": 120714
+      },
+      {
+        "broker": {
+          "code": "IF",
+          "name": "SAMUEL SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 47600295000,
+        "avg": 3520,
+        "lot": 133266
+      },
+      {
+        "broker": {
+          "code": "YU",
+          "name": "CGS-CIMB SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 14425374000,
+        "avg": 3351,
+        "lot": 60706
+      },
+      {
+        "broker": {
+          "code": "DX",
+          "name": "BAHANA SEKURITAS",
+          "category": "BUMN"
+        },
+        "value": 13005499000,
+        "avg": 3465,
+        "lot": 29791
+      },
+      {
+        "broker": {
+          "code": "CD",
+          "name": "MEGA CAPITAL SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 12994066000,
+        "avg": 3291,
+        "lot": 41178
+      },
+      {
+        "broker": {
+          "code": "RX",
+          "name": "MACQUARIE SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 9811774000,
+        "avg": 3336,
+        "lot": 32016
+      },
+      {
+        "broker": {
+          "code": "HP",
+          "name": "HENAN PUTIHRAI SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 8615518000,
+        "avg": 3475,
+        "lot": 25011
+      },
+      {
+        "broker": {
+          "code": "AG",
+          "name": "KIWOOM SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 6624871000,
+        "avg": 3322,
+        "lot": 22410
+      },
+      {
+        "broker": {
+          "code": "MG",
+          "name": "SEMESTA INDOVEST SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 4963692000,
+        "avg": 3341,
+        "lot": 18022
+      },
+      {
+        "broker": {
+          "code": "RF",
+          "name": "BUANA CAPITAL SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 4355930000,
+        "avg": 3341,
+        "lot": 13304
+      },
+      {
+        "broker": {
+          "code": "ES",
+          "name": "EKOKAPITAL SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 4149647000,
+        "avg": 3403,
+        "lot": 11484
+      },
+      {
+        "broker": {
+          "code": "XC",
+          "name": "AJAIB SEKURITAS ASIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 3429624000,
+        "avg": 3498,
+        "lot": 9700
+      },
+      {
+        "broker": {
+          "code": "PG",
+          "name": "PANCA GLOBAL SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 2825727000,
+        "avg": 3445,
+        "lot": 8548
+      },
+      {
+        "broker": {
+          "code": "PO",
+          "name": "PILARMAS INVESTINDO SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 787665000,
+        "avg": 3541,
+        "lot": 2213
+      },
+      {
+        "broker": {
+          "code": "MI",
+          "name": "VICTORIA SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 498509000,
+        "avg": 3704,
+        "lot": 1269
+      },
+      {
+        "broker": {
+          "code": "RS",
+          "name": "YULIE SEKURITAS INDONESIA TBK.",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 229120000,
+        "avg": 3442,
+        "lot": 680
+      },
+      {
+        "broker": {
+          "code": "IU",
+          "name": "INDO CAPITAL SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 68478000,
+        "avg": 3535,
+        "lot": 298
+      },
+      {
+        "broker": {
+          "code": "TF",
+          "name": "UNIVERSAL BROKER INDONESIA SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 59872000,
+        "avg": 3482,
+        "lot": 162
+      },
+      {
+        "broker": {
+          "code": "IH",
+          "name": "PACIFIC 2000 SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 5014000,
+        "avg": 3778,
+        "lot": 10
+      }
+    ],
+    "summary_sell": [
+      {
+        "broker": {
+          "code": "CC",
+          "name": "MANDIRI SEKURITAS",
+          "category": "BUMN"
+        },
+        "value": 119443115000,
+        "avg": 3442,
+        "lot": 346439
+      },
+      {
+        "broker": {
+          "code": "NI",
+          "name": "BNI SEKURITAS",
+          "category": "BUMN"
+        },
+        "value": 86833443000,
+        "avg": 3391,
+        "lot": 243831
+      },
+      {
+        "broker": {
+          "code": "LG",
+          "name": "TRIMEGAH SEKURITAS INDONESIA TBK.",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 72150185000,
+        "avg": 3307,
+        "lot": 237487
+      },
+      {
+        "broker": {
+          "code": "SQ",
+          "name": "BCA SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 64310681000,
+        "avg": 3445,
+        "lot": 183852
+      },
+      {
+        "broker": {
+          "code": "PD",
+          "name": "INDO PREMIER SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 54125920000,
+        "avg": 3422,
+        "lot": 143971
+      },
+      {
+        "broker": {
+          "code": "YP",
+          "name": "MIRAE ASSET SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 47174972600,
+        "avg": 3453,
+        "lot": 123660
+      },
+      {
+        "broker": {
+          "code": "DR",
+          "name": "RHB SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 29214479000,
+        "avg": 3400,
+        "lot": 85800
+      },
+      {
+        "broker": {
+          "code": "OD",
+          "name": "BRI DANAREKSA SEKURITAS",
+          "category": "BUMN"
+        },
+        "value": 27726679000,
+        "avg": 3542,
+        "lot": 72958
+      },
+      {
+        "broker": {
+          "code": "AI",
+          "name": "UOB KAY HIAN SEKURITAS",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 20838266000,
+        "avg": 3396,
+        "lot": 59378
+      },
+      {
+        "broker": {
+          "code": "AZ",
+          "name": "SUCOR SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 20172409000,
+        "avg": 3446,
+        "lot": 65793
+      },
+      {
+        "broker": {
+          "code": "XL",
+          "name": "MAHAKARYA ARTHA SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 19745905000,
+        "avg": 3462,
+        "lot": 53775
+      },
+      {
+        "broker": {
+          "code": "AT",
+          "name": "PHINTRACO SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 18173191000,
+        "avg": 3438,
+        "lot": 45245
+      },
+      {
+        "broker": {
+          "code": "DH",
+          "name": "SINARMAS SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 16916257000,
+        "avg": 3483,
+        "lot": 47349
+      },
+      {
+        "broker": {
+          "code": "KK",
+          "name": "PHILLIP SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 16812246000,
+        "avg": 3459,
+        "lot": 46541
+      },
+      {
+        "broker": {
+          "code": "KI",
+          "name": "CIPTADANA SEKURITAS ASIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 15191819000,
+        "avg": 3486,
+        "lot": 38352
+      },
+      {
+        "broker": {
+          "code": "EP",
+          "name": "MNC SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 9366621000,
+        "avg": 3466,
+        "lot": 26246
+      },
+      {
+        "broker": {
+          "code": "AO",
+          "name": "ERDIKHA ELIT SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 8452196000,
+        "avg": 3501,
+        "lot": 22594
+      },
+      {
+        "broker": {
+          "code": "XA",
+          "name": "NH KORINDO SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 8271255000,
+        "avg": 3350,
+        "lot": 25600
+      },
+      {
+        "broker": {
+          "code": "BR",
+          "name": "TRUST SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 6912114000,
+        "avg": 3571,
+        "lot": 18509
+      },
+      {
+        "broker": {
+          "code": "CP",
+          "name": "VALBURY SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 6281572000,
+        "avg": 3405,
+        "lot": 18638
+      },
+      {
+        "broker": {
+          "code": "YJ",
+          "name": "LOTUS ANDALAN SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 5856446000,
+        "avg": 3489,
+        "lot": 15871
+      },
+      {
+        "broker": {
+          "code": "DP",
+          "name": "DBS VICKERS SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 5117934000,
+        "avg": 3416,
+        "lot": 11650
+      },
+      {
+        "broker": {
+          "code": "YB",
+          "name": "JASA UTAMA CAPITAL SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 4118941000,
+        "avg": 3380,
+        "lot": 12833
+      },
+      {
+        "broker": {
+          "code": "DU",
+          "name": "KAF SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 3356215000,
+        "avg": 3492,
+        "lot": 9017
+      },
+      {
+        "broker": {
+          "code": "BQ",
+          "name": "KOREA INVESTMENT AND SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 3297119000,
+        "avg": 3452,
+        "lot": 9656
+      },
+      {
+        "broker": {
+          "code": "GR",
+          "name": "PANIN SEKURITAS TBK.",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 3224017000,
+        "avg": 3323,
+        "lot": 9568
+      },
+      {
+        "broker": {
+          "code": "RB",
+          "name": "NIKKO SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 2388907000,
+        "avg": 3635,
+        "lot": 6567
+      },
+      {
+        "broker": {
+          "code": "HD",
+          "name": "KGI SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 1594167000,
+        "avg": 3522,
+        "lot": 4113
+      },
+      {
+        "broker": {
+          "code": "ZR",
+          "name": "BUMIPUTERA SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 1438854000,
+        "avg": 3400,
+        "lot": 4740
+      },
+      {
+        "broker": {
+          "code": "SA",
+          "name": "BOSOWA SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 1284451000,
+        "avg": 3520,
+        "lot": 2570
+      },
+      {
+        "broker": {
+          "code": "IT",
+          "name": "INTI TELADAN SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 1101428000,
+        "avg": 3509,
+        "lot": 3001
+      },
+      {
+        "broker": {
+          "code": "RG",
+          "name": "PROFINDO SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 1075311000,
+        "avg": 3524,
+        "lot": 2802
+      },
+      {
+        "broker": {
+          "code": "LS",
+          "name": "RELIANCE SEKURITAS INDONESIA TBK.",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 902027000,
+        "avg": 3363,
+        "lot": 2749
+      },
+      {
+        "broker": {
+          "code": "FS",
+          "name": "YUANTA SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 630292000,
+        "avg": 3322,
+        "lot": 1865
+      },
+      {
+        "broker": {
+          "code": "RO",
+          "name": "NILAI INTI SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 528244000,
+        "avg": 3543,
+        "lot": 1278
+      },
+      {
+        "broker": {
+          "code": "SH",
+          "name": "ARTHA SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 520282400,
+        "avg": 3556,
+        "lot": 1148
+      },
+      {
+        "broker": {
+          "code": "AD",
+          "name": "OSO Sekuritas Indonesia",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 499950000,
+        "avg": 3300,
+        "lot": 1515
+      },
+      {
+        "broker": {
+          "code": "AR",
+          "name": "BINAARTHA SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 461052000,
+        "avg": 3221,
+        "lot": 1030
+      },
+      {
+        "broker": {
+          "code": "FZ",
+          "name": "WATERFRONT SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 437861000,
+        "avg": 3520,
+        "lot": 1345
+      },
+      {
+        "broker": {
+          "code": "SS",
+          "name": "SUPRA SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 329409000,
+        "avg": 3241,
+        "lot": 3136
+      },
+      {
+        "broker": {
+          "code": "IN",
+          "name": "INVESTINDO NUSANTARA SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 262514000,
+        "avg": 3378,
+        "lot": 631
+      },
+      {
+        "broker": {
+          "code": "DD",
+          "name": "MAKINDO SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 164767000,
+        "avg": 3611,
+        "lot": 420
+      },
+      {
+        "broker": {
+          "code": "AF",
+          "name": "HARITA KENCANA SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 162800000,
+        "avg": 3248,
+        "lot": 450
+      },
+      {
+        "broker": {
+          "code": "OK",
+          "name": "NET SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 162720000,
+        "avg": 3478,
+        "lot": 440
+      },
+      {
+        "broker": {
+          "code": "PF",
+          "name": "DANASAKTI SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 112380000,
+        "avg": 3151,
+        "lot": 301
+      },
+      {
+        "broker": {
+          "code": "PC",
+          "name": "FAC SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 89672000,
+        "avg": 3522,
+        "lot": 235
+      },
+      {
+        "broker": {
+          "code": "SF",
+          "name": "SURYA FAJAR SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 86478000,
+        "avg": 3461,
+        "lot": 227
+      },
+      {
+        "broker": {
+          "code": "QA",
+          "name": "Tuntun Sekuritas Indonesia",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 54311000,
+        "avg": 3531,
+        "lot": 0
+      },
+      {
+        "broker": {
+          "code": "EL",
+          "name": "EVERGREEN SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 40551000,
+        "avg": 3713,
+        "lot": 0
+      },
+      {
+        "broker": {
+          "code": "ID",
+          "name": "ANUGERAH SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 31560000,
+        "avg": 3439,
+        "lot": 0
+      },
+      {
+        "broker": {
+          "code": "PI",
+          "name": "Magenta Kapital Sekuritas Indonesia",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 26159000,
+        "avg": 3183,
+        "lot": 0
+      },
+      {
+        "broker": {
+          "code": "BS",
+          "name": "EQUITY SEKURITAS INDONESIA",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 12350000,
+        "avg": 3413,
+        "lot": 0
+      },
+      {
+        "broker": {
+          "code": "JB",
+          "name": "[CC] BJB Sekuritas Jawa Barat",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 3402000,
+        "avg": 3401,
+        "lot": 0
+      },
+      {
+        "broker": {
+          "code": "BF",
+          "name": "INTI FIKASA SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 1100000,
+        "avg": 2960,
+        "lot": 0
+      },
+      {
+        "broker": {
+          "code": "MU",
+          "name": "MINNA PADI INVESTAMA SEKURITAS TBK",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 548000,
+        "avg": 3419,
+        "lot": 0
+      },
+      {
+        "broker": {
+          "code": "GI",
+          "name": "MAHASTRA ANDALAN SEKURITAS",
+          "category": "LOCAL_BROKER"
+        },
+        "value": 20000,
+        "avg": 3560,
+        "lot": 0
+      },
+      {
+        "broker": {
+          "code": "AH",
+          "name": "SHINHAN SEKURITAS INDONESIA",
+          "category": "FOREIGN_BROKER"
+        },
+        "value": 18000,
+        "avg": 3630,
+        "lot": 0
+      }
+    ]
+  }
+}

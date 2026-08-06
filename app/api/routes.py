@@ -2174,3 +2174,43 @@ def broker_daily_overview():
         "latest_date": latest[0] if latest else None,
     }
 
+
+
+@router.post("/broker-daily/upload")
+async def upload_broker_daily(request: Request):
+    """Upload broker daily data. Accepts JSON array of {trade_date, broker_code, broker_name, volume, value, frequency}."""
+    try:
+        body = await request.json()
+    except Exception:
+        return {"status": "error", "message": "Invalid JSON"}
+    
+    rows = body if isinstance(body, list) else body.get("data", [])
+    if not rows:
+        return {"status": "error", "message": "No data provided"}
+    
+    inserted = 0
+    skipped = 0
+    with _get_db() as conn:
+        for row in rows:
+            try:
+                trade_date = str(row.get("trade_date", ""))
+                broker_code = str(row.get("broker_code", "")).upper()
+                broker_name = str(row.get("broker_name", ""))
+                volume = int(row.get("volume", 0))
+                value = int(row.get("value", 0))
+                frequency = int(row.get("frequency", 0))
+                if not trade_date or not broker_code:
+                    skipped += 1
+                    continue
+                conn.execute(
+                    "INSERT INTO broker_daily_summary (trade_date, broker_code, broker_name, volume, value, frequency) "
+                    "VALUES (%s, %s, %s, %s, %s, %s) "
+                    "ON DUPLICATE KEY UPDATE broker_name=VALUES(broker_name), volume=VALUES(volume), "
+                    "value=VALUES(value), frequency=VALUES(frequency)",
+                    (trade_date, broker_code, broker_name, volume, value, frequency)
+                )
+                inserted += 1
+            except Exception:
+                skipped += 1
+        conn.commit()
+    return {"status": "ok", "inserted": inserted, "skipped": skipped, "total": len(rows)}

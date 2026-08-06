@@ -51,6 +51,7 @@ createApp({
 
     watch(currentView, function(view) {
       if (view === 'brokerdata') { loadBdAvailable(); loadBdSuggestUpload(); }
+      if (view === 'brokerdaily') { loadBdDailySummary(); }
       if (view === 'shareholders') {
         window.Vue.nextTick(function() {
           if (shForceData.value && shForceData.value.nodes && shForceData.value.nodes.length > 0) {
@@ -191,6 +192,18 @@ createApp({
       toggleMrSort: toggleMrSort, mrSortIcon: mrSortIcon,
       loadMrAnalysis: loadMrAnalysis, loadBacktest: loadBacktest,
       loadForeignOverview: loadForeignOverview, loadMarketReports: loadMarketReports,
+      // Broker Daily
+      bdDailyTab: bdDailyTab, bdDailyLoading: bdDailyLoading, bdDailyError: bdDailyError,
+      bdDailySummary: bdDailySummary, bdDailyDates: bdDailyDates, bdDailyDetail: bdDailyDetail,
+      bdDailyDetailLoading: bdDailyDetailLoading, bdSelectedDate: bdSelectedDate,
+      bdDailyRank: bdDailyRank, bdDailyRankLoading: bdDailyRankLoading,
+      bdRankFrom: bdRankFrom, bdRankTo: bdRankTo,
+      bdDailyTrend: bdDailyTrend, bdDailyTrendLoading: bdDailyTrendLoading,
+      bdTrendQuery: bdTrendQuery, bdTrendDays: bdTrendDays,
+      bdDailyUploadStatus: bdDailyUploadStatus,
+      loadBdDailySummary: loadBdDailySummary, loadBdDailyDetail: loadBdDailyDetail,
+      loadBdDailyRanking: loadBdDailyRanking, loadBdDailyTrend: loadBdDailyTrend,
+      doUploadBrokerDaily: doUploadBrokerDaily,
       // Settings
       settingsLanguage: settingsLanguage, settingsRiskTolerance: settingsRiskTolerance,
       settingsTargetProfit: settingsTargetProfit,

@@ -28,6 +28,7 @@ var navItems = [
   { view: 'analysis',      icon: '&#9776;', label: 'Analysis' },
   { view: 'shareholders',  icon: '&#128101;', label: 'Shareholders' },
   { view: 'brokerdata',    icon: '&#128176;', label: 'Broker Data' },
+  { view: 'brokerdaily',   icon: '&#127970;', label: 'Broker Harian' },
   { view: 'marketreports', icon: '&#128202;', label: 'Market Reports' },
 ];
 
@@ -35,7 +36,7 @@ var headerTitle = computed(function() {
   var map = {
     dashboard: 'Dashboard',
     analysis: 'Analysis', shareholders: 'Shareholders', brokerdata: 'Broker Data',
-    marketreports: 'Market Reports',
+    brokerdaily: 'Broker Harian', marketreports: 'Market Reports',
   };
   return map[currentView.value] || 'Dashboard';
 });
@@ -96,6 +97,131 @@ var bdRecLoading = ref(false);
 var bdSuggestUpload = ref(null);
 var bdSuggestLoading = ref(false);
 var uploadStatusText = ref('');
+
+// ── Broker Daily ──
+var bdDailyTab = ref('overview');
+var bdDailyLoading = ref(false);
+var bdDailyError = ref(null);
+var bdDailySummary = ref(null);
+var bdDailyDates = ref([]);
+var bdDailyDetail = ref(null);
+var bdDailyDetailLoading = ref(false);
+var bdSelectedDate = ref('');
+var bdDailyRank = ref(null);
+var bdDailyRankLoading = ref(false);
+var bdRankFrom = ref('');
+var bdRankTo = ref('');
+var bdDailyTrend = ref(null);
+var bdDailyTrendLoading = ref(false);
+var bdTrendQuery = ref('');
+var bdTrendDays = ref(30);
+var bdDailyUploadStatus = ref('');
+
+function loadBdDailySummary() {
+  bdDailyLoading.value = true;
+  bdDailyError.value = null;
+  Promise.all([
+    fetch('/api/broker-daily/summary').then(function(r){return r.json()}),
+    fetch('/api/broker-daily/dates').then(function(r){return r.json()})
+  ]).then(function(res) {
+    bdDailySummary.value = res[0];
+    bdDailyDates.value = res[1].dates || [];
+    if (bdDailyDates.value.length) {
+      bdSelectedDate.value = bdDailyDates.value[0].date;
+      bdRankFrom.value = bdDailyDates.value[bdDailyDates.value.length - 1].date;
+      bdRankTo.value = bdDailyDates.value[0].date;
+    }
+    bdDailyLoading.value = false;
+  }).catch(function(e) {
+    bdDailyError.value = e.message;
+    bdDailyLoading.value = false;
+  });
+}
+
+function loadBdDailyDetail(date) {
+  bdDailyDetailLoading.value = true;
+  bdSelectedDate.value = date;
+  fetch('/api/broker-daily/' + date).then(function(r){return r.json()}).then(function(d) {
+    bdDailyDetail.value = d.data || [];
+    bdDailyDetailLoading.value = false;
+  }).catch(function(e) { bdDailyDetailLoading.value = false; });
+}
+
+function loadBdDailyRanking() {
+  bdDailyRankLoading.value = true;
+  fetch('/api/broker-daily/ranking/' + bdRankFrom.value + '/' + bdRankTo.value + '?limit=30')
+    .then(function(r){return r.json()}).then(function(d) {
+      bdDailyRank.value = d.data || [];
+      bdDailyRankLoading.value = false;
+    }).catch(function(e) { bdDailyRankLoading.value = false; });
+}
+
+function loadBdDailyTrend() {
+  if (!bdTrendQuery.value) return;
+  bdDailyTrendLoading.value = true;
+  fetch('/api/broker-daily/trend/' + bdTrendQuery.value.toUpperCase() + '?days=' + bdTrendDays.value)
+    .then(function(r){return r.json()}).then(function(d) {
+      bdDailyTrend.value = d.data || [];
+      bdDailyTrendLoading.value = false;
+      setTimeout(function() { renderBdDailyTrendChart(); }, 100);
+    }).catch(function(e) { bdDailyTrendLoading.value = false; });
+}
+
+function renderBdDailyTrendChart() {
+  var canvas = document.getElementById('bdDailyTrendChart');
+  if (!canvas || !bdDailyTrend.value || !bdDailyTrend.value.length) return;
+  var ctx = canvas.getContext('2d');
+  if (window._bdTrendChart) window._bdTrendChart.destroy();
+  var labels = bdDailyTrend.value.map(function(d){ return d.date.slice(4,6)+'/'+d.date.slice(6); }).reverse();
+  var values = bdDailyTrend.value.map(function(d){ return d.value; }).reverse();
+  var volumes = bdDailyTrend.value.map(function(d){ return d.volume; }).reverse();
+  window._bdTrendChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Value', data: values, backgroundColor: 'rgba(99,102,241,0.6)', borderRadius: 4, yAxisID: 'y' },
+        { label: 'Volume', data: volumes, type: 'line', borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.3, yAxisID: 'y1', pointRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { intersect: false, mode: 'index' },
+      scales: {
+        y: { position: 'left', ticks: { callback: function(v){ return v>=1e12?(v/1e12).toFixed(1)+'T':v>=1e9?(v/1e9).toFixed(1)+'B':v>=1e6?(v/1e6).toFixed(0)+'M':v.toLocaleString(); } } },
+        y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: function(v){ return v>=1e6?(v/1e6).toFixed(0)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v; } } }
+      },
+      plugins: { legend: { labels: { color: '#aaa' } } }
+    }
+  });
+}
+
+function doUploadBrokerDaily() {
+  var text = document.getElementById('brokerDailyUploadPaste').value;
+  if (!text.trim()) {
+    bdDailyUploadStatus.value = 'Paste data JSON dulu';
+    return;
+  }
+  try {
+    var json = JSON.parse(text);
+  } catch(e) {
+    bdDailyUploadStatus.value = 'Format JSON salah: ' + e.message;
+    return;
+  }
+  bdDailyUploadStatus.value = 'Uploading...';
+  fetch('/api/broker-daily/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(json)
+  }).then(function(r){return r.json()}).then(function(d) {
+    if (d.status === 'ok') {
+      bdDailyUploadStatus.value = 'OK: ' + d.inserted + ' row inserted, ' + d.skipped + ' skipped';
+      loadBdDailySummary();
+    } else {
+      bdDailyUploadStatus.value = 'Error: ' + d.message;
+    }
+  }).catch(function(e) { bdDailyUploadStatus.value = 'Error: ' + e.message; });
+}
 
 function doUploadBrokerPaste() {
   var text = document.getElementById('brokerUploadPaste').value;

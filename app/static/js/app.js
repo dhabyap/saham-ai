@@ -42,6 +42,11 @@ createApp({
     });
 
     watch(currentTab, function(tab) {
+      if (currentView.value === 'brokerdaily') {
+        if (tab === 'ranking') loadBdDailyRanking();
+        if (tab === 'detail') loadBdDailyDetail(bdSelectedDate.value);
+        if (tab === 'trend') loadBdDailyTrend();
+      }
       if (currentView.value) {
         var hash = '#' + currentView.value + '/' + tab;
         if (_viewChanging) { history.pushState(null, '', hash); _viewChanging = false; }

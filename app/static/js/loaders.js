@@ -123,8 +123,9 @@ async function loadShareholdersView() {
   await loadShareholders();
   shareholdersLoading.value = false;
   _loadedViews.shareholders = true;
-  // Auto-load AI insight
+  // Auto-load AI insight (optional, keep if needed)
   loadShareholderInsight();
+  // Do NOT auto-load enhanced data; load when user accesses the enhanced tab
 }
 
 function applyMarketData(data) {

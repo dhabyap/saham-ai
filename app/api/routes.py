@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form, Request
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List
@@ -50,31 +50,463 @@ import pandas as pd
 router = APIRouter(prefix="/api", tags=["api"])
 _analysis_service = None
 
+
 def get_analysis_service():
     global _analysis_service
     if _analysis_service is None:
         _analysis_service = AnalysisService()
     return _analysis_service
 
+
 class WatchlistRequest(BaseModel):
     stock_code: str
     user_id: Optional[int] = 1
+
 
 class AnalyzeRequest(BaseModel):
     stock_code: str
     use_ai: Optional[bool] = True
 
-class ShareholderImportItem(BaseModel):
-    stock_code: str
-    shareholder_name: str
-    share_percent: float
-    share_count: int = 0
-    category: str = ''
 
-class ShareholderImportRequest(BaseModel):
-    period: str
-    data: List[ShareholderImportItem]
-    source: str = 'manual'
+@router.get("/broker-summary/suggest-upload")
+def broker_suggest_upload():
+    """Suggest stocks WITHOUT broker data that are interesting for upload."""
+    from app.database.database import get_db
+    from app.services.stock_service import STOCK_LIST, fetch_stock_data
+
+    with get_db() as conn:
+        with_data = set(
+            r[0] for r in conn.execute(
+                "SELECT DISTINCT stock_code FROM broker_summary"
+            ).fetchall()
+        )
+
+    candidates = []
+    for code in sorted(set(STOCK_LIST.keys()) - with_data):
+        try:
+            d = fetch_stock_data(code, period="5d")
+            if not d:
+                continue
+            df = d["history"]
+            if len(df) < 2:
+                continue
+            price = float(df["Close"].iloc[-1])
+            prev = float(df["Close"].iloc[-2])
+            chg = ((price - prev) / prev) * 100
+            vol = int(df["Volume"].iloc[-1])
+            vol_ma = float(df["Volume"].iloc[-3]) if len(df) >= 3 else vol
+            vol_ratio = vol / vol_ma if vol_ma > 0 else 1
+            score = min(10, vol_ratio * 5) + (5 if chg > 1 else (3 if chg > 0 else 0))
+            name = STOCK_LIST.get(code, "")
+            reasons = []
+            if chg > 3:
+                reasons.append(f"naik {chg:.1f}%")
+            elif chg > 0:
+                reasons.append(f"naik {chg:.1f}%")
+            if vol_ratio > 2:
+                reasons.append("volume melonjak")
+            elif vol_ratio > 1.2:
+                reasons.append("volume di atas rata-rata")
+            reasons.append("belum ada data broker")
+            candidates.append({
+                "stock_code": code, "name": name, "price": round(price, 0),
+                "change_pct": round(chg, 2), "volume_ratio": round(vol_ratio, 1),
+                "score": round(score, 0), "reason": ", ".join(reasons),
+            })
+        except Exception:
+            continue
+    candidates.sort(key=lambda x: x["score"], reverse=True)
+    return {"status": "ok", "suggestions": candidates[:6]}
+
+
+@router.get("/shareholders/periods")
+def shareholder_periods():
+    """List available data periods + stats."""
+    from app.services.shareholder_service import get_db
+    periods = get_available_periods()
+    latest = get_latest_period()
+    # Stats for latest period
+    stats = {"total_records": 0, "total_stocks": 0, "total_holders": 0}
+    if latest:
+        with get_db() as conn:
+            cur = conn.execute("SELECT COUNT(*) FROM shareholders WHERE data_period=?", (latest,))
+            stats["total_records"] = cur.fetchone()[0]
+            cur = conn.execute("SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE data_period=?", (latest,))
+            stats["total_stocks"] = cur.fetchone()[0]
+            cur = conn.execute("SELECT COUNT(DISTINCT shareholder_name) FROM shareholders WHERE data_period=?", (latest,))
+            stats["total_holders"] = cur.fetchone()[0]
+    return {
+        "status": "ok",
+        "periods": periods,
+        "latest": latest,
+        "stats": stats,
+    }
+
+@router.get("/stats/shareholders")
+def shareholder_stats(period: Optional[str] = None):
+    """Get aggregate stats for a period."""
+    from app.services.shareholder_service import get_db
+    with get_db() as conn:
+        cur = conn.execute("SELECT COUNT(*) FROM shareholders WHERE 1=1" + 
+            (" AND data_period=?" if period else ""),
+            (period,) if period else ())
+        total = cur.fetchone()[0]
+        cur = conn.execute("SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE 1=1" + 
+            (" AND data_period=?" if period else ""),
+            (period,) if period else ())
+        stocks = cur.fetchone()[0]
+        cur = conn.execute("SELECT COUNT(DISTINCT shareholder_name) FROM shareholders WHERE 1=1" + 
+            (" AND data_period=?" if period else ""),
+            (period,) if period else ())
+        holders = cur.fetchone()[0]
+        # Top holder name
+        top_sql = """SELECT shareholder_name, SUM(share_percent) as total 
+            FROM shareholders WHERE 1=1"""
+        if period:
+            top_sql += " AND data_period=?"
+        top_sql += " GROUP BY shareholder_name ORDER BY total DESC LIMIT 1"
+        cur = conn.execute(top_sql, (period,) if period else ())
+        top = cur.fetchone()
+    return {
+        "status": "ok",
+        "total_records": total,
+        "total_stocks": stocks,
+        "total_holders": holders,
+        "top_holder": top[0] if top else "-",
+        "period": period or "all",
+    }
+
+
+@router.get("/shareholders/top")
+def shareholder_top(
+    limit: int = Query(20, ge=1, le=100),
+    period: Optional[str] = None,
+    min_pct: float = Query(1.0, ge=0.1, le=100),
+):
+    """Top individual shareholders across all stocks."""
+    return {
+        "status": "ok",
+        "period": period or "latest",
+        "data": get_top_shareholders(limit, period, min_pct),
+    }
+
+
+@router.get("/shareholders/bubble-data")
+def shareholder_bubble_data(period: Optional[str] = None):
+    """Bubble chart data: top shareholders with has_majority flag (any holding >=5%)."""
+    try:
+        from app.services.shareholder_service import get_db
+        with get_db() as conn:
+            if period:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct,
+                           MAX(CASE WHEN share_percent >= 5 THEN 1 ELSE 0 END) as has_majority
+                    FROM shareholders
+                    WHERE data_period = ? AND share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT 80
+                """, (period,))
+            else:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct,
+                           MAX(CASE WHEN share_percent >= 5 THEN 1 ELSE 0 END) as has_majority
+                    FROM shareholders
+                    WHERE share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT 80
+                """)
+            data = []
+            for r in rows:
+                d = dict(r)
+                d["has_majority"] = bool(d["has_majority"])
+                data.append(d)
+            return {"status": "ok", "data": data}
+    except Exception as e:
+        logger.error("bubble-data error: %s", e)
+        return {"status": "error", "data": [], "error": str(e)}
+@router.get("/shareholders/force-graph")
+def shareholder_force_graph(period: Optional[str] = None):
+    """Force-directed graph: top shareholders + their stock connections."""
+    try:
+        from app.services.shareholder_service import get_db
+        with get_db() as conn:
+            if period:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct
+                    FROM shareholders
+                    WHERE data_period = ? AND share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT 40
+                """, (period,))
+            else:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct
+                    FROM shareholders
+                    WHERE share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT 40
+                """)
+            top_holders = [dict(r) for r in rows]
+            if not top_holders:
+                return {"status": "ok", "nodes": [], "edges": []}
+
+            holder_names = [h["shareholder_name"] for h in top_holders]
+            placeholders = ",".join("?" for _ in holder_names)
+            name_upper = [n.upper() for n in holder_names]
+
+            if period:
+                edge_rows = conn.execute(f"""
+                    SELECT shareholder_name, stock_code, share_percent
+                    FROM shareholders
+                    WHERE UPPER(shareholder_name) IN ({placeholders})
+                      AND data_period = ? AND share_percent >= 0.5
+                    ORDER BY share_percent DESC
+                """, (*name_upper, period))
+            else:
+                edge_rows = conn.execute(f"""
+                    SELECT shareholder_name, stock_code, share_percent
+                    FROM shareholders
+                    WHERE UPPER(shareholder_name) IN ({placeholders})
+                      AND share_percent >= 0.5
+                    ORDER BY share_percent DESC
+                """, (*name_upper,))
+
+            edges_raw = [dict(r) for r in edge_rows]
+
+        stock_set = set()
+        nodes = []
+        edges = []
+        node_ids = set()
+
+        for h in top_holders:
+            nid = "sh:" + h["shareholder_name"]
+            nodes.append({
+                "id": nid, "label": h["shareholder_name"][:30],
+                "type": "shareholder", "value": h["total_pct"],
+                "size": min(50, max(15, round(h["total_pct"] / 10))),
+                "stock_count": h["stock_count"],
+                "total_pct": h["total_pct"]
+            })
+            node_ids.add(nid)
+
+        for e in edges_raw:
+            sid = "st:" + e["stock_code"]
+            if sid not in node_ids:
+                nodes.append({
+                    "id": sid, "label": e["stock_code"],
+                    "type": "stock", "value": 10, "size": 10
+                })
+                node_ids.add(sid)
+                stock_set.add(e["stock_code"])
+            edges.append({
+                "from": "sh:" + e["shareholder_name"],
+                "to": sid,
+                "value": max(1, e["share_percent"]),
+                "title": f"{e['share_percent']}%"
+            })
+
+        return {
+            "status": "ok", "nodes": nodes, "edges": edges,
+            "meta": {
+                "holders": len(top_holders),
+                "stocks": len(stock_set),
+                "connections": len(edges_raw)
+            }
+        }
+    except Exception as e:
+        logger.error("force-graph error: %s", e)
+        return {"status": "error", "nodes": [], "edges": [], "error": str(e)}
+
+@router.get("/shareholders/network-data")
+def shareholder_network_data(period: Optional[str] = None, limit: int = 40):
+    """Force-directed graph data: top shareholders connected to stocks they hold."""
+    try:
+        from app.services.shareholder_service import get_db
+        from app.services.stock_service import STOCK_LIST
+        with get_db() as conn:
+            # 1. Get top shareholders
+            if period:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct
+                    FROM shareholders
+                    WHERE data_period = ? AND share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT ?
+                """, (period, limit))
+            else:
+                rows = conn.execute("""
+                    SELECT shareholder_name, COUNT(*) as stock_count,
+                           ROUND(SUM(share_percent), 2) as total_pct
+                    FROM shareholders
+                    WHERE share_percent >= 0.5
+                    GROUP BY shareholder_name
+                    HAVING total_pct >= 1
+                    ORDER BY total_pct DESC
+                    LIMIT ?
+                """, (limit,))
+            top_holders = [dict(r) for r in rows]
+            holder_names = [h["shareholder_name"] for h in top_holders]
+
+            if not holder_names:
+                return {"status": "ok", "nodes": [], "edges": []}
+
+            # 2. Get their stock holdings (edges)
+            placeholders = ",".join("?" * len(holder_names))
+            if period:
+                rows2 = conn.execute(f"""
+                    SELECT s.stock_code, s.shareholder_name,
+                           ROUND(s.share_percent, 2) as share_percent
+                    FROM shareholders s
+                    WHERE s.shareholder_name IN ({placeholders})
+                    AND s.data_period = ? AND s.share_percent >= 0.5
+                    ORDER BY s.share_percent DESC
+                """, holder_names + [period])
+            else:
+                rows2 = conn.execute(f"""
+                    SELECT s.stock_code, s.shareholder_name,
+                           ROUND(s.share_percent, 2) as share_percent
+                    FROM shareholders s
+                    WHERE s.shareholder_name IN ({placeholders})
+                    AND s.share_percent >= 0.5
+                    ORDER BY s.share_percent DESC
+                """, holder_names)
+            edges_raw = [dict(r) for r in rows2]
+
+            # 3. Build nodes + edges
+            stock_codes = set()
+            edges = []
+            seen_edges = set()
+            for e in edges_raw:
+                key = f"{e['shareholder_name']}|{e['stock_code']}"
+                if key in seen_edges:
+                    continue
+                seen_edges.add(key)
+                stock_codes.add(e["stock_code"])
+                edges.append({
+                    "from": f"sh:{e['shareholder_name']}",
+                    "to": f"st:{e['stock_code']}",
+                    "value": max(0.5, e["share_percent"]),
+                    "title": f"{e['share_percent']}%"
+                })
+
+            # 4. Build nodes
+            nodes = []
+            seen_sh = set()
+            for h in top_holders:
+                nid = f"sh:{h['shareholder_name']}"
+                if nid in seen_sh:
+                    continue
+                seen_sh.add(nid)
+                sh_label = h["shareholder_name"]
+                if len(sh_label) > 30:
+                    sh_label = sh_label[:28] + "..."
+                nodes.append({
+                    "id": nid,
+                    "label": sh_label,
+                    "title": h["shareholder_name"],
+                    "type": "shareholder",
+                    "value": h["total_pct"],
+                    "color": "#EF4444",
+                    "shape": "dot",
+                    "size": min(50, 10 + h["total_pct"] / 10),
+                    "group": "shareholder"
+                })
+
+            seen_st = set()
+            for sc in sorted(stock_codes):
+                nid = f"st:{sc}"
+                if nid in seen_st:
+                    continue
+                seen_st.add(nid)
+                stock_name = STOCK_LIST.get(sc, "")
+                label = sc
+                if stock_name:
+                    sn = stock_name[:25]
+                    if len(stock_name) > 25:
+                        sn += "..."
+                    label = f"{sc} ({sn})"
+                nodes.append({
+                    "id": nid,
+                    "label": label,
+                    "title": f"{sc} - {stock_name}" if stock_name else sc,
+                    "type": "stock",
+                    "value": 1,
+                    "color": "#3B82F6",
+                    "shape": "square",
+                    "size": 15,
+                    "group": "stock"
+                })
+
+            return {"status": "ok", "nodes": nodes, "edges": edges}
+    except Exception as e:
+        logger.error("network-data error: %s", e)
+        return {"status": "error", "nodes": [], "edges": [], "error": str(e)}
+
+
+@router.get("/shareholders/stocks")
+def shareholder_stocks(period: Optional[str] = None):
+    """List stocks that have shareholder data (with name if known)."""
+    try:
+        from app.services.shareholder_service import get_db
+        from app.services.stock_service import STOCK_LIST
+        with get_db() as conn:
+            if period:
+                rows = conn.execute(
+                    """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
+                       FROM shareholders
+                       WHERE data_period = ?
+                       GROUP BY stock_code
+                       ORDER BY stock_code ASC""",
+                    (period,)
+                )
+            else:
+                rows = conn.execute(
+                    """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
+                       FROM shareholders
+                       GROUP BY stock_code
+                       ORDER BY stock_code ASC"""
+                )
+            result = []
+            for r in rows:
+                d = dict(r)
+                d["stock_name"] = STOCK_LIST.get(d["stock_code"], "")
+                result.append(d)
+            return {"status": "ok", "period": period or "all", "data": result}
+    except Exception as e:
+        import traceback
+        logger.error("shareholder_stocks error: %s\n%s", e, traceback.format_exc())
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": str(e)}
+        )
+
+
+@router.get("/shareholders/search/{name}")
+def shareholder_search(name: str, period: Optional[str] = None):
+    """Search portfolio of a specific shareholder (e.g. 'LO KHENG HONG')."""
+    return {
+        "status": "ok",
+        "shareholder_name": name,
+        "period": period or "latest",
+        "data": get_shareholder_portfolio(name, period),
+    }
+
 
 @router.get("/shareholders/distribution")
 def shareholder_distribution(period: str = Query(...)):
@@ -103,6 +535,7 @@ def shareholder_distribution(period: str = Query(...)):
         logger.error("distribution error: %s", e)
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
+
 @router.get("/shareholders/top-stocks")
 def shareholder_top_stocks(
     period: str = Query(...),
@@ -126,6 +559,7 @@ def shareholder_top_stocks(
     except Exception as e:
         logger.error("top-stocks error: %s", e)
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
 
 @router.get("/shareholders/stats/detail")
 def shareholder_stats_detail(period: str = Query(...)):
@@ -166,6 +600,7 @@ def shareholder_stats_detail(period: str = Query(...)):
         logger.error("stats/detail error: %s", e)
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
+
 @router.get("/shareholders/concentration")
 def shareholder_concentration(
     period: str = Query(...),
@@ -205,6 +640,7 @@ def shareholder_concentration(
         logger.error("concentration error: %s", e)
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
+
 @router.get("/shareholders/scatter-data")
 def shareholder_scatter(period: str = Query("FEB2026")):
     """All stocks' shareholder aggregation for scatter plot."""
@@ -227,6 +663,7 @@ def shareholder_scatter(period: str = Query("FEB2026")):
     except Exception as e:
         logger.error("scatter error: %s", e)
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
 
 @router.get("/shareholders/insight")
 async def shareholders_insight():
@@ -325,7 +762,7 @@ Return ONLY valid JSON (no markdown, no code fences):
         resp = client.chat.completions.create(
             model=Config.NINE_ROUTER_MODEL,
             messages=[
-                {"role": "system", "content": "You are an Indonesian stock market analyst. Analyze shareholder data and return ONLY valid JSON in BAHASA INDONESIA."},
+                {"role": "system", "content": "You are an Indonesian stock market analyst. Analyze shareholder data and return ONLY valid JSON in BAHASA INDONESIA. When generating SQL, ensure all derived tables in SQL subqueries have explicit aliases (e.g., `(SELECT ... FROM table) AS alias_name`)."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.5,
@@ -362,6 +799,32 @@ Return ONLY valid JSON (no markdown, no code fences):
             "source": "template_fallback"
         }
 
+
+@router.get("/shareholders/{stock_code}")
+def shareholder_by_stock(stock_code: str, period: Optional[str] = None):
+    """Get shareholder >1% data for a stock."""
+    return {
+        "status": "ok",
+        "stock_code": stock_code.upper(),
+        "period": period or "latest",
+        "data": get_shareholders_by_stock(stock_code, period),
+    }
+
+
+class ShareholderImportItem(BaseModel):
+    stock_code: str
+    shareholder_name: str
+    share_percent: float
+    share_count: int = 0
+    category: str = ''
+
+
+class ShareholderImportRequest(BaseModel):
+    period: str
+    data: List[ShareholderImportItem]
+    source: str = 'manual'
+
+
 @router.post("/shareholders/import")
 def shareholder_import(req: ShareholderImportRequest):
     """Import shareholder data (single or batch)."""
@@ -369,30 +832,148 @@ def shareholder_import(req: ShareholderImportRequest):
     result = bulk_import(items, req.period)
     return {"status": "ok", "period": req.period, **result}
 
-def _detect_period_from_pdf(filename: str) -> str | None:
-    """Detect period (e.g. JUN2026) from PDF filename."""
+
+@router.get("/shareholders/trends")
+def shareholder_trends(period: str = Query(...), prev_period: str = Query(...)):
+    """Get month-over-month trends for top shareholders."""
+    from app.services.shareholder_service import get_shareholder_trends
+    trends = get_shareholder_trends(period, prev_period)
+    return {"status": "ok", "period": period, "prev_period": prev_period, "trends": trends}
+
+
+def _detect_period_from_pdf(filename: str, content: bytes = None) -> str | None:
+    """Detect period (e.g. JUN2026) from PDF filename or content."""
     import re
-    base = filename.rsplit('.', 1)[0].strip().upper()
     months_map = {'01':'JAN','02':'FEB','03':'MAR','04':'APR','05':'MAY','06':'JUN',
                   '07':'JUL','08':'AUG','09':'SEP','10':'OCT','11':'NOV','12':'DEC'}
     valid_months = set(months_map.values())
 
-    # Pattern 1: direct month+year like JUN2026
-    m = re.search(r'([A-Z]{3})(\d{4})', base)
-    if m and m.group(1) in valid_months:
-        return m.group(1) + m.group(2)
+    # Indonesian → EN month mapping
+    id_en = {
+        'JANUARI':'JAN','FEBRUARI':'FEB','MARET':'MAR','APRIL':'APR','MEI':'MAY','JUNI':'JUN',
+        'JULI':'JUL','AGUSTUS':'AUG','SEPTEMBER':'SEP','OKTOBER':'OCT','NOVEMBER':'NOV','DESEMBER':'DEC'
+    }
+    # English 3-letter → uppercase month
+    en_3 = {'JAN':'JAN','FEB':'FEB','MAR':'MAR','APR':'APR','MAY':'MAY','JUN':'JUN',
+            'JUL':'JUL','AUG':'AUG','SEP':'SEP','OCT':'OCT','NOV':'NOV','DEC':'DEC'}
 
-    # Pattern 2: numeric MMYYYY or YYYYMM
-    # Try MMYYYY first - only if first 2 digits are valid month (01-12)
-    m = re.search(r'(0[1-9]|1[012])(\d{4})', base)
-    if m:
-        return months_map.get(m.group(1), '') + m.group(2)
-    # Try YYYYMM - last 2 digits should be 01-12
-    m = re.search(r'(\d{4})(0[1-9]|1[012])', base)
-    if m:
-        return months_map.get(m.group(2), '') + m.group(1)
+    candidates = []
 
-    return None
+    # 1) Try filename patterns
+    if filename:
+        base = filename.rsplit('.', 1)[0].strip().upper()
+        m = re.search(r'([A-Z]{3})(\d{4})', base)
+        if m and m.group(1) in valid_months:
+            candidates.append(m.group(1) + m.group(2))
+        m = re.search(r'(0[1-9]|1[012])(\d{4})', base)
+        if m:
+            candidates.append(months_map.get(m.group(1), '') + m.group(2))
+        m = re.search(r'(\d{4})(0[1-9]|1[012])', base)
+        if m:
+            candidates.append(months_map.get(m.group(2), '') + m.group(1))
+
+    # 2) Try PDF content (first page text)
+    if not candidates and content:
+        try:
+            import fitz  # PyMuPDF
+            doc = fitz.open(stream=content, filetype="pdf")
+            for page in doc[:3]:  # first 3 pages
+                text = page.get_text() or ''
+                text_upper = text.upper()
+                # Pattern: month name + year (e.g. JUNI 2026)
+                for id_month, en_month in id_en.items():
+                    pat = rf'{id_month}\s*(\d{{4}})'
+                    m = re.search(pat, text_upper)
+                    if m:
+                        candidates.append(en_month + m.group(1))
+                # Pattern: Periode: 06/2026
+                m = re.search(r'PERIODE[:\s]*(\d{2})[/\s]*(\d{4})', text_upper)
+                if m:
+                    candidates.append(months_map.get(m.group(1).zfill(2), '') + m.group(2))
+                # Pattern: Periode: JUN 2026 / JUNI2026
+                m = re.search(r'PERIODE[:\s]*([A-Z]{3,})[\s/]*(\d{4})', text_upper)
+                if m:
+                    mon = m.group(1)[:3]
+                    if mon in valid_months:
+                        candidates.append(mon + m.group(2))
+                    elif m.group(1) in id_en:
+                        candidates.append(id_en[m.group(1)] + m.group(2))
+                # Pattern: DD Month YYYY (e.g. "30 Juni 2026")
+                for id_month, en_month in id_en.items():
+                    pat = rf'\d{{1,2}}\s+{id_month}\s+(\d{{4}})'
+                    m = re.search(pat, text_upper)
+                    if m:
+                        candidates.append(en_month + m.group(1))
+                # Pattern: DD-Mon-YYYY (e.g. "31-Mar-2026") — C-BEST, often no space after year
+                m = re.search(r'\b(\d{2})-([A-Z]{3})-(\d{4})', text_upper)
+                if m:
+                    mon = m.group(2).capitalize()
+                    mon3 = mon[:3].upper()
+                    if mon3 in en_3:
+                        candidates.append(en_3[mon3] + m.group(3))
+                if candidates:
+                    break
+            doc.close()
+        except Exception:
+            pass
+
+    return candidates[0] if candidates else None
+
+
+def _parse_pdf_table(content: bytes) -> list:
+    """Parse PDF table data using fitz (thread-safe, no blocking)."""
+    import fitz, re
+    doc = fitz.open(stream=content, filetype="pdf")
+    rows, seen = [], set()
+    max_pages = min(len(doc), 10)
+    for page in doc[:max_pages]:
+        for table in page.find_tables():
+            tbl = table.extract()
+            if not tbl or len(tbl) < 2:
+                continue
+            header = [str(h).strip().lower() if h else '' for h in tbl[0]]
+
+            def _find_col(needles):
+                for n in needles:
+                    for i, h in enumerate(header):
+                        if n in h:
+                            return i
+                return None
+
+            ci_code = _find_col(['kode', 'code', 'stock', 'saham', 'emiten'])
+            ci_name = _find_col(['investor', 'pemegang', 'shareholder', 'nama', 'name'])
+            ci_pct = _find_col(['%', 'persen', 'percent', 'pct', '%saham', 'saham%'])
+            ci_cnt = _find_col(['total', 'jumlah', 'amount', 'count', 'shares', 'lembar', 'qty'])
+            if ci_code is None and ci_name is None:
+                continue
+            for row in tbl[1:]:
+                if not row or len(row) <= max(ci_code or 0, ci_name or 0):
+                    continue
+                try:
+                    sc = re.sub(r'[^A-Z0-9]', '', (str(row[ci_code] or '')).upper()) if ci_code is not None else ''
+                    nm = re.sub(r'\s+', ' ', (str(row[ci_name] or '')).strip().upper()) if ci_name is not None else ''
+                    pct = 0.0
+                    cnt = 0
+                    if ci_pct is not None:
+                        val = str(row[ci_pct] or '0').strip().replace(',', '.').replace('%', '')
+                        m = re.search(r'[\d.]+', val)
+                        if m: pct = float(m.group())
+                    if ci_cnt is not None:
+                        val = str(row[ci_cnt] or '0').strip().replace(',', '')
+                        m = re.search(r'[\d]+', val)
+                        if m: cnt = int(m.group())
+                except (ValueError, IndexError):
+                    continue
+                if not sc or not nm or pct <= 0:
+                    continue
+                dedup = f'{sc}|{nm}|{pct:.4f}'
+                if dedup in seen:
+                    continue
+                seen.add(dedup)
+                rows.append(dict(stock_code=sc, shareholder_name=nm, share_percent=round(pct, 2), share_count=cnt))
+    doc.close()
+    return rows
+
 
 @router.post("/shareholders/upload")
 async def shareholder_upload(
@@ -408,9 +989,12 @@ async def shareholder_upload(
 
     period = period.strip().upper()
 
+    import io
+    content = await file.read()
+
     # Auto-detect period for PDF if not provided
     if not period and ext == 'pdf':
-        detected = _detect_period_from_pdf(file.filename)
+        detected = _detect_period_from_pdf(file.filename, content)
         if detected:
             period = detected
         else:
@@ -419,13 +1003,11 @@ async def shareholder_upload(
     if not period:
         raise HTTPException(400, "Period is required (e.g. JUN2026)")
 
-    import io
     import csv
 
     rows = []
     try:
         if ext == 'csv':
-            content = await file.read()
             text = content.decode('utf-8-sig')
             reader = csv.DictReader(io.StringIO(text))
             for row in reader:
@@ -447,7 +1029,6 @@ async def shareholder_upload(
                     'share_count': cnt,
                 })
         elif ext == 'xlsx':
-            content = await file.read()
             import pandas as pd
             df = pd.read_excel(io.BytesIO(content), dtype=str)
             df.columns = [c.strip().lower() for c in df.columns]
@@ -470,64 +1051,9 @@ async def shareholder_upload(
                     'share_count': cnt,
                 })
         elif ext == 'pdf':
-            content = await file.read()
-            import pdfplumber
-            import re
-            with pdfplumber.open(io.BytesIO(content)) as pdf:
-                for page in pdf.pages:
-                    tables = page.extract_tables()
-                    for table in tables:
-                        if not table or len(table) < 2:
-                            continue
-                        header = table[0]
-                        header_lower = [str(h).strip().lower() if h else '' for h in header]
-                        # Helper inline
-                        def _find_col(haystack, needles):
-                            for i, h in enumerate(haystack):
-                                for n in needles:
-                                    if n in h:
-                                        return i
-                            return None
-                        col_code = _find_col(header_lower, ['kode', 'code', 'stock', 'saham', 'emiten'])
-                        col_name = _find_col(header_lower, ['nama', 'name', 'pemegang', 'shareholder', 'investor'])
-                        col_pct = _find_col(header_lower, ['%', 'persen', 'percent', 'pct', '%saham', 'saham%'])
-                        col_cnt = _find_col(header_lower, ['jumlah', 'amount', 'count', 'shares', 'lembar', 'qty'])
-                        if col_code is None and col_name is None:
-                            continue
-                        for row in table[1:]:
-                            if not row or len(row) <= max(col_code or 0, col_name or 0):
-                                continue
-                            sc = ''
-                            nm = ''
-                            pct = 0.0
-                            cnt = 0
-                            try:
-                                if col_code is not None:
-                                    val = str(row[col_code] or '').strip()
-                                    sc = re.sub(r'[^A-Z0-9]', '', val.upper())
-                                if col_name is not None:
-                                    nm = str(row[col_name] or '').strip().upper()
-                                    nm = re.sub(r'\s+', ' ', nm)
-                                if col_pct is not None:
-                                    val = str(row[col_pct] or '0').strip().replace(',', '.').replace('%', '')
-                                    m = re.search(r'[\d.]+', val)
-                                    if m:
-                                        pct = float(m.group())
-                                if col_cnt is not None:
-                                    val = str(row[col_cnt] or '0').strip().replace(',', '')
-                                    m = re.search(r'[\d]+', val)
-                                    if m:
-                                        cnt = int(m.group())
-                            except (ValueError, IndexError):
-                                continue
-                            if not sc or not nm or pct <= 0:
-                                continue
-                            rows.append({
-                                'stock_code': sc,
-                                'shareholder_name': nm,
-                                'share_percent': round(pct, 2),
-                                'share_count': cnt,
-                            })
+            import asyncio
+            loop = asyncio.get_running_loop()
+            rows = await loop.run_in_executor(None, _parse_pdf_table, content)
     except Exception as e:
         raise HTTPException(400, f"Failed to parse file: {e}")
 
@@ -539,6 +1065,7 @@ async def shareholder_upload(
 
     result = bulk_import(rows, period)
     return {"status": "ok", "period": period, "exists": exists, **result}
+
 
 @router.get("/health")
 def health_check():
@@ -581,6 +1108,7 @@ def ai_status():
         result["error"] = str(e)[:200]
     return result
 
+
 @router.get("/stock/{code}")
 def get_stock(code: str, period: str = Query("3mo", description="Period: 1mo, 3mo, 6mo, 1y")):
     data = get_latest_data(code, period=period)
@@ -606,6 +1134,7 @@ def get_stock(code: str, period: str = Query("3mo", description="Period: 1mo, 3m
         data["history"] = history[-60:] if history else []
 
     return data
+
 
 @router.get("/analyze/{code}")
 def analyze_stock(code: str):
@@ -637,6 +1166,7 @@ def analyze_stock(code: str):
 
     return result
 
+
 @router.get("/chart/{code}")
 def get_chart(code: str):
     data = get_latest_data(code)
@@ -653,34 +1183,42 @@ def get_chart(code: str):
 
     raise HTTPException(status_code=500, detail="Failed to generate chart")
 
+
 @router.get("/market-summary")
 def market_summary():
     return get_market_summary()
+
 
 @router.get("/market-sentiment")
 def market_sentiment():
     return get_market_sentiment()
 
+
 @router.get("/sector-performance")
 def sector_performance():
     return get_sector_performance()
+
 
 @router.get("/top-gainers")
 def top_gainers(limit: int = Query(10, ge=1, le=30)):
     return {"gainers": get_top_gainers(limit)}
 
+
 @router.get("/top-losers")
 def top_losers(limit: int = Query(10, ge=1, le=30)):
     return {"losers": get_top_losers(limit)}
+
 
 @router.get("/top-volume")
 def top_volume(limit: int = Query(10, ge=1, le=30)):
     return {"volumes": get_top_volume(limit)}
 
+
 @router.get("/stocks")
 def list_stocks():
     stocks = [{"code": k, "name": v} for k, v in STOCK_LIST.items()]
     return {"stocks": stocks}
+
 
 @router.post("/watchlist/add")
 def add_watchlist(req: WatchlistRequest):
@@ -691,6 +1229,7 @@ def add_watchlist(req: WatchlistRequest):
     crud.add_to_watchlist(user["id"], req.stock_code, STOCK_LIST.get(req.stock_code.upper(), ""))
     return {"status": "ok", "message": f"{req.stock_code.upper()} added to watchlist"}
 
+
 @router.post("/watchlist/remove")
 def remove_watchlist(req: WatchlistRequest):
     user = crud.get_user(req.user_id)
@@ -698,6 +1237,7 @@ def remove_watchlist(req: WatchlistRequest):
         crud.remove_from_watchlist(user["id"], req.stock_code)
 
     return {"status": "ok", "message": f"{req.stock_code.upper()} removed from watchlist"}
+
 
 @router.get("/watchlist/{user_id}")
 def get_watchlist(user_id: int):
@@ -708,20 +1248,24 @@ def get_watchlist(user_id: int):
     items = crud.get_watchlist(user["id"])
     return {"watchlist": items}
 
+
 @router.get("/analysis-history")
 def analysis_history(limit: int = Query(20, ge=1, le=100)):
     history = crud.get_recent_analysis(limit)
     return {"history": history}
+
 
 @router.get("/alerts")
 def get_alerts(limit: int = Query(20, ge=1, le=100)):
     alerts = crud.get_alerts(limit)
     return {"alerts": alerts}
 
+
 @router.get("/ihsg")
 async def get_ihsg():
     data = IHSGService().get_ihsg_summary()
     return {"status": "ok", "data": data}
+
 
 @router.get("/relative-strength/{code}")
 async def get_relative_strength(code: str):
@@ -730,10 +1274,12 @@ async def get_relative_strength(code: str):
         raise HTTPException(status_code=404, detail=f"Relative strength data for {code} not found")
     return {"status": "ok", "data": data}
 
+
 @router.get("/market-breadth")
 async def get_market_breadth():
     data = calculate_all_relative_strength()
     return {"status": "ok", "data": data}
+
 
 @router.get("/foreign-flow/summary")
 async def foreign_flow_summary():
@@ -749,6 +1295,7 @@ async def foreign_flow_summary():
         },
     }
 
+
 @router.get("/foreign-flow/{code}")
 async def foreign_flow(code: str, days: int = Query(30, ge=1, le=365)):
     history = get_foreign_flow(code, days)
@@ -760,6 +1307,7 @@ async def foreign_flow(code: str, days: int = Query(30, ge=1, le=365)):
             "accumulation_status": accumulation,
         },
     }
+
 
 @router.get("/day-trade/candidates")
 async def day_trade_candidates():
@@ -786,6 +1334,7 @@ async def day_trade_candidates():
             },
         }
 
+
 @router.get("/day-trade/{code}")
 async def day_trade_analysis(code: str):
     from app.ai.strategies.bpjs_strategy import BPJSStrategy
@@ -793,6 +1342,7 @@ async def day_trade_analysis(code: str):
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
     return {"status": "ok", "data": result}
+
 
 @router.get("/scored-analysis/{code}")
 async def get_scored_analysis(
@@ -823,12 +1373,14 @@ async def get_scored_analysis(
         },
     }
 
+
 @router.get("/long-term/{code}")
 async def long_term_analysis(code: str):
     from app.ai.strategies.creative_trader_strategy import CreativeTraderStrategy
     strategy = CreativeTraderStrategy()
     data = strategy.analyze(code)
     return {"status": "ok", "data": data}
+
 
 @router.get("/long-term/candidates")
 async def long_term_candidates():
@@ -856,6 +1408,7 @@ async def long_term_candidates():
             },
         }
 
+
 @router.get("/market-reports")
 async def get_market_reports(limit: int = Query(500, description="Max reports to return", le=1000)):
     """Get parsed market reports from @creativetrader."""
@@ -864,6 +1417,7 @@ async def get_market_reports(limit: int = Query(500, description="Max reports to
     if not reports:
         return {"status": "ok", "data": [], "message": "No reports yet. Run market_report_scraper.py first."}
     return {"status": "ok", "data": reports, "total": len(reports)}
+
 
 @router.get("/market-report-analysis")
 async def get_market_report_analysis():
@@ -1082,6 +1636,7 @@ def treemap_data():
     """Market heatmap treemap - stocks grouped by sector."""
     return get_treemap_data()
 
+
 @router.get("/market-backtest")
 def market_backtest():
     """Backtest: beli saham yg naik di Sesi 1 -> tahan sampai akhir sesi."""
@@ -1205,94 +1760,34 @@ def market_backtest():
         'daily': daily_details[-30:],  # last 30 days
     }
 
+
+
+
 @router.get("/broker-summary/stocks")
-def broker_available_stocks():
-    """List stocks — those WITH broker data + those from IDX list without data."""
+def broker_summary_stocks():
+    """List stocks that have broker_summary data."""
     from app.database.database import get_db
-    from app.services.stock_service import STOCK_LIST
-    
     with get_db() as conn:
-        rows = conn.execute(
-            "SELECT stock_code, MIN(period_from) latest_from, MAX(period_to) latest_to, "
-            "COUNT(*) entries FROM broker_summary GROUP BY stock_code ORDER BY entries DESC"
-        ).fetchall()
-    
-    # Map broker data by stock_code
-    broker_map = {}
-    for r in rows:
-        if r[0]:
-            broker_map[r[0]] = {
-                "stock_code": r[0], "latest_from": r[1], "latest_to": r[2], "entries": r[3]
-            }
-    
-    # Include ALL stocks from STOCK_LIST + any stock with broker data (e.g. TINS, BULL)
-    stocks = []
-    for code, name in sorted(STOCK_LIST.items()):
-        if code in broker_map:
-            stocks.append(broker_map[code])
-        else:
-            stocks.append({
-                "stock_code": code, "latest_from": None, "latest_to": None, "entries": 0
-            })
-    # Add stocks present in broker_summary but not in STOCK_LIST
-    import re
-    _valid_code = re.compile(r'^[A-Z]{3,6}(-[RW]{1,2})?$')
-    for code in sorted(set(broker_map.keys()) - set(STOCK_LIST.keys())):
-        if not _valid_code.match(code):
-            continue
-        stocks.append(broker_map[code])
-    
-    return {"status": "ok", "stocks": stocks}
+        rows = conn.execute("""
+            SELECT stock_code, COUNT(*) as entries, 
+                   MAX(period_from) as latest_from, MAX(period_to) as latest_to
+            FROM broker_summary
+            GROUP BY stock_code
+            ORDER BY stock_code
+        """).fetchall()
+        stocks = []
+        for r in rows:
+            if hasattr(r, 'keys'):
+                stocks.append(dict(r))
+            else:
+                stocks.append({
+                    'stock_code': r[0],
+                    'entries': r[1],
+                    'latest_from': str(r[2]) if r[2] else None,
+                    'latest_to': str(r[3]) if r[3] else None,
+                })
+        return {'status': 'ok', 'stocks': stocks}
 
-@router.get("/broker-summary/suggest-upload")
-def broker_suggest_upload():
-    """Suggest stocks WITHOUT broker data that are interesting for upload."""
-    from app.database.database import get_db
-    from app.services.stock_service import STOCK_LIST, fetch_stock_data
-
-    with get_db() as conn:
-        with_data = set(
-            r[0] for r in conn.execute(
-                "SELECT DISTINCT stock_code FROM broker_summary"
-            ).fetchall()
-        )
-
-    candidates = []
-    for code in sorted(set(STOCK_LIST.keys()) - with_data):
-        try:
-            d = fetch_stock_data(code, period="5d")
-            if not d:
-                continue
-            df = d["history"]
-            if len(df) < 2:
-                continue
-            price = float(df["Close"].iloc[-1])
-            prev = float(df["Close"].iloc[-2])
-            chg = ((price - prev) / prev) * 100
-            vol = int(df["Volume"].iloc[-1])
-            vol_ma = float(df["Volume"].iloc[-3]) if len(df) >= 3 else vol
-            vol_ratio = vol / vol_ma if vol_ma > 0 else 1
-            score = min(10, vol_ratio * 5) + (5 if chg > 1 else (3 if chg > 0 else 0))
-            name = STOCK_LIST.get(code, "")
-            reasons = []
-            if chg > 3:
-                reasons.append(f"naik {chg:.1f}%")
-            elif chg > 0:
-                reasons.append(f"naik {chg:.1f}%")
-            if vol_ratio > 2:
-                reasons.append("volume melonjak")
-            elif vol_ratio > 1.2:
-                reasons.append("volume di atas rata-rata")
-            reasons.append("belum ada data broker")
-            candidates.append({
-                "stock_code": code, "name": name, "price": round(price, 0),
-                "change_pct": round(chg, 2), "volume_ratio": round(vol_ratio, 1),
-                "score": round(score, 0), "reason": ", ".join(reasons),
-            })
-        except Exception:
-            continue
-    candidates.sort(key=lambda x: x["score"], reverse=True)
-    return {"status": "ok", "suggestions": candidates[:6]}
 
 @router.get("/broker-summary/{stock_code}")
 def broker_summary(stock_code: str):
@@ -1454,6 +1949,7 @@ def broker_summary(stock_code: str):
             'avg_spread': avg_spread,
             'widest_crossing': widest,
         }
+
 
 @router.get("/broker-summary/{stock_code}/recommendation")
 def broker_recommendation(stock_code: str):
@@ -1705,6 +2201,7 @@ def broker_recommendation(stock_code: str):
         }
     }
 
+
 @router.get("/crossing/summary/{stock_code}")
 def crossing_summary(stock_code: str):
     import mysql.connector
@@ -1712,505 +2209,40 @@ def crossing_summary(stock_code: str):
         host='localhost', user='root', password='', database='analisa_saham'
     )
     cur = conn.cursor(dictionary=True)
-
-    # Get period range for this stock
     cur.execute("""
-        SELECT MIN(period_from) as period_from, MAX(period_to) as period_to,
-               COUNT(*) as entry_count
-        FROM broker_summary WHERE stock_code = %s
-    """, (stock_code.upper(),))
-    period_info = cur.fetchone() or {}
-
-    # Get buyers and sellers
-    cur.execute("""
-        SELECT broker_code, side, lots, value, avg_price
+        SELECT broker_code, SUM(lots) as total_lots, SUM(value) as total_value
         FROM broker_summary
         WHERE stock_code = %s
+        GROUP BY broker_code
+        ORDER BY total_value DESC
     """, (stock_code.upper(),))
-    rows = cur.fetchall()
+    data = cur.fetchall()
     cur.close()
     conn.close()
+    return {"status": "ok", "data": data}
+    brokers = {}
 
-    if not rows:
-        return {
-            "status": "ok",
-            "total_crossing": 0,
-            "spread_dist": {"<1%": 0, "1-3%": 0, ">3%": 0},
-            "top_brokers": [],
-            "brokers": [],
-            "period_from": period_info.get("period_from"),
-            "period_to": period_info.get("period_to"),
-            "entry_count": period_info.get("entry_count", 0),
-        }
-
-    buyers = [r for r in rows if r['side'] == 'buy']
-    sellers = [r for r in rows if r['side'] == 'sell']
-
-    # Find potential crossings: buyers & sellers with same avg_price
-    crossings = []
-    for b in buyers:
-        for s in sellers:
-            if b['avg_price'] and s['avg_price'] and b['avg_price'] == s['avg_price']:
-                spread = 0
-                lot_match = min(b['lots'], s['lots'])
-                crossings.append({
-                    'buyer_broker': b['broker_code'],
-                    'seller_broker': s['broker_code'],
-                    'potential_lots': lot_match,
-                    'buyer_avg_price': b['avg_price'],
-                    'seller_avg_price': s['avg_price'],
-                    'spread': spread,
-                })
-
-    # Spread distribution
-    dist = {"<1%": 0, "1-3%": 0, ">3%": 0}
-    brokers_count = {}
-    for c in crossings:
-        s_val = abs(c.get('spread', 0))
-        if s_val < 1:
+    for c in pc:
+        s = abs(c.get('spread', 0))
+        if s < 1:
             dist["<1%"] += 1
-        elif s_val <= 3:
+        elif s <= 3:
             dist["1-3%"] += 1
         else:
             dist[">3%"] += 1
+
         b = c.get('buyer_broker')
         if b:
-            brokers_count[b] = brokers_count.get(b, 0) + 1
+            brokers[b] = brokers.get(b, 0) + 1
         s_b = c.get('seller_broker')
         if s_b:
-            brokers_count[s_b] = brokers_count.get(s_b, 0) + 1
+            brokers[s_b] = brokers.get(s_b, 0) + 1
 
-    top_brokers = sorted(brokers_count.items(), key=lambda x: x[1], reverse=True)[:5]
-
-    # All brokers with aggregated data
-    broker_agg = {}
-    for r in rows:
-        k = r['broker_code']
-        if k not in broker_agg:
-            broker_agg[k] = {'broker_code': k, 'total_lots': 0, 'total_value': 0, 'side': set()}
-        broker_agg[k]['total_lots'] += r['lots'] or 0
-        broker_agg[k]['total_value'] += r['value'] or 0
-        broker_agg[k]['side'].add(r['side'])
-    brokers_list = sorted(broker_agg.values(), key=lambda x: x['total_value'], reverse=True)
-    for b in brokers_list:
-        b['side'] = list(b['side'])
+    top_brokers = sorted(brokers.items(), key=lambda x: x[1], reverse=True)[:5]
 
     return {
         "status": "ok",
-        "total_crossing": len(crossings),
         "spread_dist": dist,
         "top_brokers": top_brokers,
-        "brokers": brokers_list,
-        "period_from": period_info.get("period_from"),
-        "period_to": period_info.get("period_to"),
-        "entry_count": period_info.get("entry_count", 0),
+        "total_crossing": len(pc),
     }
-
-@router.get("/shareholders/periods")
-def shareholder_periods():
-    """List available data periods + stats."""
-    from app.services.shareholder_service import get_db
-    periods = get_available_periods()
-    latest = get_latest_period()
-    # Stats for latest period
-    stats = {"total_records": 0, "total_stocks": 0, "total_holders": 0}
-    if latest:
-        with get_db() as conn:
-            cur = conn.execute("SELECT COUNT(*) FROM shareholders WHERE data_period=?", (latest,))
-            stats["total_records"] = cur.fetchone()[0]
-            cur = conn.execute("SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE data_period=?", (latest,))
-            stats["total_stocks"] = cur.fetchone()[0]
-            cur = conn.execute("SELECT COUNT(DISTINCT shareholder_name) FROM shareholders WHERE data_period=?", (latest,))
-            stats["total_holders"] = cur.fetchone()[0]
-    return {
-        "status": "ok",
-        "periods": periods,
-        "latest": latest,
-        "stats": stats,
-    }
-
-@router.get("/stats/shareholders")
-def shareholder_stats(period: Optional[str] = None):
-    """Get aggregate stats for a period."""
-    from app.services.shareholder_service import get_db
-    with get_db() as conn:
-        cur = conn.execute("SELECT COUNT(*) FROM shareholders WHERE 1=1" + 
-            (" AND data_period=?" if period else ""),
-            (period,) if period else ())
-        total = cur.fetchone()[0]
-        cur = conn.execute("SELECT COUNT(DISTINCT stock_code) FROM shareholders WHERE 1=1" + 
-            (" AND data_period=?" if period else ""),
-            (period,) if period else ())
-        stocks = cur.fetchone()[0]
-        cur = conn.execute("SELECT COUNT(DISTINCT shareholder_name) FROM shareholders WHERE 1=1" + 
-            (" AND data_period=?" if period else ""),
-            (period,) if period else ())
-        holders = cur.fetchone()[0]
-        # Top holder name
-        top_sql = """SELECT shareholder_name, SUM(share_percent) as total 
-            FROM shareholders WHERE 1=1"""
-        if period:
-            top_sql += " AND data_period=?"
-        top_sql += " GROUP BY shareholder_name ORDER BY total DESC LIMIT 1"
-        cur = conn.execute(top_sql, (period,) if period else ())
-        top = cur.fetchone()
-    return {
-        "status": "ok",
-        "total_records": total,
-        "total_stocks": stocks,
-        "total_holders": holders,
-        "top_holder": top[0] if top else "-",
-        "period": period or "all",
-    }
-
-@router.get("/shareholders/top")
-def shareholder_top(
-    limit: int = Query(20, ge=1, le=100),
-    period: Optional[str] = None,
-    min_pct: float = Query(1.0, ge=0.1, le=100),
-):
-    """Top individual shareholders across all stocks."""
-    return {
-        "status": "ok",
-        "period": period or "latest",
-        "data": get_top_shareholders(limit, period, min_pct),
-    }
-
-@router.get("/shareholders/bubble-data")
-def shareholder_bubble_data(period: Optional[str] = None):
-    """Bubble chart data: top shareholders with has_majority flag (any holding >=5%)."""
-    try:
-        from app.services.shareholder_service import get_db
-        with get_db() as conn:
-            if period:
-                rows = conn.execute("""
-                    SELECT shareholder_name, COUNT(*) as stock_count,
-                           ROUND(SUM(share_percent), 2) as total_pct,
-                           MAX(CASE WHEN share_percent >= 5 THEN 1 ELSE 0 END) as has_majority
-                    FROM shareholders
-                    WHERE data_period = ? AND share_percent >= 0.5
-                    GROUP BY shareholder_name
-                    HAVING total_pct >= 1
-                    ORDER BY total_pct DESC
-                    LIMIT 80
-                """, (period,))
-            else:
-                rows = conn.execute("""
-                    SELECT shareholder_name, COUNT(*) as stock_count,
-                           ROUND(SUM(share_percent), 2) as total_pct,
-                           MAX(CASE WHEN share_percent >= 5 THEN 1 ELSE 0 END) as has_majority
-                    FROM shareholders
-                    WHERE share_percent >= 0.5
-                    GROUP BY shareholder_name
-                    HAVING total_pct >= 1
-                    ORDER BY total_pct DESC
-                    LIMIT 80
-                """)
-            data = []
-            for r in rows:
-                d = dict(r)
-                d["has_majority"] = bool(d["has_majority"])
-                data.append(d)
-            return {"status": "ok", "data": data}
-    except Exception as e:
-        logger.error("bubble-data error: %s", e)
-        return {"status": "error", "data": [], "error": str(e)}
-
-@router.get("/shareholders/force-graph")
-def shareholder_force_graph(period: Optional[str] = None, min_pct: float = 5.0):
-    """Force-directed graph data: top shareholders + their stock connections."""
-    try:
-        graph_data = get_shareholder_graph_data(period, min_pct=min_pct)
-        return {"status": "ok", **graph_data}
-    except Exception as e:
-        return {"status": "error", "nodes": [], "edges": [], "error": str(e)}
-
-@router.get("/shareholders/stocks")
-def shareholder_stocks(period: Optional[str] = None):
-    """List stocks that have shareholder data (with name if known)."""
-    try:
-        from app.services.shareholder_service import get_db
-        from app.services.stock_service import STOCK_LIST
-        with get_db() as conn:
-            if period:
-                rows = conn.execute(
-                    """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
-                       FROM shareholders
-                       WHERE data_period = ?
-                       GROUP BY stock_code
-                       ORDER BY stock_code ASC""",
-                    (period,)
-                )
-            else:
-                rows = conn.execute(
-                    """SELECT stock_code, COUNT(*) as holder_count, SUM(share_percent) as total_pct
-                       FROM shareholders
-                       GROUP BY stock_code
-                       ORDER BY stock_code ASC"""
-                )
-            result = []
-            for r in rows:
-                d = dict(r)
-                d["stock_name"] = STOCK_LIST.get(d["stock_code"], "")
-                result.append(d)
-            return {"status": "ok", "period": period or "all", "data": result}
-    except Exception as e:
-        import traceback
-        logger.error("shareholder_stocks error: %s\n%s", e, traceback.format_exc())
-        from fastapi.responses import JSONResponse
-        return JSONResponse(
-            status_code=500,
-            content={"status": "error", "message": str(e)}
-        )
-
-@router.get("/shareholders/search/{name}")
-def shareholder_search(name: str, period: Optional[str] = None):
-    """Search portfolio of a specific shareholder (e.g. 'LO KHENG HONG')."""
-    return {
-        "status": "ok",
-        "shareholder_name": name,
-        "period": period or "latest",
-        "data": get_shareholder_portfolio(name, period),
-    }
-
-@router.get("/shareholders/{stock_code}")
-def shareholder_stock_detail(stock_code: str, period: Optional[str] = None):
-    """Get shareholders for a specific stock code."""
-    from app.services.shareholder_service import _ensure_table, get_db
-    _ensure_table()
-    with get_db() as conn:
-        if period:
-            rows = conn.execute(
-                """SELECT shareholder_name, share_percent, share_count, category
-                   FROM shareholders WHERE stock_code = ? AND data_period = ?
-                   ORDER BY share_percent DESC""",
-                (stock_code.upper(), period)
-            )
-        else:
-            rows = conn.execute(
-                """SELECT shareholder_name, share_percent, share_count, category, data_period
-                   FROM shareholders WHERE stock_code = ?
-                   ORDER BY share_percent DESC""",
-                (stock_code.upper(),)
-            )
-        data = [dict(r) for r in rows]
-    return {"status": "ok", "stock_code": stock_code, "period": period or "latest", "data": data}
-
-@router.post("/shareholders/upload-json")
-async def upload_shareholder_json(
-    data: dict,
-    data_period: str = Query(..., description="Format YYYYMMDD, e.g., 20240131"),
-):
-    """Upload shareholder data directly as JSON."""
-    if not isinstance(data, list):
-        raise HTTPException(400, "JSON data must be a list of records.")
-
-    # Process JSON data, similar to bulk_import
-    mapped_rows = []
-    for row in data:
-        # Convert keys to lowercase for robust matching
-        row_lower = {k.lower(): v for k, v in row.items()}
-        mapped_rows.append({
-            "stock_code": row_lower.get("stock_code", row_lower.get("kode_saham")),
-            "shareholder_name": row_lower.get("shareholder_name", row_lower.get("nama_pemegang_saham")),
-            "share_percent": row_lower.get("share_percent", row_lower.get("persentase_saham", row_lower.get("persen_saham"))),
-            "share_count": row_lower.get("share_count", row_lower.get("jumlah_saham", row_lower.get("saham"))),
-            "category": row_lower.get("category", row_lower.get("kategori")),
-        })
-    
-    final_rows = []
-    for i, row in enumerate(mapped_rows):
-        stock_code = row.get("stock_code")
-        shareholder_name = row.get("shareholder_name")
-        share_percent = row.get("share_percent")
-
-        if not stock_code or not shareholder_name or share_percent is None:
-            logger.warning(f"Skipping row {i} due to missing stock_code, shareholder_name, or share_percent in JSON: {row}")
-            continue
-        
-        try:
-            row["share_percent"] = float(row["share_percent"])
-        except ValueError:
-            logger.warning(f"Skipping row {i} due to invalid share_percent in JSON: {row['share_percent']}")
-            continue
-        
-        final_rows.append(row)
-
-    if not final_rows:
-        raise HTTPException(400, "No valid data found in JSON after processing. Check column names.")
-
-    result = bulk_import(final_rows, data_period)
-    return {"status": "ok", "message": "Import successful", **result}
-
-@router.get("/admin/db/reset-shareholders")
-def reset_shareholders_db():
-    from app.database.database import get_db
-    with get_db() as conn:
-        conn.execute("DROP TABLE IF EXISTS shareholders")
-        # Re-init table (this will be done by the next call to any shareholder service)
-    return {"status": "ok", "message": "Shareholders table reset. It will be re-initialized on next data access."}
-
-@router.get("/charts/full-analysis/{stock_code}")
-async def get_full_analysis_chart(stock_code: str):
-    """Generate a full analysis chart for a given stock code."""
-    try:
-        chart_path = generate_full_analysis_chart(stock_code)
-        if chart_path and os.path.exists(chart_path):
-            return FileResponse(chart_path, media_type="image/png")
-        raise HTTPException(status_code=404, detail="Chart not found")
-    except Exception as e:
-        logger.error(f"Error generating full analysis chart for {stock_code}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error generating chart: {e}")
-
-@router.get("/treemap/{category}")
-def get_treemap_categories(category: str):
-    """Retrieve treemap data for a specific category (e.g., sector, market_cap)."""
-    data = get_treemap_data(category)
-    return {"status": "ok", "data": data}
-
-@router.post("/telegram/webhook")
-async def telegram_webhook(request: Request):
-    """Telegram webhook for bot updates."""
-    # This endpoint is handled by the python-telegram-bot library internally
-    # when the bot is running. We just need to define it for FastAPI.
-    return {"status": "ok", "message": "Webhook received, processed by bot."}
-
-
-# ── Broker Daily Summary (IDX aggregate all stocks) ──────────────────────────
-
-from app.database.database import get_db as _get_db
-
-
-@router.get("/broker-daily/dates")
-def broker_daily_dates():
-    """List available trading dates in broker_daily_summary."""
-    with _get_db() as conn:
-        rows = conn.execute(
-            "SELECT trade_date, COUNT(*) as broker_count "
-            "FROM broker_daily_summary GROUP BY trade_date ORDER BY trade_date DESC"
-        ).fetchall()
-    return {"status": "ok", "dates": [{"date": r[0], "brokers": r[1]} for r in rows]}
-
-
-@router.get("/broker-daily/{trade_date}")
-def broker_daily_detail(trade_date: str):
-    """Get all broker activity for a specific date, sorted by value desc."""
-    with _get_db() as conn:
-        rows = conn.execute(
-            "SELECT broker_code, broker_name, volume, value, frequency "
-            "FROM broker_daily_summary WHERE trade_date = ? ORDER BY value DESC",
-            (trade_date,)
-        ).fetchall()
-    if not rows:
-        return {"status": "empty", "message": f"No data for {trade_date}"}
-    data = [
-        {"broker_code": r[0], "broker_name": r[1], "volume": r[2],
-         "value": r[3], "frequency": r[4]}
-        for r in rows
-    ]
-    return {"status": "ok", "trade_date": trade_date, "count": len(data), "data": data}
-
-
-@router.get("/broker-daily/ranking/{start_date}/{end_date}")
-def broker_daily_ranking(start_date: str, end_date: str, limit: int = 20):
-    """Rank brokers by total value over a date range. Top buyers/sellers proxy."""
-    with _get_db() as conn:
-        rows = conn.execute(
-            "SELECT broker_code, broker_name, "
-            "SUM(volume) as total_volume, SUM(value) as total_value, SUM(frequency) as total_freq, "
-            "COUNT(*) as trading_days "
-            "FROM broker_daily_summary "
-            "WHERE trade_date BETWEEN ? AND ? "
-            "GROUP BY broker_code "
-            "ORDER BY total_value DESC LIMIT ?",
-            (start_date, end_date, limit)
-        ).fetchall()
-    data = [
-        {"broker_code": r[0], "broker_name": r[1], "total_volume": r[2],
-         "total_value": r[3], "total_freq": r[4], "trading_days": r[5]}
-        for r in rows
-    ]
-    return {"status": "ok", "start": start_date, "end": end_date, "data": data}
-
-
-@router.get("/broker-daily/trend/{broker_code}")
-def broker_daily_trend(broker_code: str, days: int = 30):
-    """Get daily value trend for a specific broker."""
-    with _get_db() as conn:
-        rows = conn.execute(
-            "SELECT trade_date, volume, value, frequency "
-            "FROM broker_daily_summary WHERE broker_code = ? "
-            "ORDER BY trade_date DESC LIMIT ?",
-            (broker_code.upper(), days)
-        ).fetchall()
-    data = [
-        {"date": r[0], "volume": r[1], "value": r[2], "frequency": r[3]}
-        for r in rows
-    ]
-    return {"status": "ok", "broker_code": broker_code.upper(), "data": data}
-
-
-@router.get("/broker-daily/summary")
-def broker_daily_overview():
-    """Overview stats: date range, total value, avg daily value, top broker."""
-    with _get_db() as conn:
-        stats = conn.execute(
-            "SELECT MIN(trade_date), MAX(trade_date), COUNT(DISTINCT trade_date), "
-            "SUM(value), AVG(value) FROM broker_daily_summary"
-        ).fetchone()
-        top = conn.execute(
-            "SELECT broker_code, broker_name, SUM(value) as tv "
-            "FROM broker_daily_summary GROUP BY broker_code ORDER BY tv DESC LIMIT 1"
-        ).fetchone()
-        latest = conn.execute(
-            "SELECT trade_date FROM broker_daily_summary ORDER BY trade_date DESC LIMIT 1"
-        ).fetchone()
-    return {
-        "status": "ok",
-        "date_from": stats[0], "date_to": stats[1],
-        "trading_days": stats[2], "total_value": stats[3],
-        "avg_daily_value": stats[4],
-        "top_broker": {"code": top[0], "name": top[1], "total_value": top[2]} if top else None,
-        "latest_date": latest[0] if latest else None,
-    }
-
-
-
-@router.post("/broker-daily/upload")
-async def upload_broker_daily(request: Request):
-    """Upload broker daily data. Accepts JSON array of {trade_date, broker_code, broker_name, volume, value, frequency}."""
-    try:
-        body = await request.json()
-    except Exception:
-        return {"status": "error", "message": "Invalid JSON"}
-    
-    rows = body if isinstance(body, list) else body.get("data", [])
-    if not rows:
-        return {"status": "error", "message": "No data provided"}
-    
-    inserted = 0
-    skipped = 0
-    with _get_db() as conn:
-        for row in rows:
-            try:
-                trade_date = str(row.get("trade_date", ""))
-                broker_code = str(row.get("broker_code", "")).upper()
-                broker_name = str(row.get("broker_name", ""))
-                volume = int(row.get("volume", 0))
-                value = int(row.get("value", 0))
-                frequency = int(row.get("frequency", 0))
-                if not trade_date or not broker_code:
-                    skipped += 1
-                    continue
-                conn.execute(
-                    "INSERT INTO broker_daily_summary (trade_date, broker_code, broker_name, volume, value, frequency) "
-                    "VALUES (%s, %s, %s, %s, %s, %s) "
-                    "ON DUPLICATE KEY UPDATE broker_name=VALUES(broker_name), volume=VALUES(volume), "
-                    "value=VALUES(value), frequency=VALUES(frequency)",
-                    (trade_date, broker_code, broker_name, volume, value, frequency)
-                )
-                inserted += 1
-            except Exception:
-                skipped += 1
-        conn.commit()
-    return {"status": "ok", "inserted": inserted, "skipped": skipped, "total": len(rows)}

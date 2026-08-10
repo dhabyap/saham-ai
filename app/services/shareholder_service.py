@@ -153,7 +153,7 @@ def upsert_shareholder(
         ).fetchone()
         if existing:
             conn.execute(
-                """UPDATE shareholders SET share_count=?, share_percent=?, category=?, source=?, updated_at=datetime('now')
+                """UPDATE shareholders SET share_count=?, share_percent=?, category=?, source=?, updated_at=NOW()
                    WHERE stock_code=? AND shareholder_name=? AND data_period=?""",
                 (share_count, share_percent, category, source, stock_code.upper(), shareholder_name.upper(), data_period)
             )
@@ -214,76 +214,37 @@ def get_latest_period() -> Optional[str]:
         return row['data_period'] if row else None
 
 
-def get_shareholder_graph_data(period: Optional[str] = None, min_pct: float = 5.0) -> dict:
+def get_shareholder_trends(period: str, prev_period: str) -> list[dict]:
     """
-    Get shareholder data for graph visualization (nodes and edges).
-    Matches format expected by renderForceGraph() in charts.js.
-    min_pct: minimum share_percent threshold to include (default 5%).
+    Calculates the month-over-month change in share_percent for each stock,
+    identifying accumulation or distribution.
     """
     _ensure_table()
-    nodes = []
-    edges = []
-    
     with get_db() as conn:
-        if period:
-            rows = conn.execute(
-                """SELECT stock_code, shareholder_name, share_percent
-                   FROM shareholders
-                   WHERE data_period = ? AND share_percent >= ?
-                   ORDER BY stock_code, shareholder_name""",
-                (period, min_pct)
-            )
-        else:
-            rows = conn.execute(
-                """SELECT stock_code, shareholder_name, share_percent, data_period
-                   FROM shareholders
-                   WHERE share_percent >= ?
-                   ORDER BY data_period DESC, stock_code, shareholder_name""",
-                (min_pct,)
-            )
-        
-        stock_nodes = set()
-        shareholder_nodes: dict[str, dict] = {}
+        # Get data for current and previous period, focusing on top 1% holders
+        # Join on stock_code and shareholder_name
+        rows = conn.execute(
+            """
+            SELECT
+                curr.stock_code,
+                curr.shareholder_name,
+                curr.share_percent AS current_pct,
+                prev.share_percent AS previous_pct,
+                (curr.share_percent - prev.share_percent) AS pct_change
+            FROM
+                shareholders curr
+            JOIN
+                shareholders prev ON curr.stock_code = prev.stock_code
+                                  AND curr.shareholder_name = prev.shareholder_name
+            WHERE
+                curr.data_period = ? AND prev.data_period = ?
+                AND curr.share_percent >= 1.0 AND prev.share_percent >= 1.0
+            HAVING
+                ABS(pct_change) >= 3.0 -- Only show changes >= 3%
+            ORDER BY
+                ABS(pct_change) DESC
+            """,
+            (period, prev_period)
+        ).fetchall()
+        return [dict(row) for row in rows]
 
-        for r in rows:
-            record = dict(r)
-            stock_code = record['stock_code']
-            shareholder_name = record['shareholder_name']
-            share_percent = float(record['share_percent'])
-
-            if stock_code not in stock_nodes:
-                nodes.append({
-                    "id": stock_code,
-                    "label": stock_code,
-                    "type": "stock",
-                    "size": 12,
-                })
-                stock_nodes.add(stock_code)
-            
-            if shareholder_name not in shareholder_nodes:
-                shareholder_nodes[shareholder_name] = {
-                    "id": shareholder_name,
-                    "label": shareholder_name,
-                    "type": "shareholder",
-                    "size": 0,
-                    "total_pct": 0.0,
-                    "stock_count": 0,
-                }
-            
-            sh = shareholder_nodes[shareholder_name]
-            sh["size"] += share_percent
-            sh["total_pct"] = round(sh["total_pct"] + share_percent, 2)
-            sh["stock_count"] += 1
-            
-            edges.append({
-                "from": shareholder_name,
-                "to": stock_code,
-                "value": share_percent,
-                "title": f"{shareholder_name} owns {share_percent:.2f}% of {stock_code}",
-            })
-    
-    # Add computed shareholder nodes
-    for sh in shareholder_nodes.values():
-        nodes.append(sh)
-            
-    return {"nodes": nodes, "edges": edges}

@@ -49,7 +49,9 @@ templates.env.comment_end_string = '#}'
 app.include_router(router)
 app.include_router(learning_router)
 app.include_router(upload_router)
-app.include_router(network_router) # BARIS BARU
+app.include_router(network_router)
+from app.api.chat_routes import router as chat_router # NEW
+app.include_router(chat_router) # NEW # BARIS BARU
 
 # Auto cache-bust: file mtime → version string
 import time as _time
@@ -76,30 +78,32 @@ async def startup() -> None:
         logger.warning("⚠ Knowledge base seed: %s", e)
 
     # Seed default prompts
-    try:
-        _seed_default_prompts()
-    except Exception as e:
-        logger.warning("⚠ Prompt seed: %s", e)
+        try:
+            _seed_default_prompts()
+        except Exception as e:
+            logger.warning("⚠ Prompt seed: %s", e)
 
-    # Seed default strategies
-    try:
-        _seed_default_strategies()
-    except Exception as e:
-        logger.warning("⚠ Strategy seed: %s", e)
+        # Seed default strategies
+        try:
+            _seed_default_strategies()
+        except Exception as e:
+            logger.warning("⚠ Strategy seed: %s", e)
 
-    # Initialize shareholder table
-    try:
-        from app.services.shareholder_service import get_latest_period
-        get_latest_period()
-        logger.info("✓ Shareholder database initialized")
-    except Exception as e:
-        logger.warning("⚠ Shareholder table: %s", e)
+        # Initialize shareholder table
+        try:
+            from app.services.shareholder_service import get_latest_period
+            get_latest_period()
+            logger.info("✓ Shareholder database initialized")
+        except Exception as e:
+            logger.warning("⚠ Shareholder table: %s", e)
 
-    # Start scheduler
-    start_scheduler()
+        # Start scheduler
+        start_scheduler()
 
-    # Start Telegram bot in a separate thread
-    _start_telegram_bot()
+        # Start Telegram bot in a separate thread
+        _start_telegram_bot()
+        # _start_llm_cache_monitor() # NEW — disabled, not defined
+
 
 
 def _start_telegram_bot() -> None:

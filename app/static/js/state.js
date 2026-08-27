@@ -23,15 +23,14 @@ var themes = [
   { id: 'classy', label: 'Classy' },
 ];
 
-var navItems = ref([
-  { id: 'dashboard', icon: 'ri-dashboard-line', label: 'Dashboard' },
-  { id: 'analysis', icon: 'ri-line-chart-line', label: 'Analysis' },
-  { id: 'shareholders', icon: 'ri-group-line', label: 'Shareholders' },
-  { id: 'brokerdata', icon: 'ri-building-line', label: 'Broker Summary' },
-  { id: 'brokerdaily', icon: 'ri-calendar-line', label: 'Broker Daily' },
-  { id: 'marketreports', icon: 'ri-newspaper-line', label: 'Market Reports' },
-  { id: 'chatbot', icon: 'ri-chat-3-line', label: 'Chatbot' },
-]);
+var navItems = [
+  { view: 'dashboard',     icon: '&#9751;', label: 'Dashboard' },
+  { view: 'analysis',      icon: '&#9776;', label: 'Analysis' },
+  { view: 'shareholders',  icon: '&#128101;', label: 'Shareholders' },
+  { view: 'brokerdata',    icon: '&#128176;', label: 'Broker Data' },
+  { view: 'brokerdaily',   icon: '&#127970;', label: 'Broker Harian' },
+  { view: 'marketreports', icon: '&#128202;', label: 'Market Reports' },
+];
 
 var headerTitle = computed(function() {
   var map = {
